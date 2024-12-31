@@ -11,7 +11,7 @@ public class GifCreator : MonoBehaviour
     public void CreateGif(string outputFilePath)
     {
         // Create a new GifEncoder
-//        var gifEncoder = new GifEncoder(outputFilePath, delayBetweenFrames);
+        //        var gifEncoder = new GifEncoder(outputFilePath, delayBetweenFrames);
 
         // Loop through each image in the jpgList
         foreach (var jpgBytes in jpgList)
@@ -21,21 +21,21 @@ public class GifCreator : MonoBehaviour
             texture.LoadImage(jpgBytes);
 
             // Convert the Texture2D to a Bitmap
-//            System.Drawing.Bitmap bitmap;
+            //            System.Drawing.Bitmap bitmap;
             using (MemoryStream ms = new MemoryStream(jpgBytes))
             {
-  //              bitmap = new System.Drawing.Bitmap(ms);
+                //              bitmap = new System.Drawing.Bitmap(ms);
             }
 
             // Add the frame to the GIF
-//            gifEncoder.AddFrame(bitmap);
+            //            gifEncoder.AddFrame(bitmap);
 
             // Clean up
             Destroy(texture);
-//            bitmap.Dispose();
+            //            bitmap.Dispose();
         }
 
         // Finalize the GIF
- //       gifEncoder.FinishEncoding();
+        //       gifEncoder.FinishEncoding();
     }
 }
