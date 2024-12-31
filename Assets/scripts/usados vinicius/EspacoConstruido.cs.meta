@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ee5250f716b716d47b259c72e413dfe2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - pfab_Predio: {fileID: 4072444335421456219, guid: 63375427ccc1d0e4a9e904a66c86aae0, type: 3}
+  - pfab_Rua: {fileID: 530606391209401509, guid: fa1fed413f5ed7944898403ef63d9278, type: 3}
+  - pfab_meuVizinhoPossivel: {fileID: 5205444636005673537, guid: f7d691f7894e9c24b86303e6620a4257, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
