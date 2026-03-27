@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a97ecc9bb4a9d843ab597e41e5dc9ce, type: 3}
   m_Name: so_rua
   m_EditorClassIdentifier: 
+  tipo: 1
   nome: rua
   escala: {x: 2, y: 1, z: 2}
-  cor: {r: 1, g: 1, b: 1, a: 0}
   bloco: {fileID: 0}
   layer: layer_ruas
+  cor: {r: 1, g: 1, b: 1, a: 0}
+  cor_selecao: {r: 0, g: 1, b: 1, a: 0}
+  cor_visto: {r: 0.4569959, g: 0.8301887, b: 0.34069067, a: 0}

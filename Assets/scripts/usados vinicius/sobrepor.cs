@@ -11,19 +11,23 @@ public static class sobrepor
         
         if (InputsMorfo.tracking)
         {
-            Debug.Log("tracking SP_SeEhPosicaoVazia");
+            Debug.Log("tracking sobrepor");
         }
 
-//        bool bateu = false;
+        //        bool bateu = false;
         // Obtém todos os colliders dos prefabs existentes
-//        if (Physics.OverlapBox(endereco_teste, half_extents).Length > 0) {
-//            bateu = true;
-//        }
-        bool bateu = Physics.CheckBox(endereco_teste, half_extents, Quaternion.identity);
+        //        if (Physics.OverlapBox(endereco_teste, half_extents).Length > 0) {
+        //            bateu = true;
+        //        }
+        int layerMask = (1 << LayerMask.NameToLayer("layer_predios")) | (1 << LayerMask.NameToLayer("layer_lugares"));
+        Collider[] hits = Physics.OverlapBox(endereco_teste, half_extents, Quaternion.identity, layerMask, QueryTriggerInteraction.Collide);
+        return hits.Length > 0;
+
+//        bool bateu = Physics.CheckBox(endereco_teste, half_extents, Quaternion.identity);
         //      bool bateu = Physics.BoxCast(endereco_teste, half_extents, Quaternion.identity.ToEulerAngles(), out RaycastHit quembati);//    (endereco_teste, half_extents, Quaternion.identity);
         //        Debug.Log("bateu em qtos? " + colliders.Length);
         //        Debug.Log("bati: "+ bateu);
-        return bateu;
+ //       return bateu;
     }
 
     public static List<Vector3> SP_Vizinhanca(Vector3 _endereco_ref)
@@ -52,6 +56,7 @@ public static class sobrepor
         return vizinhanca;
     }
 
+    /*
     public static List<Predios> SP_QuaisVizinhos(Vector3 end_cheque)
     {
         if (InputsMorfo.tracking)
@@ -77,6 +82,7 @@ public static class sobrepor
         return _os_vizinhos; // Retorna falso se não houver colisão com outros prefabs
   //      return false; // Retorna falso se não houver colisão com outros prefabs
     }
+    */
 
 
 }

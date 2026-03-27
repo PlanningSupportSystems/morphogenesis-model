@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(vizinhancaFOV))]
+//FORA DE USO
+//[CustomEditor(typeof(vizinhancaFOV))]
 public class CampoVizinhanca : Editor
 {
-
+/*
     protected virtual void OnSceneGUI()
     {
-        vizinhancaFOV areaConstruida = (vizinhancaFOV)target;
+//        vizinhancaFOV areaConstruida = (vizinhancaFOV)target;
 
 //        vizinhancaFOV vizinhancaLivre = target as vizinhancaFOV;
-        if (areaConstruida == null) return;
+ //       if (areaConstruida == null) return;
         Handles.color = new Color(1, 1, 0, 0.3f);
 
         //        Handles.DrawWireArc(fow.transform.position, fow.transform.up, fow.transform.forward, 360f, fow.viewRadius);
@@ -27,7 +28,7 @@ public class CampoVizinhanca : Editor
                        EventType.Repaint
                    );
         */
-
+/*
         Handles.DrawSolidDisc(
             areaConstruida.transform.position,
             areaConstruida.transform.up,
@@ -43,5 +44,5 @@ public class CampoVizinhanca : Editor
             );
 
     }
-
+*/
 }

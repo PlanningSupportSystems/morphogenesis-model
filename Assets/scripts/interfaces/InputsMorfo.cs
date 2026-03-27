@@ -22,6 +22,7 @@ public class InputsMorfo : MonoBehaviour
     public GameObject obj_p_total_obj_visto;
     public GameObject obj_p_total_predio_visto;
     public GameObject obj_p_total_rua_visto;
+    public GameObject obj_p_total_profundidade_rua;
 
     public float p_distanciaMaxima = 0;
     public float p_distanciaMinima = 0;
@@ -30,6 +31,7 @@ public class InputsMorfo : MonoBehaviour
     public float p_total_obj_visto = 1;
     public float p_total_predio_visto = 0;
     public float p_total_rua_visto = 0;
+    public float p_total_profundidade_rua = 0;
 
     public static float peso_distanciaMaxima = 1;
     public static float peso_distanciaMinima = 0;
@@ -38,6 +40,7 @@ public class InputsMorfo : MonoBehaviour
     public static float peso_total_obj_visto = 0;
     public static float peso_total_predio_visto = 0;
     public static float peso_total_rua_visto = 0;
+    public static float peso_total_profundidade_rua = 0;
 
 
     public static int input_totalCasas;
@@ -69,10 +72,14 @@ public class InputsMorfo : MonoBehaviour
     [SerializeField] Toggle toggleRuaMaisUm;
     [SerializeField] Toggle toggleModoIsovista;
     [SerializeField] Toggle toggleModoRandom;
+    [SerializeField] Toggle toggleModoIsoObj;
+    [SerializeField] Toggle toggleModoPreservaIso;
 
     public static bool boolRuaMaisUm;
     public static bool boolModoIsovista;
     public static bool boolModoRandom;
+    public static bool boolModoIsoObj;
+    public static bool boolModoPreservaIso;
 
 
     public GameObject paramedidas;
@@ -81,11 +88,48 @@ public class InputsMorfo : MonoBehaviour
     /// <summary>
     /// textos para escritas das propriedades dos 'novoPredio' e 'lugar'
     /// </summary>
-    public static Text IM_obj_nome;
+    [SerializeField] public static Text IM_obj_nome;
 
-    public static GameObject IM_propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
+    [SerializeField] public static GameObject IM_propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
 
-    public static GameObject IM_propriedades_L;// = GameObject.Find("propriedades_espaco_construido");
+    [SerializeField] public static GameObject IM_propriedades_L;// = GameObject.Find("propriedades_espaco_construido");
+
+    [Header("propriedades novoPredios")]
+    [SerializeField] private Text inicialTotal;
+    public static Text IM_predios_texto_VizinhosInicial_Total;
+    [SerializeField] private Text inicialPredios;
+    public static Text IM_predios_texto_VizinhosInicial_Predios;
+    [SerializeField] private Text inicialRuas;//    IM_predios_texto_VizinhosInicial_Ruas = GameObject.Find("TextVizinhosInicial_Ruas").GetComponent<Text>();
+    public static Text IM_predios_texto_VizinhosInicial_Ruas;//    IM_predios_texto_VizinhosInicial_Ruas = GameObject.Find("TextVizinhosInicial_Ruas").GetComponent<Text>();
+
+    ///vizinhos qd clickado
+    [SerializeField] private Text clickTotal;
+    public static Text IM_predios_texto_VizinhosClick_Total;   //IM_predios_texto_VizinhosClick_Total = GameObject.Find("TextVizinhosTotal_Click").GetComponent<Text>();
+    [SerializeField] private Text clickPredios;
+    public static Text IM_predios_texto_VizinhosClick_Predios; //IM_predios_texto_VizinhosClick_Predios = GameObject.Find("TextVizinhosClick_Predios").GetComponent<Text>();
+    [SerializeField] private Text clickRuas;
+    public static Text IM_predios_texto_VizinhosClick_Ruas;    //IM_predios_texto_VizinhosClick_Ruas = GameObject.Find("TextVizinhosClick_Ruas").GetComponent<Text>();
+
+    [Header("propriedades lugares")]
+    [SerializeField] private Text isoTotalObj;
+    public static Text IM_lugares_texto_Iso_Total_Obj; //Text IM_lugares_texto_Iso_Total_Obj = GameObject.Find("Valor_Iso_Total_Obj").GetComponent<Text>();
+    [SerializeField] private Text isoTotalPredios;
+    public static Text IM_lugares_texto_Iso_Total_Predios; //Text IM_lugares_texto_Iso_Total_Predios = GameObject.Find("Valor_Iso_Total_Predios").GetComponent<Text>();
+    [SerializeField] private Text isoTotalRuas;
+    public static Text IM_lugares_texto_Iso_Total_Ruas; //Text IM_lugares_texto_Iso_Total_Ruas = GameObject.Find("Valor_Iso_Total_Ruas").GetComponent<Text>();
+
+    [SerializeField] private Text isoDistTotal;
+    public static Text IM_lugares_texto_Iso_Distancia_Total; //Text IM_lugares_texto_Iso_Distancia_Total = GameObject.Find("Valor_Dist_Total").GetComponent<Text>();
+    [SerializeField] private Text isoDistMax;
+    public static Text IM_lugares_texto_Iso_Distancia_Maxima; //Text IM_lugares_texto_Iso_Distancia_Maxima = GameObject.Find("Valor_Dist_Max").GetComponent<Text>();
+    [SerializeField] private Text isoDistMedia;
+    public static Text IM_lugares_texto_Iso_Distancia_Media; //Text IM_lugares_texto_Iso_Distancia_Media = GameObject.Find("Valor_Dist_Ave").GetComponent<Text>();
+    [SerializeField] private Text isoDistMin;
+    public static Text IM_lugares_texto_Iso_Distancia_Minima; //Text IM_lugares_texto_Iso_Distancia_Minima = GameObject.Find("Valor_Dist_Min").GetComponent<Text>();
+
+    [SerializeField] private Text isoDistPonderada;
+    public static Text IM_lugares_texto_Iso_Distancia_Ponderada; //Text IM_lugares_texto_Iso_Distancia_Ponderada = GameObject.Find("Valor_Media_Ponderada").GetComponent<Text>();
+
 
     private void tamanhoprefab()
     {
@@ -193,12 +237,14 @@ void Start()
 
         obj_p_total_rua_visto.AddComponent<sliderTexto>();
         obj_p_total_rua_visto.GetComponent<sliderTexto>().OnvariavelChanged += IM_AtualizaVariaveis;
-    
 
-    //        tamanhoprefab();
-    //        medidas = GetComponent<ControleAglomeracao>().TiposEspacoConstruido[0].GetComponent<MeshFilter>().sharedMesh.bounds.size;
+        obj_p_total_profundidade_rua.AddComponent<sliderTexto>();
+        obj_p_total_profundidade_rua.GetComponent<sliderTexto>().OnvariavelChanged += IM_AtualizaVariaveis;
 
-    IM_SetarValores();
+        //        tamanhoprefab();
+        //        medidas = GetComponent<ControleAglomeracao>().TiposEspacoConstruido[0].GetComponent<MeshFilter>().sharedMesh.bounds.size;
+
+        IM_SetarValores();
 
         iTotalVizinhos.GetComponentInChildren<Slider>().value = 4;
 //        iDistanciaAdjacencia.GetComponentInChildren<Slider>().value = 5;
@@ -213,11 +259,36 @@ void Start()
         peso_total_obj_visto = p_total_obj_visto;
         peso_total_predio_visto = p_total_predio_visto;
         peso_total_rua_visto = p_total_rua_visto;
+        peso_total_profundidade_rua = p_total_profundidade_rua;
 
-//        IM_AtribuirCasas();
+        //        IM_AtribuirCasas();
+        inicializaPainelPropriedades();
 
     }
 
+void inicializaPainelPropriedades()
+    {
+        //propriedades NOVOPREDIO
+        IM_predios_texto_VizinhosInicial_Total = inicialTotal; 
+        IM_predios_texto_VizinhosInicial_Predios = inicialPredios; 
+        IM_predios_texto_VizinhosInicial_Ruas = inicialRuas;
+    
+        IM_predios_texto_VizinhosClick_Total = clickTotal;
+        IM_predios_texto_VizinhosClick_Predios = clickPredios;
+        IM_predios_texto_VizinhosClick_Ruas = clickRuas;
+
+        //propriedades LUGAR
+        IM_lugares_texto_Iso_Total_Obj = isoTotalObj;
+        IM_lugares_texto_Iso_Total_Predios = isoTotalPredios;
+        IM_lugares_texto_Iso_Total_Ruas = isoTotalRuas;
+
+        IM_lugares_texto_Iso_Distancia_Total = isoDistTotal;
+        IM_lugares_texto_Iso_Distancia_Maxima = isoDistMax;
+        IM_lugares_texto_Iso_Distancia_Media = isoDistMedia;
+        IM_lugares_texto_Iso_Distancia_Minima = isoDistMin;
+        
+        IM_lugares_texto_Iso_Distancia_Ponderada = isoDistPonderada;
+    }
 
 void IM_SetarValores()
     {
@@ -314,6 +385,9 @@ void IM_SetarValores()
             case "input_peso_ruas_vistas":
                 peso_total_rua_visto = p_total_rua_visto = novaVar;
                 break;
+            case "input_peso_profundidade_ruas":
+                peso_total_profundidade_rua = p_total_profundidade_rua = novaVar;
+                break;
         }
 
 
@@ -335,9 +409,11 @@ void IM_SetarValores()
 
         boolModoIsovista = toggleModoIsovista.isOn;
         boolModoRandom = toggleModoRandom.isOn;
-//        Debug.Log("modo rua +1: " + boolRuaMaisUm + ", modo isovista: " + boolModoIsovista + ", modo random: " + boolModoRandom);
+        //        Debug.Log("modo rua +1: " + boolRuaMaisUm + ", modo isovista: " + boolModoIsovista + ", modo random: " + boolModoRandom);
+        boolModoIsoObj = toggleModoIsoObj.isOn;
+        boolModoPreservaIso = toggleModoPreservaIso.isOn;
 
-        vTotalCasas.text = itotalCasas.text;
+    vTotalCasas.text = itotalCasas.text;
         input_totalCasas = int.Parse(vTotalCasas.text);
 
         //dimensiona mapa (totalCasas);

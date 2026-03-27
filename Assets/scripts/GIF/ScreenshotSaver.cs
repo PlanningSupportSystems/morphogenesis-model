@@ -22,6 +22,7 @@ public class ScreenshotSaver : MonoBehaviour
     public string NI = "screensaver";
 
     string path;// = @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\prototipando\prototipando\prototipando\imagens salvas";
+                //C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\@PSS\morphogenesis model\@imagens geradas\novas img
     public int frameRate = 10; // Frames per second for GIF
     private List<Texture2D> capturedFrames;// = new List<Texture2D>();
     public GameObject menu_foradafoto;
@@ -39,7 +40,8 @@ public class ScreenshotSaver : MonoBehaviour
 
     public ScreenshotSaver()
     {
-        path = @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\prototipando\prototipando\prototipando\imagens salvas";
+        path = //@"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\prototipando\prototipando\prototipando\imagens salvas";
+         @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\@PSS\morphogenesis model\@imagens geradas\novas img";
     }
 
     public void Start()

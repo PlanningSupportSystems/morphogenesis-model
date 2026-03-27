@@ -5,10 +5,16 @@ public class SelectionManager : MonoBehaviour
 {
     private Camera mainCamera;
     private ClickSelect currentSelection;
+    private ClickSelect selectedGameObject;
+    private ISelecionavel selecaoAtual;
+    private ISelecionavel clicado;
+    //    private ISelecionavel selecionado;
 
     void Start()
     {
         mainCamera = Camera.main;
+        selectedGameObject = null;
+        selecaoAtual = null;
     }
 
     void Update()
@@ -18,30 +24,86 @@ public class SelectionManager : MonoBehaviour
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            //            Debug.Log("cliques funfando");
-
-            //            int layer_predios = LayerMask.NameToLayer("Default");
-            //int layer_ruas = LayerMask.NameToLayer("Ignore Raycast");
-
             int layerMask = (1 << LayerMask.NameToLayer("layer_predios"))
                             | (1 << LayerMask.NameToLayer("layer_ruas"))
                             | (1 << LayerMask.NameToLayer("layer_lugares"));
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
             {
-                Debug.Log("raycast " + hit);
+//                Debug.Log("cliques funfando");
+
+                clicado = hit.collider.GetComponent<ISelecionavel>();
+//                Debug.Log("clicado: " + clicado);
+
+                ProcessarClick();
+
+                /*
                 ClickSelect selectable = hit.collider.GetComponent<ClickSelect>();
                 if (selectable != null)
                 {
-                    if (currentSelection != null)
+                    // se clicar no mesmo já selecionado -> desseleciona
+                    if (currentSelection == selectable)
                     {
                         currentSelection.Deselect();
+                        currentSelection = null;
+                        selectedGameObject = null;
                     }
+                    else
+                    {
+                        // se houver um selecionado diferente, desseleciona o anterior
+                        if (currentSelection != null)
+                        {
+                            currentSelection.Deselect();
+                        }
 
-                    currentSelection = selectable;
-                    currentSelection.Select();
+                        // seleciona o novo
+                        currentSelection = selectable;
+                        selectedGameObject = selectable;
+                        currentSelection.Select();
+                    }
                 }
+                */
             }
+            else
+            {
+                LimparSelecao();
+                /*
+                // clique em vazio: desseleciona atual se houver
+                if (currentSelection != null)
+                {
+                    currentSelection.Deselect();
+                    currentSelection = null;
+                    selectedGameObject = null;
+                }
+                */
+            }
+        }
+    }
+
+    void ProcessarClick()
+    {
+//        Debug.Log("processando click ");
+        if (clicado == selecaoAtual)
+        {
+            LimparSelecao();
+            return;
+        }
+
+        LimparSelecao();
+
+        if (clicado != null)
+        {
+            selecaoAtual = clicado;
+            selecaoAtual.Select();
+        }
+    }
+
+    void LimparSelecao()
+    {
+        if (selecaoAtual != null)
+        {
+            selecaoAtual.Deselect();
+            selecaoAtual = null;
         }
     }
 }

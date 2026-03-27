@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a97ecc9bb4a9d843ab597e41e5dc9ce, type: 3}
   m_Name: so_lugar
   m_EditorClassIdentifier: 
+  tipo: 2
   nome: lugar
-  escala: {x: 1, y: 1, z: 1}
+  escala: {x: 1, y: 2, z: 1}
   cor: {r: 0.057386946, g: 0.49056602, b: 0.06577322, a: 0}
   bloco: {fileID: 0}
   layer: layer_lugares
