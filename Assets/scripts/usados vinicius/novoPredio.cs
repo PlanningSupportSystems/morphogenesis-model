@@ -312,7 +312,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         this.transform.position = np_endereco;
 
     }
-    void isoplace()
+    void velho_isoplace()
     {
         ///carregar todos os valores
         ///mutiplicar -> V1*p1 + V2*p2 + V3*p3..../sum(p...)
@@ -326,6 +326,66 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         foreach (lugar l in Controles.Geral_Lugares)
         {
             l.L_CalculeIsovistas(_templayer);
+        }
+
+        float ref_medida_geral_ponderada = Controles.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
+        List<lugar> lista_medida_geral_ponderada = Controles.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
+
+        int _index_medida_geral_ponderada = UnityEngine.Random.Range(0, lista_medida_geral_ponderada.Count);
+
+        lugartemp = lista_medida_geral_ponderada[_index_medida_geral_ponderada];
+        Debug.Log("lugares pra escolha: " + lista_medida_geral_ponderada.Count + ", escolhido: " + lugartemp._nome + ", indice " + _index_medida_geral_ponderada);
+
+        np_endereco = lugartemp._endereco;
+
+        if (lugartemp != null)
+        {
+            var cols = lugartemp.GetComponentsInChildren<Collider>();
+            foreach (var c in cols) if (c != null) c.enabled = false;
+            if (lugartemp.minhaCelula != null)
+            {
+                // centraliza destruição no próprio lugar
+                addCelula(lugartemp.minhaCelula);// minhaCelula = lugartemp.minhaCelula;
+                minhaCelula.addnovoPredio(this);
+            }
+        }
+
+
+
+        this.transform.position = np_endereco;
+
+    }
+
+    void isoplace()
+    {
+        if (Controles.Geral_Lugares == null || Controles.Geral_Lugares.Count == 0)
+        {
+            Debug.LogWarning("Nao ha lugares candidatos para avaliar.");
+            return;
+        }
+        //seta a layer onde vai fazer as medidas de isovista, pegar so predios e ruas, e nao pegar lugares
+        int _templayer = (1 << LayerMask.NameToLayer("layer_predios"))
+                 ;
+        // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
+        lugar primeiroLugar = Controles.Geral_Lugares[0];
+        primeiroLugar.L_CalculeIsovistas(_templayer);   // calculou primeiroLugar.minhasMedidasBrutas
+
+        ValoresReferenciaNormalizacao referencia_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.minhasMedidasBrutas);
+
+        // ===== RESTANTE DA PRIMEIRA VARREDURA =====
+        for (int i = 1; i < Controles.Geral_Lugares.Count; i++)
+        {
+            lugar lugar = Controles.Geral_Lugares[i];
+            lugar.L_CalculeIsovistas(_templayer);
+            Normalizador.ChecarSeReferencia(ref referencia_normalizacao, lugar.minhasMedidasBrutas);
+        }
+
+        // ===== SEGUNDA VARREDURA: NORMALIZAR =====
+        for (int i = 0; i < Controles.Geral_Lugares.Count; i++)
+        {
+            lugar lugar = Controles.Geral_Lugares[i];
+            lugar.medidasNormalizadas = Normalizador.Normalizar(lugar.minhasMedidasBrutas, referencia_normalizacao);
         }
 
         float ref_medida_geral_ponderada = Controles.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);

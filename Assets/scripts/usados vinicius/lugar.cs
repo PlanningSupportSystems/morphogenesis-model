@@ -50,6 +50,9 @@ public class lugar : MonoBehaviour, ISelecionavel
     public List<novoPredio> total_predio_visto;
     public List<novoPredio> total_rua_visto;
 
+    public MedidasBrutas minhasMedidasBrutas;
+    public MedidasNormalizadas medidasNormalizadas;
+
 
     public lugar(Vector3 _meu_end)
     {
@@ -151,6 +154,20 @@ public class lugar : MonoBehaviour, ISelecionavel
         total_predio_visto = pred.Where(p => p != null).ToList(); //total_predio_visto = new List<novoPredio>(iso.prediosVistos);
         total_rua_visto = ruas.Where(p => p != null).ToList();    //total_rua_visto = new List<novoPredio>(iso.ruasVistos);
 
+        minhasMedidasBrutas = new MedidasBrutas(
+                        distanciaMaxima,
+                        distanciaMedia,
+                        distanciaMinima,
+                        //distanciaTotal,
+                        total_obj_visto.Count,
+                        total_predio_visto.Count,// totalPrediosVistos,
+                        total_rua_visto.Count// totalRuasVistas,
+//                        totalProfundidadeRua
+                        );
+
+
+//    public float totalProfundidadeRua;
+
         normalizado_distanciaMaxima = iso.normalizado_distanciaMaxima;
         normalizado_distanciaMinima = iso.normalizado_distanciaMinima;
         normalizado_distanciaMedia = iso.normalizado_distanciaMedia;
@@ -174,15 +191,14 @@ public class lugar : MonoBehaviour, ISelecionavel
 //        normalizado_total_rua_visto = (float)total_rua_visto.Count / Controles.lugar_ruas_vistos_maximo;
         //        Debug.Log("normalizado predios visto: " + normalizado_total_rua_visto + ", lugar predios vistos: " + Controles.lugar_ruas_vistos_maximo + ", total ruas visto: " + total_rua_visto.Count);
 
-        medida_geral_ponderada = InputsMorfo.peso_distanciaMaxima * normalizado_distanciaMaxima + 
-                                 InputsMorfo.peso_distanciaMinima * normalizado_distanciaMinima + 
-                                 InputsMorfo.peso_distanciaMedia * normalizado_distanciaMedia +
-                                 InputsMorfo.peso_distanciaTotal * normalizado_distanciaTotal +
-                                 InputsMorfo.peso_total_obj_visto * normalizado_totalObjVisto +         
-                                 InputsMorfo.peso_total_predio_visto * normalizado_total_predio_visto +
-                                 InputsMorfo.peso_total_rua_visto * normalizado_total_rua_visto + //ajustar o divisor para valor final normalizado tambem
-                                 InputsMorfo.peso_total_profundidade_rua * normalizado_total_profundidade_rua; //ajustar o divisor para valor final normalizado tambem
-
+        medida_geral_ponderada = InputsMorfo.peso_distanciaMaxima * medidasNormalizadas.distanciaMaxima + // normalizado_distanciaMaxima +
+                                 InputsMorfo.peso_distanciaMinima * medidasNormalizadas.distanciaMinima + // normalizado_distanciaMinima +
+                                 InputsMorfo.peso_distanciaMedia * medidasNormalizadas.distanciaMedia + // normalizado_distanciaMedia +
+                                                                                                        //                                 InputsMorfo.peso_distanciaTotal * normalizado_distanciaTotal +
+                                 InputsMorfo.peso_total_obj_visto * medidasNormalizadas.totalObjVisto + // normalizado_totalObjVisto +
+                                 InputsMorfo.peso_total_predio_visto * medidasNormalizadas.totalPrediosVistos + // normalizado_total_predio_visto +
+                                 InputsMorfo.peso_total_rua_visto * medidasNormalizadas.totalRuasVistas; // normalizado_total_rua_visto + //ajustar o divisor para valor final normalizado tambem
+//                                 InputsMorfo.peso_total_profundidade_rua * normalizado_total_profundidade_rua; //ajustar o divisor para valor final normalizado tambem
 
         //        Debug.Log("medida geral ponderada: " + medida_geral_ponderada);
         //Debug.Log("medidas gerais: " + InputsMorfo.peso_distanciaMaxima * normalizado_distanciaMaxima +", "
@@ -192,7 +208,6 @@ public class lugar : MonoBehaviour, ISelecionavel
         //                             + InputsMorfo.peso_total_obj_visto * total_obj_visto.Count + ", "
         //                             + InputsMorfo.peso_total_predio_visto * total_predio_visto.Count + ", "
         //                             + InputsMorfo.peso_total_rua_visto * total_rua_visto.Count);
-
 
         return iso;
     }
@@ -305,27 +320,42 @@ public class lugar : MonoBehaviour, ISelecionavel
 
         LayerMask _templayer = LayerMask.GetMask("layer_predios", "layer_ruas");//, "layer_lugares");
 
-//        L_CalculeIsovistas(_templayer);
-        foreach (lugar l in Controles.Geral_Lugares)
+        // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
+        lugar primeiroLugar = Controles.Geral_Lugares[0];
+        primeiroLugar.L_CalculeIsovistas(_templayer);   // calculou primeiroLugar.minhasMedidasBrutas
+
+        ValoresReferenciaNormalizacao referencia_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.minhasMedidasBrutas);
+
+        // ===== RESTANTE DA PRIMEIRA VARREDURA =====
+        for (int i = 1; i < Controles.Geral_Lugares.Count; i++)
         {
-            IsovistaP i = l.L_CalculeIsovistas(_templayer);
-            if (l == this) _iso_display = i; //armazenar isovista do lugar selecionado para mostrar mesh depois 
+            lugar lugar = Controles.Geral_Lugares[i];
+            lugar.L_CalculeIsovistas(_templayer);
+            Normalizador.ChecarSeReferencia(ref referencia_normalizacao, lugar.minhasMedidasBrutas);
+        }
+
+        // ===== SEGUNDA VARREDURA: NORMALIZAR =====
+        for (int i = 0; i < Controles.Geral_Lugares.Count; i++)
+        {
+            lugar lugar = Controles.Geral_Lugares[i];
+            lugar.medidasNormalizadas = Normalizador.Normalizar(lugar.minhasMedidasBrutas, referencia_normalizacao);
         }
 
         //            OBJ_nome.GetComponent<Text>().text = esteLugar._nome;
         InputsMorfo.IM_obj_nome.text = _nome;
-        InputsMorfo.IM_lugares_texto_Iso_Total_Obj.text = total_obj_visto.Count.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Total_Predios.text = total_predio_visto.Count.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Total_Ruas.text = total_rua_visto.Count.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Total_Obj.text = minhasMedidasBrutas.totalObjVisto.ToString() + " / " + medidasNormalizadas.totalObjVisto.ToString("F2");// total_obj_visto.Count.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Total_Predios.text = minhasMedidasBrutas.totalPrediosVistos.ToString() + " / " + medidasNormalizadas.totalPrediosVistos.ToString("F2");//  total_predio_visto.Count.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Total_Ruas.text = minhasMedidasBrutas.totalRuasVistas.ToString() + " / " + medidasNormalizadas.totalRuasVistas.ToString("F2");// total_rua_visto.Count.ToString();
 
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Total.text = normalizado_distanciaTotal.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Maxima.text = normalizado_distanciaMaxima.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Media.text = normalizado_distanciaMedia.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Minima.text = normalizado_distanciaMinima.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Total.text = normalizado_distanciaTotal.ToString("F2");
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Maxima.text = medidasNormalizadas.distanciaMaxima.ToString("F2") + " / " + minhasMedidasBrutas.distanciaMaxima.ToString("F2");// normalizado_distanciaMaxima.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Media.text = medidasNormalizadas.distanciaMedia.ToString("F2") + " / " + minhasMedidasBrutas.distanciaMedia.ToString("F2");// normalizado_distanciaMedia.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Minima.text = medidasNormalizadas.distanciaMinima.ToString("F2") + " / " + minhasMedidasBrutas.distanciaMinima.ToString("F2");// normalizado_distanciaMinima.ToString();
 
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Ponderada.text = medida_geral_ponderada.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Ponderada.text = medida_geral_ponderada.ToString("F2");
 
-//        _iso_display = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
+        //        _iso_display = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
+        _iso_display = L_CalculeIsovistas(_templayer);
         _iso_display.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
         _iso_display.isoMesh(_iso_display.pontosContorno, _nome + "mesh");
 
