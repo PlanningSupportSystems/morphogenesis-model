@@ -1,3 +1,4 @@
+
 this model is a work in progress of how urban agglomerations might have developed from the begining, before planning, before even hamlets emerged. 
 the aim, at this very moment, is to find out which geometric principles and spacial forces allow the emergence of blocks and streets. is it
 a purelly geometric, or purelly spatial? a combination of both principles? or are there more domains involved, principles, forces?
