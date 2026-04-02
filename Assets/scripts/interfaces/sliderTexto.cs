@@ -21,13 +21,17 @@ public class sliderTexto : MonoBehaviour
     {
 //        Debug.Log("slider chamando");
         _slider = this.GetComponentInChildren<Slider>();
-        _texto = _slider.GetComponentInChildren<Text>();
-        _inputField = this.GetComponentInChildren<InputField>();
+        if (_slider != null)
+        {
+            _texto = _slider.GetComponentInChildren<Text>();
+            _inputField = this.GetComponentInChildren<InputField>();
 
-        atualizeViaSlider(_slider.value);
-        _slider.onValueChanged.AddListener(atualizeViaSlider);
+            atualizeViaSlider(_slider.value);
+            _slider.onValueChanged.AddListener(atualizeViaSlider);
 
-        
+        }
+
+
         if (_inputField != null) 
         { 
             atualizeViaTexto(_inputField.text);
