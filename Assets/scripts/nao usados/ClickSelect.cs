@@ -138,9 +138,9 @@ public class ClickSelect : MonoBehaviour
 
             Debug.Log("click campo visao qual a layer: " + _templayer);
 
-            _iso_display = new IsovistaP(esteNovoPredio.np_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-            _iso_display.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
-            _iso_display.isoMesh(_iso_display.pontosContorno, esteNovoPredio.np_nome + "mesh");
+            iso = new IsovistaP(esteNovoPredio.np_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
+            iso.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+            iso.isoMesh(iso.pontosContorno, esteNovoPredio.np_nome + "mesh");
             */
 
         }
@@ -187,9 +187,9 @@ public class ClickSelect : MonoBehaviour
                        | (1 << LayerMask.NameToLayer("layer_ruas"))
      //                | (1 << LayerMask.NameToLayer("layer_lugares"))
                        ;
-            _iso_display = new IsovistaP( esteLugar._endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-            _iso_display.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
-            _iso_display.isoMesh(_iso_display.pontosContorno, esteLugar._nome + "mesh");
+            iso = new IsovistaP( esteLugar._endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
+            iso.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+            iso.isoMesh(iso.pontosContorno, esteLugar._nome + "mesh");
 */
         }
 
@@ -204,10 +204,10 @@ public class ClickSelect : MonoBehaviour
             objectRenderer.material.color = originalColor;
 
         // destruir iso mesh se existir
-        if (_iso_display != null)
+        if (iso != null)
         {
-            _iso_display.destruirMesh();
-            _iso_display = null;
+            iso.destruirMesh();
+            iso = null;
         }
 
         // Se foi um novoPredio selecionado, restaura cores dos vizinhos (com checagens de null)

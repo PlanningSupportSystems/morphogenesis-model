@@ -64,7 +64,7 @@ public class detectarVizinhanca : MonoBehaviour
         }
 //        return (angulosLivres);
 //        Debug.Log(raiosAtingiram.Length + " raios bateram em alguem");
-        // Crie raios visualmente (para debug)
+        // Crie raios visualmente (para debug_novoPredio)
         foreach (RaycastHit r in raiosAtingiram)
         {
   //          Debug.Log("bateu em" + r.collider );

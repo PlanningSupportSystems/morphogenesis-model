@@ -17,11 +17,10 @@ public class lugar : MonoBehaviour, ISelecionavel
     public Color corOriginal;
     GameObject _propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
     GameObject _propriedades_L;// = GameObject.Find("propriedades_lugar_alocado");
-    IsovistaP _iso_display;
-
 
     //    ControleAglomeracao Controles;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
     private ControleAglomeracao Controles;// = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+
     private Vector3 half = default;
     public Vector3 _endereco = default;
     public string _nome;
@@ -29,31 +28,12 @@ public class lugar : MonoBehaviour, ISelecionavel
     public int contagem = 0;
     private int _indice;
 
-    public float distanciaMaxima;
-    public float distanciaMinima;
-    public float distanciaMedia;
-    public float distanciaTotal;
-
-    public float normalizado_distanciaTotal;
-    public float normalizado_distanciaMaxima;
-    public float normalizado_distanciaMedia;
-    public float normalizado_distanciaMinima;
-
-    public float normalizado_totalObjVisto;         //criar leito em Controle Aglomeracao para total de predios
-    public float normalizado_total_predio_visto;
-    public float normalizado_total_rua_visto;
-    public float normalizado_total_profundidade_rua;
-
-
-    public float medida_geral_ponderada;
-
-    public List<novoPredio> total_obj_visto;
-    public List<novoPredio> total_predio_visto;
-    public List<novoPredio> total_rua_visto;
-
+    public IsovistaP iso;
     public MedidasBrutas minhasMedidasBrutas;
     public MedidasNormalizadas medidasNormalizadas;
+    public float medida_geral_ponderada;
 
+    public bool debug_lugar = false;
 
     public lugar(Vector3 _meu_end)
     {
@@ -98,10 +78,10 @@ public class lugar : MonoBehaviour, ISelecionavel
 //        this.gameObject.name =  _nome;
         Controles.Geral_Lugares.Add(this);
         _indice = Controles.Geral_Lugares.IndexOf(this);
-//        Debug.Log(this.name + ", start indice: " + _indice + "; lugares count: " + Controles.Geral_Lugares.Count);
+        //        Debug.Log(this.name + ", start indice: " + _indice + "; lugares count: " + Controles.Geral_Lugares.Count);
 
         ///fazer checagem se esta sobrepondo alguem
-//        L_ChecaSobrepor();
+        //        L_ChecaSobrepor();
 
         LayerMask _templayer = LayerMask.GetMask("layer_predios", "layer_ruas"/*, "layer_lugares"*/);
 //        int _templayer = (1 << LayerMask.NameToLayer("layer_predios"))
@@ -121,7 +101,7 @@ public class lugar : MonoBehaviour, ISelecionavel
     {
         minhaCelula = c;
         enderecoCelula = c.endereco.ToString();
-//        Debug.Log("LUGAR: lugar " + this._nome + " recebeu celula " + enderecoCelula);
+        if (debug_lugar) Debug.Log("LUGAR: lugar " + this._nome + " recebeu celula " + enderecoCelula);
     }
 
     /*
@@ -137,95 +117,22 @@ public class lugar : MonoBehaviour, ISelecionavel
 
     public IsovistaP L_CalculeIsovistas(LayerMask _templayer)
     {
-
         ///substituir valores para raio_de_visao
-        IsovistaP iso = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
+        iso = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
         iso.campoVisao();
-        distanciaMaxima = iso.distanciasPontosContorno.Max();
-        distanciaMinima = iso.distanciasPontosContorno.Min();
-        distanciaMedia = iso.distanciasPontosContorno.Average();
-        distanciaTotal = iso.distanciasPontosContorno.Sum();
-
-        total_obj_visto = new List<novoPredio>(iso.prediosVistos);
-      // substitua as 3 linhas por isto:
-        var pred = iso.prediosVistos ?? new HashSet<novoPredio>();
-        var ruas = iso.ruasVistos ?? new HashSet<novoPredio>();
-
-        total_obj_visto = pred.Union(ruas).Where(p => p != null).ToList();
-        total_predio_visto = pred.Where(p => p != null).ToList(); //total_predio_visto = new List<novoPredio>(iso.prediosVistos);
-        total_rua_visto = ruas.Where(p => p != null).ToList();    //total_rua_visto = new List<novoPredio>(iso.ruasVistos);
-
-        minhasMedidasBrutas = new MedidasBrutas(
-                        distanciaMaxima,
-                        distanciaMedia,
-                        distanciaMinima,
-                        //distanciaTotal,
-                        total_obj_visto.Count,
-                        total_predio_visto.Count,// totalPrediosVistos,
-                        total_rua_visto.Count// totalRuasVistas,
-//                        totalProfundidadeRua
-                        );
 
 
-//    public float totalProfundidadeRua;
-
-        /*
-        normalizado_distanciaMaxima = iso.normalizado_distanciaMaxima;
-        normalizado_distanciaMinima = iso.normalizado_distanciaMinima;
-        normalizado_distanciaMedia = iso.normalizado_distanciaMedia;
-        normalizado_distanciaTotal = iso.normalizado_distanciaTotal;
-
-        //"ouvir" em Controle Aglomeracao para total de objetos VISTOS. isso vale para predios e para ruas tambem.
-        if (Controles.lugar_obj_vistos_maximo < total_obj_visto.Count) { Controles.lugar_obj_vistos_maximo = total_obj_visto.Count; }
-        normalizado_totalObjVisto = (float)total_obj_visto.Count / Controles.lugar_obj_vistos_maximo;
-//        Debug.Log("normalizado obj visto: " + normalizado_totalObjVisto + ", lugar obj vistos: " +Controles.lugar_obj_vistos_maximo + ", total obj visto: "+ total_obj_visto.Count);
-
-        if (Controles.lugar_predios_vistos_maximo <= total_predio_visto.Count) { Controles.lugar_predios_vistos_maximo = total_predio_visto.Count; }
-        normalizado_total_predio_visto = (float)total_predio_visto.Count / Controles.lugar_predios_vistos_maximo;
-//        Debug.Log("normalizado predios visto: " + normalizado_total_predio_visto + ", lugar predios vistos: " + Controles.lugar_predios_vistos_maximo + ", total predios visto: " + total_predio_visto.Count);
-
-        if (Controles.lugar_ruas_vistos_maximo <= total_rua_visto.Count) { Controles.lugar_ruas_vistos_maximo = total_rua_visto.Count; }
-        normalizado_total_rua_visto = (float)total_rua_visto.Count / Controles.lugar_ruas_vistos_maximo;
-        //        Debug.Log("normalizado predios visto: " + normalizado_total_rua_visto + ", lugar predios vistos: " + Controles.lugar_ruas_vistos_maximo + ", total ruas visto: " + total_rua_visto.Count);
-        */
-
-
-//FAZER PARA PROFUNDIDADE DE RUA
-//        if (Controles.lugar_ruas_vistos_maximo <= total_rua_visto.Count) { Controles.lugar_ruas_vistos_maximo = total_rua_visto.Count; }
-//        normalizado_total_rua_visto = (float)total_rua_visto.Count / Controles.lugar_ruas_vistos_maximo;
-        //        Debug.Log("normalizado predios visto: " + normalizado_total_rua_visto + ", lugar predios vistos: " + Controles.lugar_ruas_vistos_maximo + ", total ruas visto: " + total_rua_visto.Count);
-
-        /*
-        medida_geral_ponderada = InputsMorfo.peso_distanciaMaxima * medidasNormalizadas.distanciaMaxima + // normalizado_distanciaMaxima +
-                                 InputsMorfo.peso_distanciaMinima * medidasNormalizadas.distanciaMinima + // normalizado_distanciaMinima +
-                                 InputsMorfo.peso_distanciaMedia * medidasNormalizadas.distanciaMedia + // normalizado_distanciaMedia +
-                                                                                                        //                                 InputsMorfo.peso_distanciaTotal * normalizado_distanciaTotal +
-                                 InputsMorfo.peso_total_obj_visto * medidasNormalizadas.totalObjVisto + // normalizado_totalObjVisto +
-                                 InputsMorfo.peso_total_predio_visto * medidasNormalizadas.totalPrediosVistos + // normalizado_total_predio_visto +
-                                 InputsMorfo.peso_total_rua_visto * medidasNormalizadas.totalRuasVistas; // normalizado_total_rua_visto + //ajustar o divisor para valor final normalizado tambem
-                         */                                                                                //                                 InputsMorfo.peso_total_profundidade_rua * normalizado_total_profundidade_rua; //ajustar o divisor para valor final normalizado tambem
-        /*
-        float soma = 0f;
-        float somaPesos = 0f;
-
-        AcumularPonderacao("distMax", medidasNormalizadas.distanciaMaxima, InputsMorfo.peso_distanciaMaxima, ref soma, ref somaPesos);
-        AcumularPonderacao("distMin", medidasNormalizadas.distanciaMinima, InputsMorfo.peso_distanciaMinima, ref soma, ref somaPesos);
-        AcumularPonderacao("distMedia", medidasNormalizadas.distanciaMedia, InputsMorfo.peso_distanciaMedia, ref soma, ref somaPesos);
-        AcumularPonderacao("objVisto", medidasNormalizadas.totalObjVisto, InputsMorfo.peso_total_obj_visto, ref soma, ref somaPesos);
-        AcumularPonderacao("predio", medidasNormalizadas.totalPrediosVistos, InputsMorfo.peso_total_predio_visto, ref soma, ref somaPesos);
-        AcumularPonderacao("rua", medidasNormalizadas.totalRuasVistas, InputsMorfo.peso_total_rua_visto, ref soma, ref somaPesos);
-
-        float medida_geral_ponderada = (somaPesos > 0f) ? soma / somaPesos : 0f;
-        */
-
-        //        Debug.Log("medida geral ponderada: " + medida_geral_ponderada);
-        //Debug.Log("medidas gerais: " + InputsMorfo.peso_distanciaMaxima * normalizado_distanciaMaxima +", "
-        //                             + InputsMorfo.peso_distanciaMinima * normalizado_distanciaMinima + ", "
-        //                             + InputsMorfo.peso_distanciaMedia * normalizado_distanciaMedia + ", "
-        //                             + InputsMorfo.peso_distanciaTotal * normalizado_distanciaTotal + ", "
-        //                             + InputsMorfo.peso_total_obj_visto * total_obj_visto.Count + ", "
-        //                             + InputsMorfo.peso_total_predio_visto * total_predio_visto.Count + ", "
-        //                             + InputsMorfo.peso_total_rua_visto * total_rua_visto.Count);
+        if (debug_lugar)
+        {
+            //        Debug.Log("medida geral ponderada: " + medida_geral_ponderada);
+            //Debug.Log("medidas gerais: " + InputsMorfo.peso_distanciaMaxima * normalizado_distanciaMaxima +", "
+            //                             + InputsMorfo.peso_distanciaMinima * normalizado_distanciaMinima + ", "
+            //                             + InputsMorfo.peso_distanciaMedia * normalizado_distanciaMedia + ", "
+            //                             + InputsMorfo.peso_distanciaTotal * normalizado_distanciaTotal + ", "
+            //                             + InputsMorfo.peso_total_obj_visto * total_obj_visto.Count + ", "
+            //                             + InputsMorfo.peso_total_predio_visto * total_predio_visto.Count + ", "
+            //                             + InputsMorfo.peso_total_rua_visto * total_rua_visto.Count);
+        }
 
         return iso;
     }
@@ -241,22 +148,27 @@ public class lugar : MonoBehaviour, ISelecionavel
         AcumularPonderacao("objVisto", medidasNormalizadas.totalObjVisto, InputsMorfo.peso_total_obj_visto, ref soma, ref somaPesos);
         AcumularPonderacao("predio", medidasNormalizadas.totalPrediosVistos, InputsMorfo.peso_total_predio_visto, ref soma, ref somaPesos);
         AcumularPonderacao("rua", medidasNormalizadas.totalRuasVistas, InputsMorfo.peso_total_rua_visto, ref soma, ref somaPesos);
+//        AcumularPonderacao("profundidade rua", medidasNormalizadas.ProfundidadeRua, InputsMorfo.peso_total_profundidade_rua, ref soma, ref somaPesos);
+        AcumularPonderacao("area vista", medidasNormalizadas.areaIsovista, InputsMorfo.peso_distanciaTotal, ref soma, ref somaPesos);
 
         medida_geral_ponderada = (somaPesos > 0f) ? soma / somaPesos : 0f;
     }
     void AcumularPonderacao(string nome, float valor, float peso, ref float soma, ref float somaPesos)
     {
         if (peso <= 0f) {
-            Debug.Log($"{nome} IGNORADO (peso = 0)");
+            if (debug_lugar) Debug.Log($"{nome} IGNORADO (peso = 0)");
             return;
         }
         float contribuicao = valor * peso;
         soma += valor * peso;
         somaPesos += peso;
 
-        Debug.Log(
-    $"{nome} | valor: {valor:F3} | peso: {peso:F3} | contrib: {contribuicao:F3} | soma: {soma:F3} | somaPesos: {somaPesos:F3}"
-    );
+        debug_lugar = false;
+        if (debug_lugar) Debug.Log(
+                        $"{nome} | valor: {valor:F3} | peso: {peso:F3} | contrib: {contribuicao:F3} " +
+                        $"| soma: {soma:F3} | somaPesos: {somaPesos:F3}"
+        );
+        debug_lugar = false;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -370,45 +282,64 @@ public class lugar : MonoBehaviour, ISelecionavel
         lugar primeiroLugar = Controles.Geral_Lugares[0];
         primeiroLugar.L_CalculeIsovistas(_templayer);   // calculou primeiroLugar.minhasMedidasBrutas
 
-        ValoresReferenciaNormalizacao referencia_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.minhasMedidasBrutas);
+        ValoresReferenciaNormalizacao referencia_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.iso.medidasBrutas);// minhasMedidasBrutas);
 
         // ===== RESTANTE DA PRIMEIRA VARREDURA =====
         for (int i = 1; i < Controles.Geral_Lugares.Count; i++)
         {
             lugar lugar = Controles.Geral_Lugares[i];
             lugar.L_CalculeIsovistas(_templayer);
-            Normalizador.ChecarSeReferencia(ref referencia_normalizacao, lugar.minhasMedidasBrutas);
+            Normalizador.ChecarSeReferencia(ref referencia_normalizacao, lugar.iso.medidasBrutas);// minhasMedidasBrutas);
         }
 
         // ===== SEGUNDA VARREDURA: NORMALIZAR =====
         for (int i = 0; i < Controles.Geral_Lugares.Count; i++)
         {
             lugar lugar = Controles.Geral_Lugares[i];
-            lugar.medidasNormalizadas = Normalizador.Normalizar(lugar.minhasMedidasBrutas, referencia_normalizacao);
-            lugar.PonderarMedia();
+            medidasNormalizadas = Normalizador.Normalizar(lugar.iso.medidasBrutas/*minhasMedidasBrutas*/, referencia_normalizacao);
+            PonderarMedia();
         }
 
         //            OBJ_nome.GetComponent<Text>().text = esteLugar._nome;
         InputsMorfo.IM_obj_nome.text = _nome;
-        InputsMorfo.IM_lugares_texto_Iso_Total_Obj.text = minhasMedidasBrutas.totalObjVisto.ToString() + " / " + medidasNormalizadas.totalObjVisto.ToString("F2");// total_obj_visto.Count.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Total_Predios.text = minhasMedidasBrutas.totalPrediosVistos.ToString() + " / " + medidasNormalizadas.totalPrediosVistos.ToString("F2");//  total_predio_visto.Count.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Total_Ruas.text = minhasMedidasBrutas.totalRuasVistas.ToString() + " / " + medidasNormalizadas.totalRuasVistas.ToString("F2");// total_rua_visto.Count.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Total_Obj.text = /*minhasMedidasBrutas*/ iso.medidasBrutas.totalObjVisto.ToString() + " / " + medidasNormalizadas.totalObjVisto.ToString("F2");// total_obj_visto.Count.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Total_Predios.text = /*minhasMedidasBrutas */ iso.medidasBrutas.totalPrediosVistos.ToString() + " / " + medidasNormalizadas.totalPrediosVistos.ToString("F2");//  total_predio_visto.Count.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Total_Ruas.text = /*minhasMedidasBrutas */ iso.medidasBrutas.totalRuasVistas.ToString() + " / " + medidasNormalizadas.totalRuasVistas.ToString("F2");// total_rua_visto.Count.ToString();
 
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Total.text = normalizado_distanciaTotal.ToString("F2");
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Maxima.text = medidasNormalizadas.distanciaMaxima.ToString("F2") + " / " + minhasMedidasBrutas.distanciaMaxima.ToString("F2");// normalizado_distanciaMaxima.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Media.text = medidasNormalizadas.distanciaMedia.ToString("F2") + " / " + minhasMedidasBrutas.distanciaMedia.ToString("F2");// normalizado_distanciaMedia.ToString();
-        InputsMorfo.IM_lugares_texto_Iso_Distancia_Minima.text = medidasNormalizadas.distanciaMinima.ToString("F2") + " / " + minhasMedidasBrutas.distanciaMinima.ToString("F2");// normalizado_distanciaMinima.ToString();
+        //area isovista usada no lugar de distancia total. era uma tentativa d integracao
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Total.text = medidasNormalizadas.areaIsovista.ToString("F2") + " / " + /*minhasMedidasBrutas */ iso.medidasBrutas.areaIsovista.ToString("F2");// normalizado_distanciaTotal.ToString("F2");
+
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Maxima.text = medidasNormalizadas.distanciaMaxima.ToString("F2") + " / " + /*minhasMedidasBrutas */ iso.medidasBrutas.distanciaMaxima.ToString("F2");// normalizado_distanciaMaxima.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Media.text = medidasNormalizadas.distanciaMedia.ToString("F2") + " / " + /*minhasMedidasBrutas */ iso.medidasBrutas.distanciaMedia.ToString("F2");// normalizado_distanciaMedia.ToString();
+        InputsMorfo.IM_lugares_texto_Iso_Distancia_Minima.text = medidasNormalizadas.distanciaMinima.ToString("F2") + " / " + /*minhasMedidasBrutas */ iso.medidasBrutas.distanciaMinima.ToString("F2");// normalizado_distanciaMinima.ToString();
+
+        InputsMorfo.IM_lugares_texto_Iso_Profundidade_Rua.text = medidasNormalizadas.ProfundidadeRua.ToString("F2") + " / " + /*minhasMedidasBrutas */ iso.medidasBrutas.ProfundidadeRua.ToString("F2");// normalizado_total_profundidade_Rua.ToString();
 
         InputsMorfo.IM_lugares_texto_Iso_Distancia_Ponderada.text = medida_geral_ponderada.ToString("F2");
 
-        //        _iso_display = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-        _iso_display = L_CalculeIsovistas(_templayer);
-        _iso_display.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
-        _iso_display.isoMesh(_iso_display.pontosContorno, _nome + "mesh");
+        //        iso = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
+//        iso = L_CalculeIsovistas(_templayer);
+//        iso.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+        iso.isoMesh(iso.pontosContorno, _nome + "mesh");
 
-        foreach (novoPredio p in total_obj_visto)
+        debug_lugar = true;
+        if (debug_lugar) Debug.Log("produnidade rua: " + iso.medidasBrutas.ProfundidadeRua);// total_profundidade_Rua);
+        debug_lugar = false;
+
+        if (iso.prediosVistos != null)
         {
-            if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor_visto;
+            foreach (novoPredio p in iso.prediosVistos)
+            {
+                if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor_visto;
+            }
+        }
+
+        if (iso.ruasVistos != null)
+        {
+            foreach (novoPredio p in iso.ruasVistos)
+            {
+                if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor_visto;
+            }
         }
 
     }
@@ -425,15 +356,26 @@ public class lugar : MonoBehaviour, ISelecionavel
         GetComponent<Renderer>().material.color = corOriginal;
 
         // destruir iso mesh se existir
-        if (_iso_display != null)
+        if (iso != null)
         {
-            _iso_display.destruirMesh();
-            _iso_display = null;
+            iso.destruirMesh();
+            iso = null;
         }
 
-        foreach (novoPredio p in total_obj_visto)
+        if (iso.prediosVistos != null)
         {
-            if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor;
+            foreach (novoPredio p in iso.prediosVistos)
+            {
+                if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor;
+            }
+        }
+        if (iso.ruasVistos != null)
+        {
+            foreach (novoPredio p in iso.ruasVistos)
+            {
+                if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor;
+            }
+
         }
 
     }
@@ -445,7 +387,7 @@ public class lugar : MonoBehaviour, ISelecionavel
             Controles.Geral_Lugares.Remove(this);
         }
         minhaCelula.lugar = null; // Desassocia da célula
-        //Debug.Log("LUGAR: Destruindo lugar: " + _nome);
+        if (debug_lugar) Debug.Log("LUGAR: Destruindo lugar: " + _nome);
         Destroy(this.gameObject);
     }
 }

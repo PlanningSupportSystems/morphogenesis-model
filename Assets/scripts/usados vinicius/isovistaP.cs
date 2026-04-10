@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-//using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -21,6 +20,8 @@ public class IsovistaP
     public List<float> distanciasPontosContorno;
 
     //medidas
+    public MedidasBrutas medidasBrutas;
+    public MedidasNormalizadas medidasNormalizadas;
     public float distanciaMaxima;
     public List<int> indexMax;
     public float distanciaMedia;
@@ -33,6 +34,11 @@ public class IsovistaP
     public HashSet<novoPredio> npVistos;
     public HashSet<novoPredio> prediosVistos;
     public HashSet<novoPredio> ruasVistos;
+    // profundidade de ruas (por raio) e índices dos raios com profundidade máxima
+    public List<float> profundidadesPorRaio;
+    public float profundidadeMaximaRua;
+    public List<int> indicesProfundidadeMaxima;
+    public float areaIsovista;
 
     public float normalizado_distanciaMaxima;
     public float normalizado_distanciaMedia;
@@ -40,6 +46,8 @@ public class IsovistaP
     public float normalizado_distanciaTotal;
 
     public float maximo_objetos_vistos;
+
+    public bool debug_iso = false;
     //medidas, nova definicao
 
     public IsovistaP(Vector3 _centro, int _totalRaios, float _raioVisao)
@@ -94,7 +102,11 @@ public class IsovistaP
         //vertices para mesh isovista
         List<Vector3> _verticesIsovista = new List<Vector3>();
         _verticesIsovista.Add(_centroIsovista);
-
+        // inicializar tracking de profundidade de ruas
+        profundidadesPorRaio = new List<float>(_qtdRaios);
+        profundidadeMaximaRua = 0;
+        indicesProfundidadeMaxima = new List<int>();
+        
         float _passoAngulo = 360f / _qtdRaios;
 
 //        Debug.Log("campo visao qual a layer: " + layerMask);
@@ -119,46 +131,21 @@ public class IsovistaP
                                   npVistos, 
                                   angulosUsados,
                                   _verticesIsovista,
-                                  angulosLivres
-                                  );
-            /*
-            if (Physics.Raycast(raioAtual, out hitInfo, _raio, layerMask))// && hitInfo.collider != this.predioPreFab.GetComponent<Collider>())
-            {
-                // Se atingir um objeto, adicione ao array de raios que atingiram
-//                Debug.Log("batti no fmigerado: "+ hitInfo.collider.GetComponent<EspacoConstruido>().meuNome);
-// sem uso      objVistos.Add(hitInfo);//raiosAtingiram[i] = hitInfo;
-//                espacosVistos.Add(hitInfo.collider.GetComponent<EspacoConstruido>());
-                npVistos.Add(hitInfo.collider.GetComponent<novoPredio>());
-                angulosUsados.Add(_passoAngulo * i);
-
-                _verticesIsovista.Add(hitInfo.point);
-
-                Debug.DrawRay(_centroIsovista, hitInfo.point - _centroIsovista, Color.red, 10f);
-
-                // Faça o que for necessário com o objeto atingido (por exemplo, acessar hitInfo.collider)
-            }
-            else
-            {
-                // Se não atingir nenhum objeto, adicione ao array de raios que não atingiram
-                //                raiosNaoAtingiram[i] = raioAtual;
-                //sem uso       raiosNaoAtingiram[i] = hitInfo;  
-                angulosLivres.Add(_raio_graus);// _passoAngulo * i);
-//sem uso       Vector3 vorigem = raioAtual.origin;
-//sem uso       vetoresLivres.Add(vorigem);   //nao esta guardando nada 
-
-                //teste se medir sem nunca usar visao para o vazio
-                if (!InputsMorfo.boolModoIsoObj) { 
-                    _verticesIsovista.Add(pontoNaCircunferencia);
-                }
-                //                _verticesIsovista.Add(pontoNaCircunferencia);
-
-
-                Debug.DrawRay(_centroIsovista, pontoNaCircunferencia - _centroIsovista, Color.blue, 10f);
-            }
-            */
+                                  angulosLivres,
+                                  profundidadesPorRaio
+                );
+           
         }
 
         pontosContorno = _verticesIsovista;
+
+        // dentro de campoVisao(), depois de pontosContorno = _verticesIsovista;
+        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 1);
+        if (debug_iso) Debug.Log("area isovista foi de: " + areaIsovista);// 1 pula o centro
+        // opcional: normalizar pela área de um círculo com mesmo raio
+        //float areaMaxima = Mathf.PI * _raio * _raio;
+        //float normalizado_area = areaMaxima > 0f ? areaIsovista / areaMaxima : 0f;
+
         distanciasPontosContorno = new List<float>();
         foreach(Vector3 pC in pontosContorno)
         {
@@ -221,7 +208,58 @@ public class IsovistaP
                 }
             }
         }
+        profundidadeMaximaRua = profundidadesPorRaio.Max();
+        if (debug_iso) Debug.Log("profundidade máxima de ruas: " + profundidadeMaximaRua);
 
+        medidasBrutas = new MedidasBrutas(
+                distanciaMaxima,
+                distanciaMedia,
+                distanciaMinima,
+                //distanciaTotal,
+                prediosVistos.Count + ruasVistos.Count, //total de objetos vistos
+                prediosVistos.Count,// totalPrediosVistos,
+                ruasVistos.Count,// totalRuasVistas,
+                profundidadeMaximaRua,
+                areaIsovista
+        );
+
+
+    }
+
+    public ValoresReferenciaNormalizacao BuscarReferenciaNormalizacao(List<lugar>todoLugar)
+    {
+        // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
+        lugar primeiroLugar = todoLugar[0];
+        if (medidasBrutas.Equals(default(MedidasBrutas)))
+            campoVisao();   // calculou primeiroLugar.iso.medidasBrutas
+        ValoresReferenciaNormalizacao referencias_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.iso.medidasBrutas);
+        // ===== RESTANTE DA PRIMEIRA VARREDURA ===== ATUALIZACAO DOS VALORES
+        for (int i = 1; i < todoLugar.Count; i++)
+        {
+            lugar lugar = todoLugar[i];
+            lugar.L_CalculeIsovistas(layerMask);
+            Normalizador.ChecarSeReferencia(ref referencias_normalizacao, lugar.iso.medidasBrutas);// .minhasMedidasBrutas);
+        }
+        return referencias_normalizacao;
+    }
+
+    public void NormalizarMedidas(ValoresReferenciaNormalizacao referencias_normalizacao, List<lugar> todoLugar)
+    {
+        if (referencias_normalizacao.Equals(default(ValoresReferenciaNormalizacao)))
+            BuscarReferenciaNormalizacao(todoLugar);
+
+        // ===== SEGUNDA VARREDURA: NORMALIZAR =====
+            medidasNormalizadas = Normalizador.Normalizar(medidasBrutas, referencias_normalizacao);
+            //PonderarMedia();
+    }
+    public void NormalizarMedidas(ValoresReferenciaNormalizacao referencias_normalizacao)
+    {
+        if (referencias_normalizacao.Equals(default(ValoresReferenciaNormalizacao)))
+//            BuscarReferenciaNormalizacao(todoLugar);
+
+        // ===== SEGUNDA VARREDURA: NORMALIZAR =====
+        medidasNormalizadas = Normalizador.Normalizar(medidasBrutas, referencias_normalizacao);
+        //PonderarMedia();
     }
 
     public enum FinalRaioIsovista
@@ -237,7 +275,8 @@ public class IsovistaP
                       HashSet<novoPredio> npVistos,
                       List<float> angulosUsados,
                       List<Vector3> _verticesIsovista,
-                      List<float> angulosLivres
+                      List<float> angulosLivres,
+                      List<float> profundidadeDosRaios
 
                       )
     {
@@ -246,6 +285,8 @@ public class IsovistaP
         Vector3 pontoFinal = pontoNaCircunferencia;
         float maiorDistanciaRua = -1f;
         Vector3 ultimoPontoRua = pontoNaCircunferencia;
+        // conta quantas ruas consecutivas foram vistas antes do primeiro prédio
+        int depth = 0;
 
 
         RaycastHit[] hits = Physics.RaycastAll(raioAtual, _raio, layerMask);
@@ -257,6 +298,17 @@ public class IsovistaP
 
             if (np == null)
             {
+                // se for um 'lugar', considere bloqueador: pare a varredura (não continue contando ruas depois)
+                var lg = hit.collider.GetComponentInParent<lugar>();
+                if (lg != null)
+                {
+                    // encontrou um lugar: não conta ruas além dele — finalize o laço
+                    estado = FinalRaioIsovista.Vazio; // trata como vazio/aberto (não bloqueado por prédio)
+                                                      // não incrementa depth; interrompe a leitura de hits mais distantes
+                    break;
+                }
+
+                // se não é nem novoPredio nem lugar, ignore este collider e continue (por exemplo, triggers, decorações)
                 continue;
             }
 
@@ -266,6 +318,7 @@ public class IsovistaP
 
             if (np.np_tipo == TipoEspacoConstruido.Rua)
             {
+                depth++;
                 estado = FinalRaioIsovista.AbertoAposRua;
 
                 if (hit.distance >= maiorDistanciaRua)
@@ -283,7 +336,7 @@ public class IsovistaP
                 break;
             }
         }
-
+        profundidadeDosRaios.Add(depth);
         switch (estado)
         {
             case FinalRaioIsovista.Vazio:
@@ -314,7 +367,22 @@ public class IsovistaP
     }
 
 
+    // Calcula área do polígono projetado no plano XZ usando shoelace,
+    // assume vertices em ordem circular. Usa sublista a partir de startIndex (ex.: 1 para pular o centro).
+    private float CalcularAreaIsovistaXZ(List<Vector3> verts, int startIndex = 1)
+    {
+        int n = verts.Count - startIndex;
+        if (n < 3) return 0f;
 
+        double sum = 0.0;
+        for (int i = 0; i < n; i++)
+        {
+            Vector3 a = verts[startIndex + i];
+            Vector3 b = verts[startIndex + ((i + 1) % n)];
+            sum += (double)a.x * b.z - (double)b.x * a.z;
+        }
+        return Mathf.Abs((float)(sum * 0.5));
+    }
 
 
     public void isoMesh(List <Vector3> _pontosIso, string _nome)

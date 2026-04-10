@@ -14,8 +14,25 @@ public struct MedidasBrutas
     public float totalObjVisto;
     public float totalPrediosVistos;
     public float totalRuasVistas;
-//    public float totalProfundidadeRua;
+    public float ProfundidadeRua;
+    public float areaIsovista;
 
+    public string Publicar()
+    {
+        return
+            $"--- MEDIDAS BRUTAS ---\n" +
+
+            $"distanciaMaxima   : {distanciaMaxima}\n" +
+            $"distanciaMedia    : {distanciaMedia}\n" +
+            $"distanciaMinima   : {distanciaMinima}\n" +
+
+            $"totalObjVisto     : {totalObjVisto}\n" +
+            $"totalPredios      : {totalPrediosVistos}\n" +
+            $"totalRuas         : {totalRuasVistas}\n" +
+
+            $"profundidadeRua   : {ProfundidadeRua}\n" +
+            $"areaIsovista      : {areaIsovista}\n";
+    }
     public MedidasBrutas(
                         float distanciaMaxima,
                         float distanciaMedia,
@@ -23,8 +40,10 @@ public struct MedidasBrutas
 //                        float distanciaTotal,
                         float totalObjVisto,
                         float totalPrediosVistos,
-                        float totalRuasVistas//,
-                        //float totalProfundidadeRua
+                        float totalRuasVistas,
+                        float totalProfundidadeRua,
+                        float areaIsovista
+
                         )
     {
         this.distanciaMaxima = distanciaMaxima;
@@ -35,7 +54,8 @@ public struct MedidasBrutas
         this.totalObjVisto = totalObjVisto;
         this.totalPrediosVistos = totalPrediosVistos;
         this.totalRuasVistas = totalRuasVistas;
-//        this.totalProfundidadeRua = totalProfundidadeRua;
+        this.ProfundidadeRua = totalProfundidadeRua;
+        this.areaIsovista = areaIsovista;
     }
 
 }
@@ -64,8 +84,11 @@ public struct ValoresReferenciaNormalizacao
     public float totalRuasVistas_Min;
     public float totalRuasVistas_Max;
 
-//    public float totalProfundidadeRua_Min;
-//    public float totalProfundidadeRua_Max;
+    public float ProfundidadeRua_Min;
+    public float ProfundidadeRua_Max;
+
+    public float areaIsovista_Min;
+    public float areaIsovista_Max;
 
     public ValoresReferenciaNormalizacao(MedidasBrutas primeiro)
     {
@@ -90,8 +113,27 @@ public struct ValoresReferenciaNormalizacao
         totalRuasVistas_Min = primeiro.totalRuasVistas;
         totalRuasVistas_Max = primeiro.totalRuasVistas;
 
-//        totalProfundidadeRua_Min = primeiro.totalProfundidadeRua;
-//        totalProfundidadeRua_Max = primeiro.totalProfundidadeRua;
+        ProfundidadeRua_Min = primeiro.ProfundidadeRua;
+        ProfundidadeRua_Max = primeiro.ProfundidadeRua;
+
+        areaIsovista_Min = primeiro.areaIsovista;
+        areaIsovista_Max = primeiro.areaIsovista;
+    }
+    public string Publicar()
+    {
+        return
+            $"--- REFERENCIA NORMALIZACAO ---\n" +
+
+            $"distanciaMaxima   | Min: {distanciaMaxima_Min}   Max: {distanciaMaxima_Max}\n" +
+            $"distanciaMedia    | Min: {distanciaMedia_Min}    Max: {distanciaMedia_Max}\n" +
+            $"distanciaMinima   | Min: {distanciaMinima_Min}   Max: {distanciaMinima_Max}\n" +
+
+            $"totalObjVisto     | Min: {totalObjVisto_Min}     Max: {totalObjVisto_Max}\n" +
+            $"totalPredios      | Min: {totalPrediosVistos_Min} Max: {totalPrediosVistos_Max}\n" +
+            $"totalRuas         | Min: {totalRuasVistas_Min}   Max: {totalRuasVistas_Max}\n" +
+
+            $"profundidadeRua   | Min: {ProfundidadeRua_Min} Max: {ProfundidadeRua_Max}\n" +
+            $"areaIsovista      | Min: {areaIsovista_Min}      Max: {areaIsovista_Max}\n";
     }
 }
 
@@ -106,7 +148,26 @@ public struct MedidasNormalizadas
     public float totalObjVisto;
     public float totalPrediosVistos;
     public float totalRuasVistas;
-    public float totalProfundidadeRua;
+    public float ProfundidadeRua;
+    public float areaIsovista;
+
+    public string Publicar()
+    {
+        return
+            $"--- MEDIDAS NORMALIZADAS ---\n" +
+
+            $"distanciaMaxima   : {distanciaMaxima}\n" +
+            $"distanciaMedia    : {distanciaMedia}\n" +
+            $"distanciaMinima   : {distanciaMinima}\n" +
+            $"distanciaTotal    : {distanciaTotal}\n" +
+
+            $"totalObjVisto     : {totalObjVisto}\n" +
+            $"totalPredios      : {totalPrediosVistos}\n" +
+            $"totalRuas         : {totalRuasVistas}\n" +
+
+            $"profundidadeRua   : {ProfundidadeRua}\n" +
+            $"areaIsovista      : {areaIsovista}\n";
+    }
 }
 
 #endregion
@@ -128,7 +189,9 @@ public static class Normalizador
             totalObjVisto = NormalizarValor(brutas.totalObjVisto, referencia.totalObjVisto_Min, referencia.totalObjVisto_Max),
             totalPrediosVistos = NormalizarValor(brutas.totalPrediosVistos, referencia.totalPrediosVistos_Min, referencia.totalPrediosVistos_Max),
             totalRuasVistas = NormalizarValor(brutas.totalRuasVistas, referencia.totalRuasVistas_Min, referencia.totalRuasVistas_Max),
-//            totalProfundidadeRua = NormalizarValor(brutas.totalProfundidadeRua, referencia.totalProfundidadeRua_Min, referencia.totalProfundidadeRua_Max)
+            ProfundidadeRua = NormalizarValor(brutas.ProfundidadeRua, referencia.ProfundidadeRua_Min, referencia.ProfundidadeRua_Max),
+
+            areaIsovista = NormalizarValor(brutas.areaIsovista, referencia.areaIsovista_Min, referencia.areaIsovista_Max)
         };
     }
     private static float NormalizarValor(float valor, float min, float max)
@@ -190,11 +253,18 @@ public static class Normalizador
         if (medidas.totalRuasVistas > referencia.totalRuasVistas_Max)
             referencia.totalRuasVistas_Max = medidas.totalRuasVistas;
 
-        // totalProfundidadeRua
-//        if (medidas.totalProfundidadeRua < referencia.totalProfundidadeRua_Min)
-//            referencia.totalProfundidadeRua_Min = medidas.totalProfundidadeRua;
-//        if (medidas.totalProfundidadeRua > referencia.totalProfundidadeRua_Max)
-//            referencia.totalProfundidadeRua_Max = medidas.totalProfundidadeRua;
+        // ProfundidadeRua
+        if (medidas.ProfundidadeRua < referencia.ProfundidadeRua_Min)
+            referencia.ProfundidadeRua_Min = medidas.ProfundidadeRua;
+        if (medidas.ProfundidadeRua > referencia.ProfundidadeRua_Max)
+            referencia.ProfundidadeRua_Max = medidas.ProfundidadeRua;
+
+        // areaIsovista
+        if (medidas.areaIsovista < referencia.areaIsovista_Min)
+            referencia.areaIsovista_Min = medidas.areaIsovista;
+        if (medidas.areaIsovista > referencia.areaIsovista_Max)
+            referencia.areaIsovista_Max = medidas.areaIsovista;
+
     }
 }
 

@@ -74,12 +74,14 @@ public class InputsMorfo : MonoBehaviour
     [SerializeField] Toggle toggleModoRandom;
     [SerializeField] Toggle toggleModoIsoObj;
     [SerializeField] Toggle toggleModoPreservaIso;
+    [SerializeField] Toggle toggleModoPreservaProfundidade;
 
     public static bool boolRuaMaisUm;
     public static bool boolModoIsovista;
     public static bool boolModoRandom;
     public static bool boolModoIsoObj;
     public static bool boolModoPreservaIso;
+    public static bool boolModoPreservaProfundidade;
 
 
     public GameObject paramedidas;
@@ -126,6 +128,8 @@ public class InputsMorfo : MonoBehaviour
     public static Text IM_lugares_texto_Iso_Distancia_Media; //Text IM_lugares_texto_Iso_Distancia_Media = GameObject.Find("Valor_Dist_Ave").GetComponent<Text>();
     [SerializeField] private Text isoDistMin;
     public static Text IM_lugares_texto_Iso_Distancia_Minima; //Text IM_lugares_texto_Iso_Distancia_Minima = GameObject.Find("Valor_Dist_Min").GetComponent<Text>();
+    [SerializeField] private Text isoProfundidade;
+    public static Text IM_lugares_texto_Iso_Profundidade_Rua; //Text IM_lugares_texto_Iso_Distancia_Minima = GameObject.Find("Valor_Dist_Min").GetComponent<Text>();
 
     [SerializeField] private Text isoDistPonderada;
     public static Text IM_lugares_texto_Iso_Distancia_Ponderada; //Text IM_lugares_texto_Iso_Distancia_Ponderada = GameObject.Find("Valor_Media_Ponderada").GetComponent<Text>();
@@ -287,6 +291,8 @@ void inicializaPainelPropriedades()
         IM_lugares_texto_Iso_Distancia_Media = isoDistMedia;
         IM_lugares_texto_Iso_Distancia_Minima = isoDistMin;
         
+        IM_lugares_texto_Iso_Profundidade_Rua = isoProfundidade;
+
         IM_lugares_texto_Iso_Distancia_Ponderada = isoDistPonderada;
     }
 
@@ -412,8 +418,9 @@ void IM_SetarValores()
         //        Debug.Log("modo rua +1: " + boolRuaMaisUm + ", modo isovista: " + boolModoIsovista + ", modo random: " + boolModoRandom);
         boolModoIsoObj = toggleModoIsoObj.isOn;
         boolModoPreservaIso = toggleModoPreservaIso.isOn;
+        boolModoPreservaProfundidade = toggleModoPreservaProfundidade.isOn;
 
-    vTotalCasas.text = itotalCasas.text;
+        vTotalCasas.text = itotalCasas.text;
         input_totalCasas = int.Parse(vTotalCasas.text);
 
         //dimensiona mapa (totalCasas);

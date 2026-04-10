@@ -158,7 +158,7 @@ public class sobreposicoes : MonoBehaviour
         Debug.Log("checando vizinhanca de" + end_checagem+ " total de vizinhos: " + quais_vizinhos_existem.Count);
         // Converter cada Vector3 em uma string no formato desejado usando LINQ
 //        string vetorString = string.Join(" ", quais_vizinhos_existem.Select(v => "(" + v.x + ", " + v.y + ", " + v.z + ")"));
-        // Imprimir a string resultante em uma única linha de debug
+        // Imprimir a string resultante em uma única linha de debug_novoPredio
   //      Debug.Log("vizinhos Vetores presentes na lista: " + vetorString);
 
         int _vizinhos_livres = (int)InputsMorfo.input_totalVizinhos;
