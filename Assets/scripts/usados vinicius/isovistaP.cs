@@ -73,6 +73,11 @@ public class IsovistaP
 
     }
 
+    private class PontoAngular
+    {
+        public Vector3 ponto;
+        public float angulo;
+    }
 
     public void campoVisao(int _qtdRaios = 0, float _raio = 0, Vector3 _centroIsovista = default(Vector3))  //  ( 0,10000,0))// (0,10000,0))
     {
@@ -101,15 +106,16 @@ public class IsovistaP
 
         //vertices para mesh isovista
         List<Vector3> _verticesIsovista = new List<Vector3>();
-        _verticesIsovista.Add(_centroIsovista);
         // inicializar tracking de profundidade de ruas
         profundidadesPorRaio = new List<float>(_qtdRaios);
         profundidadeMaximaRua = 0;
         indicesProfundidadeMaxima = new List<int>();
         
         float _passoAngulo = 360f / _qtdRaios;
+        bool fecharMalha = false;
+        int quantidadeSetores = 0;
 
-//        Debug.Log("campo visao qual a layer: " + layerMask);
+        //        Debug.Log("campo visao qual a layer: " + layerMask);
         for (int i = 0; i < _qtdRaios; i++)
         {
             float _radianos = _passoAngulo * i * Mathf.Deg2Rad;                 //angulo em funcao do indice * passo entre raios a checar
@@ -127,7 +133,6 @@ public class IsovistaP
             ProcessarRaioIsovista
                 (raioAtual, _raio, _raio_graus, layerMask, _centroIsovista, pontoNaCircunferencia,
 
-
                                   npVistos, 
                                   angulosUsados,
                                   _verticesIsovista,
@@ -137,14 +142,35 @@ public class IsovistaP
            
         }
 
-        pontosContorno = _verticesIsovista;
+        pontosContorno = ReordenarContornoPorSetor(
+    _verticesIsovista,
+    _centroIsovista,
+    _passoAngulo,
+    out fecharMalha,
+    out quantidadeSetores
+);
+
+        // só fecha explicitamente o contorno se for malha fechada
+        if (fecharMalha && pontosContorno.Count > 0)
+        {
+            Vector3 first = pontosContorno[0];
+            Vector3 last = pontosContorno[pontosContorno.Count - 1];
+
+            if (Vector2.Distance(new Vector2(first.x, first.z), new Vector2(last.x, last.z)) > 1e-3f)
+            {
+                pontosContorno.Add(first);
+            }
+        }
+
+        if (debug_iso)
+        {
+            Debug.Log($"isovista setores detectados: {quantidadeSetores} | fecharMalha={fecharMalha}");
+        }
 
         // dentro de campoVisao(), depois de pontosContorno = _verticesIsovista;
-        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 1);
+//        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 1);
+        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 0);
         if (debug_iso) Debug.Log("area isovista foi de: " + areaIsovista);// 1 pula o centro
-        // opcional: normalizar pela área de um círculo com mesmo raio
-        //float areaMaxima = Mathf.PI * _raio * _raio;
-        //float normalizado_area = areaMaxima > 0f ? areaIsovista / areaMaxima : 0f;
 
         distanciasPontosContorno = new List<float>();
         foreach(Vector3 pC in pontosContorno)
@@ -158,15 +184,6 @@ public class IsovistaP
         distanciaMedia = distanciasPontosContorno.Average();
         distanciaTotal = distanciasPontosContorno.Sum();
 
-        //nromalizar os valores encontrados todos
-        //carregar valores maximo (_raio, ou _raio* _qtdRaios para distancia total) e minimo das medidas feitas
-        normalizado_distanciaMaxima = distanciaMaxima / _raio;
-        normalizado_distanciaMinima = distanciaMinima / _raio;
-        normalizado_distanciaMedia = distanciaMedia / _raio;
-        normalizado_distanciaTotal = distanciaTotal / (_raio * _qtdRaios);
-//        Debug.Log("isovista normalizar distancia total: " + normalizado_distanciaTotal + ", distancia total: " + distanciaTotal + ", raio: "+ _raio +", qtd raios: "+ _qtdRaios);
-
-        //        indexMax = distanciasPontosContorno.FindAll(dmax => dmax == distanciaMaxima);
         indexMax = new List<int>();
         List<float> asDistMax = new List<float>();
         for (int i = 0; i < distanciasPontosContorno.Count; i++)
@@ -222,8 +239,6 @@ public class IsovistaP
                 profundidadeMaximaRua,
                 areaIsovista
         );
-
-
     }
 
     public ValoresReferenciaNormalizacao BuscarReferenciaNormalizacao(List<lugar>todoLugar)
@@ -243,24 +258,6 @@ public class IsovistaP
         return referencias_normalizacao;
     }
 
-    public void NormalizarMedidas(ValoresReferenciaNormalizacao referencias_normalizacao, List<lugar> todoLugar)
-    {
-        if (referencias_normalizacao.Equals(default(ValoresReferenciaNormalizacao)))
-            BuscarReferenciaNormalizacao(todoLugar);
-
-        // ===== SEGUNDA VARREDURA: NORMALIZAR =====
-            medidasNormalizadas = Normalizador.Normalizar(medidasBrutas, referencias_normalizacao);
-            //PonderarMedia();
-    }
-    public void NormalizarMedidas(ValoresReferenciaNormalizacao referencias_normalizacao)
-    {
-        if (referencias_normalizacao.Equals(default(ValoresReferenciaNormalizacao)))
-//            BuscarReferenciaNormalizacao(todoLugar);
-
-        // ===== SEGUNDA VARREDURA: NORMALIZAR =====
-        medidasNormalizadas = Normalizador.Normalizar(medidasBrutas, referencias_normalizacao);
-        //PonderarMedia();
-    }
 
     public enum FinalRaioIsovista
     {
@@ -285,11 +282,13 @@ public class IsovistaP
         Vector3 pontoFinal = pontoNaCircunferencia;
         float maiorDistanciaRua = -1f;
         Vector3 ultimoPontoRua = pontoNaCircunferencia;
+        RaycastHit ultimoHitRua = default;
+        bool temUltimoHitRua = false;
         // conta quantas ruas consecutivas foram vistas antes do primeiro prédio
         int depth = 0;
 
 
-        RaycastHit[] hits = Physics.RaycastAll(raioAtual, _raio, layerMask);
+        RaycastHit[] hits = Physics.RaycastAll(raioAtual, _raio, _layerMasks);
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
         foreach (RaycastHit hit in hits)
@@ -316,6 +315,18 @@ public class IsovistaP
             //                Debug.Log("batti no fmigerado: "+ hitInfo.collider.GetComponent<EspacoConstruido>().meuNome);
             npVistos.Add(np); //npVistos.Add(hitInfo.collider.GetComponent<novoPredio>());
 
+            /*
+            string nome = hit.collider != null ? hit.collider.name : "null";
+            string tipo = "sem novoPredio";
+            novoPredio npDebug = hit.collider.GetComponent<novoPredio>();
+            if (npDebug != null) tipo = npDebug.np_tipo.ToString();
+
+            Debug.Log(
+                $"ISO hit ang={_raio_graus:F1} | dist={hit.distance:F3} | ponto={hit.point} | collider={nome} | tipo={tipo}"
+            );
+            */
+
+
             if (np.np_tipo == TipoEspacoConstruido.Rua)
             {
                 depth++;
@@ -325,6 +336,8 @@ public class IsovistaP
                 {
                     maiorDistanciaRua = hit.distance;
                     ultimoPontoRua = hit.point;
+                    ultimoHitRua = hit;
+                    temUltimoHitRua = true;
                 }
 
                 continue;
@@ -335,6 +348,40 @@ public class IsovistaP
                 pontoFinal = hit.point;
                 break;
             }
+        }
+
+        if (estado == FinalRaioIsovista.AbertoAposRua && temUltimoHitRua)
+        {
+            Vector3 dir = raioAtual.direction.normalized;
+
+            // começa fora, no fim teórico do raio, e volta
+            Vector3 origemReversa = _centroIsovista + dir * (_raio + 0.05f);
+            Ray raioReverso = new Ray(origemReversa, -dir);
+
+            RaycastHit hitSaida;
+            Vector3 pontoSaidaRua = ultimoHitRua.point; // fallback
+            bool achouSaida = false;
+
+            if (ultimoHitRua.collider != null &&
+                ultimoHitRua.collider.Raycast(raioReverso, out hitSaida, _raio + 0.1f))
+            {
+                pontoSaidaRua = hitSaida.point;
+                achouSaida = true;
+            }
+            // fallback:
+            // se não achou saída do bloco final, assume que o raio terminou dentro dele
+            // e usa o fim do próprio raycast como contorno
+            if (!achouSaida)
+            {
+                pontoSaidaRua = pontoNaCircunferencia;
+            }
+
+            ultimoPontoRua = pontoSaidaRua;
+
+            Debug.DrawLine(ultimoHitRua.point, pontoSaidaRua, Color.cyan, 10f);
+            Debug.Log(
+                $"ISO rua FINAL ang={_raio_graus:F1} | entrada={ultimoHitRua.point} | saida={pontoSaidaRua} | collider={ultimoHitRua.collider.name}"
+            );
         }
         profundidadeDosRaios.Add(depth);
         switch (estado)
@@ -384,7 +431,96 @@ public class IsovistaP
         return Mathf.Abs((float)(sum * 0.5));
     }
 
+    private List<Vector3> ReordenarContornoPorSetor(
+    List<Vector3> verticesOriginais,
+    Vector3 centroRef,
+    float passoAngular,
+    out bool fecharMalha,
+    out int quantidadeSetores,
+    float toleranciaMult = 1.5f)
+    {
+        fecharMalha = false;
+        quantidadeSetores = 0;
 
+        if (verticesOriginais == null || verticesOriginais.Count == 0)
+            return new List<Vector3>();
+
+        float epsCentro = 1e-3f;
+        float epsDuplicado = 1e-3f;
+        float tolerancia = passoAngular * toleranciaMult;
+
+        List<PontoAngular> pts = new List<PontoAngular>();
+
+        // limpa ponto colado no centro e duplicados
+        foreach (Vector3 p in verticesOriginais)
+        {
+            if (Vector3.Distance(p, centroRef) <= epsCentro)
+                continue;
+
+            bool duplicado = false;
+            foreach (var q in pts)
+            {
+                if (Vector3.Distance(p, q.ponto) <= epsDuplicado)
+                {
+                    duplicado = true;
+                    break;
+                }
+            }
+
+            if (duplicado) continue;
+
+            Vector3 d = p - centroRef;
+            float ang = Mathf.Atan2(d.z, d.x) * Mathf.Rad2Deg;
+            if (ang < 0f) ang += 360f;
+
+            pts.Add(new PontoAngular { ponto = p, angulo = ang });
+        }
+
+        if (pts.Count < 2)
+            return pts.Select(t => t.ponto).ToList();
+
+        // ordena por ângulo crescente
+        pts.Sort((a, b) => a.angulo.CompareTo(b.angulo));
+
+        // acha o maior salto angular (incluindo wrap)
+        int indiceQuebra = -1;
+        float maiorSalto = -1f;
+        int setores = 1;
+
+        for (int i = 0; i < pts.Count; i++)
+        {
+            int prox = (i + 1) % pts.Count;
+            float a1 = pts[i].angulo;
+            float a2 = pts[prox].angulo;
+
+            float delta = (prox == 0) ? (a2 + 360f - a1) : (a2 - a1);
+
+            if (delta > tolerancia)
+                setores++;
+
+            if (delta > maiorSalto)
+            {
+                maiorSalto = delta;
+                indiceQuebra = i;
+            }
+        }
+
+        quantidadeSetores = setores;
+
+        // se o maior salto não excede o passo+tolerância, considera volta completa
+        fecharMalha = maiorSalto <= tolerancia;
+
+        // rota a lista para começar logo após a maior quebra
+        List<Vector3> reordenado = new List<Vector3>(pts.Count);
+        for (int k = 1; k <= pts.Count; k++)
+        {
+            int idx = (indiceQuebra + k) % pts.Count;
+            reordenado.Add(pts[idx].ponto);
+        }
+
+        return reordenado;
+    }
+   
     public void isoMesh(List <Vector3> _pontosIso, string _nome)
     {
         if (InputsMorfo.tracking)
@@ -393,18 +529,180 @@ public class IsovistaP
         }
 
         //        if (_pontosIso == default(Vector3)) { _pontosIso = centro; }
-        Vector3 altura = new Vector3(0, 0.5f, 0);
+        Vector3 altura = new Vector3(0, 2.5f, 0);
 
-        for (int i = 0; i < _pontosIso.Count; i++)
+        // Garantir que o primeiro elemento seja o centro (index 0)
+        var verts = new List<Vector3>(1 + _pontosIso.Count);
+        verts.Add(centro);          // centro em index 0
+        verts.AddRange(_pontosIso); // contorno em 1..N
+
+        for (int i = 0; i < verts.Count; i++)
         {
-            Vector3 posicaoAtual = _pontosIso[i] + altura;
+            verts[i] += altura; // eleva todos os vértices para evitar z-fighting com o chão
+            //Vector3 posicaoAtual = _pontosIso[i] + altura;
             //            posicaoAtual.y += 2; // Somando 2 à altura
-            _pontosIso[i] = posicaoAtual; // Atualizando a lista
+            //_pontosIso[i] = posicaoAtual; // Atualizando a lista
         }
 
-        int[] _tri = IosTriangulo(_pontosIso);
-        CriarIsoMesh(_pontosIso, _tri, _nome);
+        /*
+        for (int i = 1; i < verts.Count; i++)
+        {
+            Vector3 dir = verts[i] - verts[0];
+            float ang = Mathf.Atan2(dir.z, dir.x) * Mathf.Rad2Deg;
+            if (ang < 0) ang += 360f;
 
+            float dist = dir.magnitude;
+
+            Debug.Log($"ISO ponto {i}: ang={ang:F2} | dist={dist:F2} | pos={verts[i]}");
+        }
+        */
+
+        bool fecharMalha = false;
+        if (_pontosIso != null && _pontosIso.Count >= 3)
+        {
+            Vector3 primeiro = _pontosIso[0];
+            Vector3 ultimo = _pontosIso[_pontosIso.Count - 1];
+            fecharMalha = Vector2.Distance(
+                new Vector2(primeiro.x, primeiro.z),
+                new Vector2(ultimo.x, ultimo.z)
+            ) <= 1e-3f;
+        }
+//        int[] _tri = IosTriangulo(verts);
+        int[] _tri = IosTriangulo(verts, fecharMalha);
+        CriarIsoMesh(verts, _tri, _nome);
+//        CriarIsoMesh(_pontosIso, _tri, _nome);
+
+    }
+
+
+    void CriarIsoMesh(List<Vector3> _pontosIsoMesh, int[] _triMesh, string _nome)
+    {
+        if (InputsMorfo.tracking)
+        {
+            Debug.Log("tracking isovistaP");
+        }
+
+
+        // Criar uma nova mesh  ---> meshIsovista
+        //        Mesh mesh = new Mesh();
+        isovistamesh = new Mesh();
+
+        // Atribuir os vértices à mesh
+        isovistamesh.vertices = _pontosIsoMesh.ToArray();
+
+        // Atribuir triângulos à mesh
+        isovistamesh.triangles = _triMesh;
+//        correcaoTriangulosDegenerados(_triMesh);
+
+        // Calcular as normais automaticamente
+        isovistamesh.RecalculateNormals();
+
+        // Calcular os bounds automaticamente
+        isovistamesh.RecalculateBounds();
+        diagnosticoNormais();
+        diganosticoNormaisParaBaixo();
+        diagnosticoChecarTriangulos();
+
+
+        ////////////////////////////////      // Crie um objeto para exibir a mesh
+        portaMesh = new GameObject("m");// ("ObjetoComMesh"+_nome);
+        portaMesh.AddComponent<MeshFilter>();
+        // Atribuir a mesh ao MeshFilter
+        portaMesh.GetComponent<MeshFilter>().mesh = isovistamesh;// mesh;
+        portaMesh.AddComponent<MeshRenderer>();
+
+        Color transparencia = new Color(1.0f, 0.6f, 0.0f, 0.5f); //new Color(0.3f, 0.3f, 0.7f, 0.2f);
+                                                                 // Cor verde claro com 50% de transparência (R,G,B,Alpha)
+                                                                 //        originalColor = new Color(0.6f, 1.0f, 0.6f, 0.5f);
+        
+                MeshRenderer meshRenderer = portaMesh.GetComponent<MeshRenderer>();
+
+                meshRenderer.material.shader = Shader.Find("Standard");
+                meshRenderer.material.SetColor("_Color", transparencia);
+                meshRenderer.material.SetFloat("_Mode", 3); // Modo de rendering transparente
+                meshRenderer.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                meshRenderer.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                meshRenderer.material.SetInt("_ZWrite", 0);
+                meshRenderer.material.DisableKeyword("_ALPHATEST_ON");
+                meshRenderer.material.EnableKeyword("_ALPHABLEND_ON");
+                meshRenderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                meshRenderer.material.renderQueue = 3000;
+    }
+    void correcaoTriangulosDegenerados(int[] _triMesh)
+    {
+        int[] trisIn = _triMesh;
+        Vector3[] verts = isovistamesh.vertices;
+        var good = new List<int>(trisIn.Length);
+        int removed = 0;
+        const float areaEps = 1e-6f;
+
+        for (int i = 0; i < trisIn.Length; i += 3)
+        {
+            int i0 = trisIn[i];
+            int i1 = trisIn[i + 1];
+            int i2 = trisIn[i + 2];
+
+            // segurança: índices válidos
+            if (i0 < 0 || i0 >= verts.Length || i1 < 0 || i1 >= verts.Length || i2 < 0 || i2 >= verts.Length)
+            {
+                removed++;
+                continue;
+            }
+
+            Vector3 a = verts[i0];
+            Vector3 b = verts[i1];
+            Vector3 c = verts[i2];
+
+            float area = Vector3.Cross(b - a, c - a).magnitude * 0.5f;
+            if (area > areaEps)
+            {
+                good.Add(i0); good.Add(i1); good.Add(i2);
+            }
+            else
+            {
+                removed++;
+            }
+        }
+
+        if (removed > 0) Debug.Log($"isovista: removidos {removed} triângulos degenerados (vertices={verts.Length})");
+
+        isovistamesh.triangles = good.ToArray();
+    }
+    public void destruirMesh()
+    {
+        if (InputsMorfo.tracking)
+        {
+            Debug.Log("tracking isovistaP");
+        }
+
+        if (portaMesh == null) return;
+
+        // Remove referência da MeshFilter e destrói a mesh criada dinamicamente
+        var mf = portaMesh.GetComponent<MeshFilter>();
+        if (mf != null)
+        {
+            mf.mesh = null;
+            if (isovistamesh != null)
+            {
+                Object.Destroy(isovistamesh);
+                isovistamesh = null;
+            }
+        }
+
+        // Destrói material instanciado (acessar .material cria uma instância)
+        var mr = portaMesh.GetComponent<MeshRenderer>();
+        if (mr != null)
+        {
+            var mat = mr.material;
+            if (mat != null)
+            {
+                Object.Destroy(mat);
+            }
+        }
+
+        // Destrói o GameObject (e todos os filhos)
+        Object.Destroy(portaMesh);
+        portaMesh = null;
     }
 
     void diagnosticoNormais()
@@ -478,191 +776,119 @@ public class IsovistaP
             Vector3 fn = Vector3.Cross(b - a, c - a).normalized;
             float area = Vector3.Cross(b - a, c - a).magnitude * 0.5f;
             if (area < 1e-5f) deg++;
-            if (fn.y < 0f) { faceDown++; if (examplesLogged < 5) 
+            if (fn.y < 0f)
+            {
+                faceDown++; if (examplesLogged < 5)
                 {
-//                    Debug.Log($"isovista faceDown example i={i / 3} fn.y={fn.y:F4} area={area:E3}"); examplesLogged++; 
-                } 
+                    Debug.Log($"isovista faceDown example i={i / 3} fn.y={fn.y:F4} area={area:E3}"); examplesLogged++;
+                }
             }
         }
-//        if (InputsMorfo.tracking) Debug.Log($"isovista faces: total={tris.Length / 3}, degenerate={deg}, faceDown={faceDown}");
+//        Debug.Log($"isovista faces: total={tris.Length / 3}, degenerate={deg}, faceDown={faceDown}");
 
     }
 
-    void correcaoTriangulosDegenerados(int [] _triMesh)
+
+    int[] IosTriangulo(List<Vector3> vertices, bool fecharMalha, float epsilonArea = 0.0001f)
     {
-        int[] trisIn = _triMesh;
-        Vector3[] verts = isovistamesh.vertices;
-        var good = new List<int>(trisIn.Length);
-        int removed = 0;
-        const float areaEps = 1e-6f;
-
-        for (int i = 0; i < trisIn.Length; i += 3)
+        if (InputsMorfo.tracking)
         {
-            int i0 = trisIn[i];
-            int i1 = trisIn[i + 1];
-            int i2 = trisIn[i + 2];
+            Debug.Log("tracking isovistaP");
+        }
 
-            // segurança: índices válidos
-            if (i0 < 0 || i0 >= verts.Length || i1 < 0 || i1 >= verts.Length || i2 < 0 || i2 >= verts.Length)
+        if (vertices == null)
+        {
+            Debug.LogWarning("IosTrianguloRobusto: lista de vertices == null");
+            return System.Array.Empty<int>();
+        }
+
+        // precisa de: 1 centro + pelo menos 2 pontos de contorno para 1 triangulo,
+        // mas para uma malha fechada decente o ideal eh 1 centro + 3 pontos de contorno
+        if (vertices.Count < 3)
+        {
+            Debug.LogWarning($"IosTrianguloRobusto: vertices insuficientes ({vertices.Count})");
+            return System.Array.Empty<int>();
+        }
+
+        Vector3 centro = vertices[0];
+        List<int> triangulos = new List<int>();
+        int totalSetores = vertices.Count - 1;
+
+        int degenerados = 0;
+        int invertidosCorrigidos = 0;
+
+        //        for (int i = 1; i <= totalSetores; i++)
+        //        {
+        //            int i1 = i;
+        //            int i2 = (i < totalSetores) ? i + 1 : 1;
+        int ultimoLoop = fecharMalha ? totalSetores : totalSetores - 1;
+
+        for (int i = 1; i <= ultimoLoop; i++)
+        {
+            int i1 = i;
+            int i2 = (i < totalSetores) ? i + 1 : 1;
+
+            if (!fecharMalha && i == totalSetores)
+                break;
+
+            Vector3 a = vertices[i1] - centro;
+            Vector3 b = vertices[i2] - centro;
+
+            // cross no plano XZ
+            float crossY = a.x * b.z - a.z * b.x;
+
+            // area assinada do triangulo no XZ
+            float area = Mathf.Abs(crossY) * 0.5f;
+
+            // descarta triangulo degenerado ou quase degenerado
+            if (area <= epsilonArea)
             {
-                removed++;
+                degenerados++;
+
+                if (InputsMorfo.tracking)
+                {
+                    Debug.LogWarning(
+                        $"IosTrianguloRobusto: triangulo degenerado descartado | setor={i} | idx=(0,{i1},{i2}) | area={area}"
+                    );
+                }
+
                 continue;
             }
 
-            Vector3 a = verts[i0];
-            Vector3 b = verts[i1];
-            Vector3 c = verts[i2];
+            // Se crossY > 0, winding coerente para normal para cima no XZ.
+            // Se < 0, inverte localmente.
+            triangulos.Add(0);
 
-            float area = Vector3.Cross(b - a, c - a).magnitude * 0.5f;
-            if (area > areaEps)
+            if (crossY > 0f)
             {
-                good.Add(i0); good.Add(i1); good.Add(i2);
+                triangulos.Add(i1);
+                triangulos.Add(i2);
             }
             else
             {
-                removed++;
+                triangulos.Add(i2);
+                triangulos.Add(i1);
+                invertidosCorrigidos++;
+
+                if (InputsMorfo.tracking)
+                {
+                    Debug.LogWarning(
+                        $"IosTrianguloRobusto: winding invertido corrigido | setor={i} | idx original=(0,{i1},{i2}) | crossY={crossY}"
+                    );
+                }
             }
         }
 
-        if (removed > 0) Debug.Log($"isovista: removidos {removed} triângulos degenerados (vertices={verts.Length})");
-
-        isovistamesh.triangles = good.ToArray();
-    }
-
-    void CriarIsoMesh(List<Vector3> _pontosIsoMesh, int[] _triMesh, string _nome)
-    {
         if (InputsMorfo.tracking)
         {
-            Debug.Log("tracking isovistaP");
+            Debug.Log(
+                $"IosTrianguloRobusto: vertices={vertices.Count}, setores={totalSetores}, " +
+                $"triangulos finais={triangulos.Count / 3}, degenerados removidos={degenerados}, " +
+                $"invertidos corrigidos={invertidosCorrigidos}"
+            );
         }
 
-
-        // Criar uma nova mesh  ---> meshIsovista
-        //        Mesh mesh = new Mesh();
-        isovistamesh = new Mesh();
-
-        // Atribuir os vértices à mesh
-        isovistamesh.vertices = _pontosIsoMesh.ToArray();
-
-        // Atribuir triângulos à mesh
-//        isovistamesh.triangles = _triMesh;
-        correcaoTriangulosDegenerados(_triMesh);
-
-        // Calcular as normais automaticamente
-        isovistamesh.RecalculateNormals();
-
-        // Calcular os bounds automaticamente
-        isovistamesh.RecalculateBounds();
-        diagnosticoNormais();
-        diganosticoNormaisParaBaixo();
-        diagnosticoChecarTriangulos();
-
-
-        ////////////////////////////////      // Crie um objeto para exibir a mesh
-        portaMesh = new GameObject("m");// ("ObjetoComMesh"+_nome);
-        portaMesh.AddComponent<MeshFilter>();
-        // Atribuir a mesh ao MeshFilter
-        portaMesh.GetComponent<MeshFilter>().mesh = isovistamesh;// mesh;
-        portaMesh.AddComponent<MeshRenderer>();
-
-        Color transparencia = new Color(1.0f, 0.6f, 0.0f, 0.5f); //new Color(0.3f, 0.3f, 0.7f, 0.2f);
-                                                                 // Cor verde claro com 50% de transparência (R,G,B,Alpha)
-                                                                 //        originalColor = new Color(0.6f, 1.0f, 0.6f, 0.5f);
-        
-                MeshRenderer meshRenderer = portaMesh.GetComponent<MeshRenderer>();
-
-                meshRenderer.material.shader = Shader.Find("Standard");
-                meshRenderer.material.SetColor("_Color", transparencia);
-                meshRenderer.material.SetFloat("_Mode", 3); // Modo de rendering transparente
-                meshRenderer.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                meshRenderer.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                meshRenderer.material.SetInt("_ZWrite", 0);
-                meshRenderer.material.DisableKeyword("_ALPHATEST_ON");
-                meshRenderer.material.EnableKeyword("_ALPHABLEND_ON");
-                meshRenderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                meshRenderer.material.renderQueue = 3000;
-                
-
-
-
+        return triangulos.ToArray();
     }
-
-    public void destruirMesh()
-    {
-        if (InputsMorfo.tracking)
-        {
-            Debug.Log("tracking isovistaP");
-        }
-
-        if (portaMesh == null) return;
-
-        // Remove referência da MeshFilter e destrói a mesh criada dinamicamente
-        var mf = portaMesh.GetComponent<MeshFilter>();
-        if (mf != null)
-        {
-            mf.mesh = null;
-            if (isovistamesh != null)
-            {
-                Object.Destroy(isovistamesh);
-                isovistamesh = null;
-            }
-        }
-
-        // Destrói material instanciado (acessar .material cria uma instância)
-        var mr = portaMesh.GetComponent<MeshRenderer>();
-        if (mr != null)
-        {
-            var mat = mr.material;
-            if (mat != null)
-            {
-                Object.Destroy(mat);
-            }
-        }
-
-        // Destrói o GameObject (e todos os filhos)
-        Object.Destroy(portaMesh);
-        portaMesh = null;
-    }
-
-    int[] IosTriangulo(List<Vector3> vertices)
-    {
-        if (InputsMorfo.tracking)
-        {
-            Debug.Log("tracking isovistaP");
-        }
-
-
-        int _totalTri = vertices.Count - 1;
-        int[] _triangulosIsovista = new int[_totalTri * 3];
-      //  Debug.Log("pos ver os raycast, qtd indices triangulos: " + _triangulosIsovista.Length + ",tamanho dos vertices: " + vertices.Count);
-
-        // Definir triângulos para formar faces
-        //        int[] tri = new int[] { 0, 1, 2, 0, 2, 3 };
-
-        for (int i = 0; i < _totalTri; i++)
-        {
-
-            int a = i * 3;
-            _triangulosIsovista[a] = 0;
-            _triangulosIsovista[a + 2] = i + 1;
-            _triangulosIsovista[a + 1] = i + 2;
-
-            //  Debug.Log("valor de i: " + i + " totalTri: " + _totalTri + " valor de a: " + a);
-
-            if (i == (_totalTri -1))
-            {
-                //  Debug.Log("i = verticies count " + i);
-                _triangulosIsovista[a + 2] = i+1;
-                _triangulosIsovista[a + 1] = 1;
-            }
-        }
-  //      Debug.Log("triangulos isovista " + _triangulosIsovista.Length + $"[{string.Join(",", _triangulosIsovista)}]");
-        //Debug.Log("verticies " + vertices.Count + $"[{string.Join(",", vertices)}]");
-
-        return _triangulosIsovista;
-
-    }
-
-
 
 }

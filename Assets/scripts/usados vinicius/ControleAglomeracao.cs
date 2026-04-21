@@ -276,7 +276,7 @@ public class ControleAglomeracao : MonoBehaviour
 
         //cenas para animacao ===  string screenshotName = "Screenshot_";// + Time.frameCount; // Nome da captura de tela
         //cenas para animacao ===  ScreenCapture.CaptureScreenshot(screenshotName + ".png");
-        salvarImagens = new ScreenshotSaver();
+//        salvarImagens = new ScreenshotSaver();
 
         int rodadas = 0;
 //        Debug.Log("CA TESTANDO| ANTES contagem Geral_TotalEspacosConstruidos: " + Geral_TotalEspacosConstruidos.Count);
@@ -316,7 +316,7 @@ public class ControleAglomeracao : MonoBehaviour
             //            Debug.Log("CA TESTANDO| contagem Geral_Predios: " + Geral_Predios.Count + " p:" + Geral_Predios[Geral_Predios.Count - 1] + "; nomero de rodadas: " + rodadas);
             //            IM_predios_texto_VizinhosClick_Predios.GetComponent<Text>().text = esteEC.meusPrediosVizinhosClick.Count(e => e.meuNome.Contains("predio")).ToString();
 
-            salvarImagens.FotoTela("cena" + rodadas);
+//            salvarImagens.FotoTela("cena" + rodadas);
 //            salvarImagens.CaptureScreenshot(screenshotName + i + ".png");
             //cenas para animacao ===  ScreenCapture.CaptureScreenshot(screenshotName + i + ".png");
             rodadas++;
@@ -342,7 +342,7 @@ public class ControleAglomeracao : MonoBehaviour
         //ScreenCapture.CaptureScreenshot(screenshotName + ".png");
 //        salvarImagens = new ScreenshotSaver();
 //        salvarImagens.FotoTela("zena" + rodadas);
-        yield return StartCoroutine(salvarImagens.FotoTela("zena" + rodadas));
+//        yield return StartCoroutine(salvarImagens.FotoTela("zena" + rodadas));
 
         //        yield return new WaitForEndOfFrame();
 

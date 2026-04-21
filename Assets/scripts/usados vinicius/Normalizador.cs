@@ -1,5 +1,6 @@
 // Normalizador.cs
 
+using System.Collections.Generic;
 using UnityEngine;
 
 #region STRUCTS
@@ -176,6 +177,14 @@ public struct MedidasNormalizadas
 
 public static class Normalizador
 {
+    public static void NomalizarLista(List<lugar> lista, ValoresReferenciaNormalizacao referencia)
+    {
+        foreach (lugar l in lista) 
+        { 
+            l.iso.medidasNormalizadas = Normalizar(l.iso.medidasBrutas, referencia);
+            l.PonderarMedia();
+        }
+    }
     public static MedidasNormalizadas Normalizar(
         MedidasBrutas brutas,
         ValoresReferenciaNormalizacao referencia)
@@ -202,6 +211,21 @@ public static class Normalizador
         return Mathf.Clamp01((valor - min) / (max - min));
     }
 
+    public static ValoresReferenciaNormalizacao BuscarReferenciaNormalizacao(List<lugar> todoLugar, LayerMask layermask)
+    {
+        // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
+        lugar primeiroLugar = todoLugar[0];
+        primeiroLugar.L_CalculeIsovistas(layermask);   // calculou primeiroLugar.iso.medidasBrutas
+        ValoresReferenciaNormalizacao referencias_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.iso.medidasBrutas);
+        // ===== RESTANTE DA PRIMEIRA VARREDURA ===== ATUALIZACAO DOS VALORES
+        for (int i = 1; i < todoLugar.Count; i++)
+        {
+            lugar lugar = todoLugar[i];
+            lugar.L_CalculeIsovistas(layermask);
+            Normalizador.ChecarSeReferencia(ref referencias_normalizacao, lugar.iso.medidasBrutas);// .minhasMedidasBrutas);
+        }
+        return referencias_normalizacao;
+    }
     public static void ChecarSeReferencia(ref ValoresReferenciaNormalizacao referencia, MedidasBrutas medidas)
     {
        /* // distanciaTotal

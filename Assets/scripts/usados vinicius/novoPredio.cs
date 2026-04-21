@@ -321,7 +321,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     void isoplace()
     {
-       
         NP_CalcularIsovista();
 
         float ref_medida_geral_ponderada = Controles.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
@@ -347,7 +346,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             }
         }
         this.transform.position = np_endereco;
-
     }
 
     public bool NP_PreservarMaiorIsovista()
@@ -384,14 +382,11 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             .Max();
 
         if (debug_novoPredio) Debug.Log($"NP_PreservarMaiorIsovista: lugartemp.distanciaMaxima={lugartemp.iso.medidasBrutas.distanciaMaxima}, maxDist={maxDistancia}");
-
       
         if (Mathf.Approximately(lugartemp.iso.medidasBrutas.distanciaMaxima, maxDistancia))
         {
             if (debug_novoPredio) Debug.Log("vai ser rua pra preservar a maior isovista");
             return true; // eh a maior distancia vista, preserva como rua
-//            NP_ChecarSeEhRua();
-//            NP_ChecarSeEhRua(true);
         }
         return false;
 
@@ -505,30 +500,16 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             return;
         }
         //seta a layer onde vai fazer as medidas de isovista, pegar so predios e ruas, e nao pegar lugares
-        int _templayer = (1 << LayerMask.NameToLayer("layer_predios"))
-                 ;
-        // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
-        lugar primeiroLugar = Controles.Geral_Lugares[0];
-        primeiroLugar.L_CalculeIsovistas(_templayer);   // calculou primeiroLugar.minhasMedidasBrutas
+        int _templayer = (1 << LayerMask.NameToLayer("layer_predios"));
 
-        //        referencia_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.iso.medidasBrutas);//  .minhasMedidasBrutas);
+        // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
+        ///NAO PRECISOU DO 1o LUGAR PQ BUSCAREFERENCIANORMALIZACAO FAZ L_CALCULEISOVISTAS PARA TODOS
+        
         // ===== RESTANTE DA PRIMEIRA VARREDURA =====
-        referencia_normalizacao = primeiroLugar.iso.BuscarReferenciaNormalizacao(Controles.Geral_Lugares);
-//        for (int i = 1; i < Controles.Geral_Lugares.Count; i++)
-//        {
-//            lugar lugar = Controles.Geral_Lugares[i];
-//            lugar.L_CalculeIsovistas(_templayer);
-//            Normalizador.ChecarSeReferencia(ref referencia_normalizacao, lugar.iso.medidasBrutas);// .minhasMedidasBrutas);
-//        }
+        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(Controles.Geral_Lugares, _templayer);
 
         // ===== SEGUNDA VARREDURA: NORMALIZAR =====
-
-        for (int i = 0; i < Controles.Geral_Lugares.Count; i++)
-        {
-            lugar lugar = Controles.Geral_Lugares[i];
-            lugar.medidasNormalizadas = Normalizador.Normalizar(lugar.iso.medidasBrutas/* .minhasMedidasBrutas */, referencia_normalizacao);
-            lugar.iso.NormalizarMedidas(referencia_normalizacao);//PonderarMedia();
-        }
+        Normalizador.NomalizarLista(Controles.Geral_Lugares, referencia_normalizacao);
     }
     public void NP_ChecarSeEhRua()
     {
@@ -545,7 +526,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         _tipo_espaco = ScriptableObject.CreateInstance<SO_EspacoConstruido>();
 
-
         //VIZINHO TRANCADO TEM Q CHECAR Q ELE PROPRIO NAO VAI FICAR TRANCADO
         checagem_vizinhos_trancados = NP_ChecaVizinhoTrancado();
         checagem_vizinhos_quina = NP_ChecaVizinhoQuina();
@@ -557,19 +537,19 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             rua_por_maior_isovista = NP_PreservarMaiorIsovista();
             Debug.Log("maior isovista: ");// + lugartemp.distanciaMaxima + "valor referencia: " + referencia_normalizacao.distanciaMaxima_Max);
             Debug.Log(referencia_normalizacao.Publicar());
-            Debug.Log(lugartemp.minhasMedidasBrutas.Publicar());
-            Debug.Log(lugartemp.medidasNormalizadas.Publicar());
+            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
+            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
         }
 
         bool profundidade = false;
         if (InputsMorfo.boolModoPreservaProfundidade)
         {
             NP_CalcularIsovista();
-            profundidade = lugartemp.medidasNormalizadas.ProfundidadeRua == 1;
+            profundidade = lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1;
             Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
             Debug.Log(referencia_normalizacao.Publicar());
-            Debug.Log(lugartemp.minhasMedidasBrutas.Publicar());
-            Debug.Log(lugartemp.medidasNormalizadas.Publicar());
+            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
+            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
         }
 
         _deve_ser_rua = checagem_vizinhos_trancados || checagem_vizinhos_quina || rua_por_maior_isovista|| profundidade;
@@ -612,10 +592,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
         gameObject.layer = LayerMask.NameToLayer(_tipo_espaco.layer);
 
-
         if (!Controles.Geral_novosPrediosTotal.Contains(this))
             Controles.Geral_novosPrediosTotal.Add(this);
-
     }
 
     public bool NP_ChecaVizinhoTrancado()
@@ -628,8 +606,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         int vizinhospredios = 0;
         foreach (Celula c in celulasVonNeumann.Values)
         {
-            //            if (c == null || c.novoPredio == null) continue;
-            //            if (c.novoPredio.np_tipo == TipoEspacoConstruido.Predio)
             if (c != null && c.novoPredio != null && c.novoPredio.np_tipo == TipoEspacoConstruido.Predio)
             {
                 vizinhospredios++;
@@ -651,7 +627,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             }
             i++;
         }
-        //        NP_ChecarSeEhRua(trancado);
         trancado = (vizinhospredios ==4) || vizinhos_trancados[0] || vizinhos_trancados[1] || vizinhos_trancados[2] || vizinhos_trancados[3];
         if (vizinhospredios == 4) debug_novoPredio = true;
         if (debug_novoPredio) Debug.Log($"celula trancada: {trancado}, #vizinhos predios: {vizinhospredios}, v0.{vizinhos_trancados[0]}, v1.{vizinhos_trancados[1]}, " +
@@ -660,7 +635,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         return trancado;
     }
-
 
     public struct DebugVizinhoQuina
     {
