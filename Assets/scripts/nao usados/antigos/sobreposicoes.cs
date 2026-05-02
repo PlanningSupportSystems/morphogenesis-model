@@ -57,7 +57,7 @@ public class sobreposicoes : MonoBehaviour
             //            _endereco_ref += new Vector3(_x, 0, _z);
 
             vizinhanca.Add(_endereco_ref + new Vector3(_x, 0, _z));
-            //            Debug.Log("dps" +Controles.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +Controles.Geral_EnderecosVizinhosPossiveis[i]);
+            //            Debug.Log("dps" +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis[i]);
             //            Debug.Log("dist "+distanciaAdjacencia+"; angulo"+ angulo * Mathf.Rad2Deg+"; i" + i + "; x " + _x +"; z"+ _z + "; vizinho adicionado: " + lista_end_vinhancaPossivelTotal[i]);
         }
         return vizinhanca;
@@ -77,15 +77,15 @@ public class sobreposicoes : MonoBehaviour
 
 //        Debug.Log("vizinhos potenciais: " + _vizinhos_potenciais.Count);
 
-        foreach (Vector3 vp in _vizinhos_potenciais)
+        foreach (Vector3 vizinhoPossivel in _vizinhos_potenciais)
         {
-            if (Physics.CheckBox(vp, half_extents, Quaternion.identity))
+            if (Physics.CheckBox(vizinhoPossivel, half_extents, Quaternion.identity))
             {
-                sao_esses_vizinhos.Add(vp);
-//              Debug.Log(vp + "é vizinho");
-            } else if (!Physics.CheckBox(vp, half_extents, Quaternion.identity))
+                sao_esses_vizinhos.Add(vizinhoPossivel);
+//              Debug.Log(vizinhoPossivel + "é vizinho");
+            } else if (!Physics.CheckBox(vizinhoPossivel, half_extents, Quaternion.identity))
             {
-    //            Debug.Log(vp + "NAO é vizinho");
+    //            Debug.Log(vizinhoPossivel + "NAO é vizinho");
             }
         }
         //  Debug.Log("total de vizinhos: " + sao_esses_vizinhos.Count);
@@ -107,16 +107,16 @@ public class sobreposicoes : MonoBehaviour
 
         //        Debug.Log("vizinhos: ");
 
-        foreach (Vector3 vp in _vizinhos_potenciais)
+        foreach (Vector3 vizinhoPossivel in _vizinhos_potenciais)
         {
-            if (Physics.CheckBox(vp, half_extents, Quaternion.identity))
+            if (Physics.CheckBox(vizinhoPossivel, half_extents, Quaternion.identity))
             {
-                sao_esses_vizinhos.Add(vp);
-                //              Debug.Log(vp + "é vizinho");
+                sao_esses_vizinhos.Add(vizinhoPossivel);
+                //              Debug.Log(vizinhoPossivel + "é vizinho");
             }
-            else if (!Physics.CheckBox(vp, half_extents, Quaternion.identity))
+            else if (!Physics.CheckBox(vizinhoPossivel, half_extents, Quaternion.identity))
             {
-                //            Debug.Log(vp + "NAO é vizinho");
+                //            Debug.Log(vizinhoPossivel + "NAO é vizinho");
             }
         }
         //  Debug.Log("total de vizinhos: " + sao_esses_vizinhos.Count);

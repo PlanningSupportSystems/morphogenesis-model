@@ -60,8 +60,8 @@ public class Predios
     public static Vector3 half = default;
 
 
-//    readonly ControleAglomeracao Controles = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-    readonly ControleAglomeracao Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+//    readonly ControleAglomeracao gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+    readonly ControleAglomeracao gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
     public Predios(string nome, GameObject tipo, Vector3 endereco, int totalGente, int tVizinhos, float avI, float avF )
     {
@@ -134,7 +134,7 @@ public class Predios
 
         //        Debug.Log("0 half-extents: " + half);
 //        half = Terrain.activeTerrain.GetComponent<ControleAglomeracao>().TiposEspacoConstruido[0].transform.localScale / 2.1f;
-        half = Controles.TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        half = gerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
         //      Debug.Log("1 half-extents: " + half);
 
         //        predioPreFab = new GameObject();
@@ -150,7 +150,7 @@ public class Predios
             Debug.Log("tracking P preencherVizinhanca");
         }
 
-        //        Debug.Log("PREDIOS| geral total VizinhosPossiveis: " + Controles.Geral_EnderecosVizinhosPossiveis.Count);
+        //        Debug.Log("PREDIOS| geral total VizinhosPossiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
         float _passo_angulo = (360 / (int)InputsMorfo.input_totalVizinhos) * Mathf.Deg2Rad;
 
         for (int i = 0; i < InputsMorfo.input_totalVizinhos; i++) //  totalVizinhosPossiveis; i++)
@@ -159,11 +159,11 @@ public class Predios
             float _x = Mathf.Cos(angulo) * InputsMorfo.input_distanciaAdjacencia;// distanciaAdjacencia;
             float _z = Mathf.Sin(angulo) * InputsMorfo.input_distanciaAdjacencia;//distanciaAdjacencia;
 
-            Controles.Geral_EnderecosVizinhosPossiveis.Add(_endereco_ref + new Vector3(_x, 0, _z));
-//            Debug.Log("dps" +Controles.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +Controles.Geral_EnderecosVizinhosPossiveis[i]);
+            gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Add(_endereco_ref + new Vector3(_x, 0, _z));
+//            Debug.Log("dps" +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis[i]);
             //            Debug.Log("dist "+distanciaAdjacencia+"; angulo"+ angulo * Mathf.Rad2Deg+"; i" + i + "; x " + _x +"; z"+ _z + "; vizinho adicionado: " + lista_end_vinhancaPossivelTotal[i]);
         }
-  //      Debug.Log("PREDIOS| atualizado geral total VizinhosPossiveis: " + Controles.Geral_EnderecosVizinhosPossiveis.Count);
+  //      Debug.Log("PREDIOS| atualizado geral total VizinhosPossiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
     }
 
     public void EscolherLocalizacao()
@@ -176,11 +176,11 @@ public class Predios
 
         //        Debug.Log("inicializou escolher localizacao");
 
-        //        Debug.Log("PREDIOS| espacos ja construidos: " + Controles.Geral_PrediosConstruidos.Count + "; " +
-        //          "vizinhos possiveis: " + Controles.Geral_EnderecosVizinhosPossiveis.Count);
+        //        Debug.Log("PREDIOS| espacos ja construidos: " + gerenteAmbiente.Geral_PrediosConstruidos.Count + "; " +
+        //          "vizinhos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
         int qualprefab = 0;
-//        Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+//        gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 //        GameObject[] tiposPreFab = Terrain.activeTerrain.GetComponent<ControleAglomeracao>().TiposEspacoConstruido;// ControleAglomeracao.TiposEspacoConstruido[0];//   new GameObject();// ControleAglomeracao.TiposEspacoConstruido[0];
         GameObject[] tiposPreFab = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>().TiposEspacoConstruido;// ControleAglomeracao.TiposEspacoConstruido[0];//   new GameObject();// ControleAglomeracao.TiposEspacoConstruido[0];
 
@@ -192,7 +192,7 @@ public class Predios
 
 
         ///atribuicao do endereco da primeira casa
-        if (Controles.Geral_PrediosConstruidos.Count == 0)
+        if (gerenteAmbiente.Geral_PrediosConstruidos.Count == 0)
         {
             float posInicialX = Terrain.activeTerrain.terrainData.size.x / 2;
             float posInicialZ = Terrain.activeTerrain.terrainData.size.z / 2;
@@ -204,21 +204,21 @@ public class Predios
         else
         {
             ///escolher lugar baseado no tipo de escolha
-            ///verificar se o endereco eh possivel:
+            ///verificar se o endereco eh espacoConstruido:
             ///1. nao sobrepoe
 
             int contador = 0;
             while (collisionChecker == true){
-//                Debug.Log("qtos enderecos possiveis: "+ Controles.Geral_EnderecosVizinhosPossiveis.Count);
-//                meuEnderecoXYZ = seleciona_enderecoAleatorio(Controles.Geral_EnderecosVizinhosPossiveis);  ///temporario, por teste de hashset
+//                Debug.Log("qtos enderecos possiveis: "+ gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+//                meuEnderecoXYZ = seleciona_enderecoAleatorio(gerenteAmbiente.Geral_EnderecosVizinhosPossiveis);  ///temporario, por teste de hashset
 
                 ///checar colisao. lembrar q se faces forem coladas, ele considera colisao, dai divisor se 2.1
                 collisionChecker = sobrepor.SP_SeEhPosicaoVazia(meuEnderecoXYZ, half);
-                //          Debug.Log("testando colisao de " + this.meuNome + "; #" + contador + " total de enderecos possiveis: " + Controles.Geral_EnderecosVizinhosPossiveis.Count);
+                //          Debug.Log("testando colisao de " + this.meuNome + "; #" + contador + " total de enderecos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
                 contador++;
 //                Debug.Log("contador: "+ contador);
-                if (contador > Controles.Geral_EnderecosVizinhosPossiveis.Count)
+                if (contador > gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count)
                 {
     //                Debug.Log("estourou opcoes, valor collider: " +collisionChecker + "; contador: "+contador);
                     break;
@@ -238,49 +238,49 @@ public class Predios
 
         //        rua = P_ChecarDiferenciacaoAcessoRua();
 
-        //        Debug.Log("PREDIOS| ANTES total de espaco construido: " + Controles.Geral_PrediosConstruidos.Count);
+        //        Debug.Log("PREDIOS| ANTES total de espaco construido: " + gerenteAmbiente.Geral_PrediosConstruidos.Count);
 
-        SO_EspacoConstruido _tipo_espaco = ScriptableObject.CreateInstance<SO_EspacoConstruido>();
+        SO_EspacoConstruido tipoEspaco = ScriptableObject.CreateInstance<SO_EspacoConstruido>();
 
-        predioPreFab = GameObject.Instantiate(Controles.TiposEspacoConstruido[0]);
+        predioPreFab = GameObject.Instantiate(gerenteAmbiente.TiposEspacoConstruido[0]);
         string rua = "nao";
         rua = P_ChecarDiferenciacaoAcessoRua();
 
-        //SO_EspacoConstruido _tipo_espaco = SO_EspacoConstruido.CreateInstance(SO_EspacoConstruido);//  . _tipo_espaco = SO_EspacoConstruido.CreateInstance (so_  ();// Controles._so_construir[0]; 
-        //        SO_EspacoConstruido _tipo_espaco = new SO_EspacoConstruido();// Controles._so_construir[0]; 
+        //SO_EspacoConstruido tipoEspaco = SO_EspacoConstruido.CreateInstance(SO_EspacoConstruido);//  . tipoEspaco = SO_EspacoConstruido.CreateInstance (so_  ();// gerenteAmbiente._so_construir[0]; 
+        //        SO_EspacoConstruido tipoEspaco = new SO_EspacoConstruido();// gerenteAmbiente._so_construir[0]; 
         Debug.Log("em predios pos checagem. rua: "+ rua);
 //        rua = "nao";
         if (rua == "nao")
         {
-            _tipo_espaco =  Controles._so_construir[0];
+            tipoEspaco =  gerenteAmbiente._so_construir[0];
             //          qualprefab = 0;
-            Controles.Geral_PrediosConstruidos.Add(this);
+            gerenteAmbiente.Geral_PrediosConstruidos.Add(this);
         }
         else if (rua == "sim") 
         {
-            _tipo_espaco = Controles._so_construir[1];
+            tipoEspaco = gerenteAmbiente._so_construir[1];
             //          qualprefab = 1;
             //predioPreFab.name = "rua";
             //predioPreFab.transform.localScale -= new Vector3(0, 1.6f, 0);
             //predioPreFab.GetComponent<Renderer>().material.color = Color.white;
-//            Controles.Geral_Ruas.Add(this);
+//            gerenteAmbiente.Geral_Ruas.Add(this);
                 }
 
 //        GameObject.Instantiate(predioPreFab);
 //        predioPreFab.name = this.meuNome;
 
-        predioPreFab.name = _tipo_espaco.nome;//  "rua";
-        predioPreFab.transform.localScale = _tipo_espaco.escala;// -= new Vector3(0, 1.6f, 0);
-        predioPreFab.GetComponent<Renderer>().material.color = _tipo_espaco.cor;// Color.white;
+        predioPreFab.name = tipoEspaco.nome;//  "rua";
+        predioPreFab.transform.localScale = tipoEspaco.escala;// -= new Vector3(0, 1.6f, 0);
+        predioPreFab.GetComponent<Renderer>().material.color = tipoEspaco.cor;// Color.white;
 
-        //        Debug.Log("PREDIOS| DPS IF total de espaco construido: " + Controles.Geral_PrediosConstruidos.Count);
+        //        Debug.Log("PREDIOS| DPS IF total de espaco construido: " + gerenteAmbiente.Geral_PrediosConstruidos.Count);
         //        Debug.Log("qualprefab: " + qualprefab);
 
         //        predioPreFab = tiposPreFab[qualprefab];//  Terrain.activeTerrain.GetComponent<ControleAglomeracao>().TiposEspacoConstruido[0];// ControleAglomeracao.TiposEspacoConstruido[0];//   new GameObject();// ControleAglomeracao.TiposEspacoConstruido[0];
         predioPreFab.transform.position = meuEnderecoXYZ;
         //        predioPreFab = GameObject.Instantiate(tiposPreFab[qualprefab], meuEnderecoXYZ, Quaternion.identity);
 
-//        Controles.Geral_PrediosConstruidos.Add(this);
+//        gerenteAmbiente.Geral_PrediosConstruidos.Add(this);
 
 
         preencherVizinhanca(meuEnderecoXYZ);
@@ -313,12 +313,12 @@ public class Predios
             Debug.Log("tracking P seleciona_enderecoAleatorio");
         }
 
-        //Controles.Geral_VizinhosPossiveis
+        //gerenteAmbiente.Geral_VizinhosPossiveis
         int index = Random.Range(0, _lista_possibilidades.Count - 1);
         Vector3 endreturn = _lista_possibilidades[index];
-//        Debug.Log("total de vizinhos possiveis: " + Controles.Geral_EnderecosVizinhosPossiveis.Count + "; endereco escolhido aleatorio: " + endreturn);
+//        Debug.Log("total de vizinhos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; endereco escolhido aleatorio: " + endreturn);
         _lista_possibilidades.RemoveAt(index);// 
-        //Controles.Geral_EnderecosVizinhosPossiveis.RemoveAt(index);
+        //gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.RemoveAt(index);
 
         return endreturn;
     }
@@ -335,9 +335,9 @@ public class Predios
 //        /////////////////////////////separado no teste
 //        if (lista_prediosDisponiveis.Count == 0)
 //        {
-//            if (Controles.Geral_PrediosConstruidos.Count > 0)//   lista_todosConstruidos.Count > 0)
+//            if (gerenteAmbiente.Geral_PrediosConstruidos.Count > 0)//   lista_todosConstruidos.Count > 0)
 //            {
-//                lista_prediosDisponiveis.Add(Controles.Geral_PrediosConstruidos[0]); // lista_todosConstruidos[0]);
+//                lista_prediosDisponiveis.Add(gerenteAmbiente.Geral_PrediosConstruidos[0]); // lista_todosConstruidos[0]);
 //            }
 //            //                Debug.Log(Geral_PrediosConstruidos.Count + " espacos3");
 //            //                Debug.Log("nao tinha vizinho, novo vizinho atribuido");
@@ -374,7 +374,7 @@ public class Predios
 //       // //           i--;
 //        //       }// * 1;// 
 //        //
-//        int inome = Controles.Geral_PrediosConstruidos.Count; // lista_todosConstruidos.Count;
+//        int inome = gerenteAmbiente.Geral_PrediosConstruidos.Count; // lista_todosConstruidos.Count;
 
 
 //        ///////////////////////////////////////////////////////////////////////////////////////

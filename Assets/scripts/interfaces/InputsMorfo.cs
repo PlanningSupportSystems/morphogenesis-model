@@ -8,6 +8,7 @@ using System;
 
 public class InputsMorfo : MonoBehaviour
 {
+    ControleAglomeracao gerenteAmbiente;
 
     public static bool tracking = false;
     //    public static string ptz = "aidentu 4";
@@ -56,8 +57,7 @@ public class InputsMorfo : MonoBehaviour
     public GameObject iDistanciaCampoVisao;
     public Terrain terreno;
     public float tamanho;
-//    public GameObject _ambiente;
-    public ControleAglomeracao _ambiente;
+
 
     //    Text vTotalCasas;
     [SerializeField] InputField itotalCasas;
@@ -183,14 +183,22 @@ public class InputsMorfo : MonoBehaviour
     }
 
 
-void Start()
+    void Start()
     {
         if (tracking)
         {
             Debug.Log("tracking IM START");
         }
 
-        _ambiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        //gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        gerenteAmbiente = ControleAglomeracao.Instance;
+        //        gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        if (gerenteAmbiente == null)
+        {
+            Debug.LogError("InputMorfo.Start: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");
+            enabled = false; // desativa este MonoBehaviour para evitar chamadas subsequentes
+            return;
+        }
 
         ///textos e valores dos objetos, novoPredio e lugar
         ///
@@ -428,7 +436,7 @@ void IM_SetarValores()
         //        terreno.GetComponent<levelgenerator>().iniciaMapa();
 
         //        terreno.GetComponent<ControleAglomeracao>().CA_IniciarControle();
-        _ambiente.CA_IniciarControle();//  .GetComponent<ControleAglomeracao>().CA_IniciarControle();
+        gerenteAmbiente.CA_IniciarControle();//  .GetComponent<ControleAglomeracao>().CA_IniciarControle();
         gerarAglomeracao.interactable = true;
     }
 

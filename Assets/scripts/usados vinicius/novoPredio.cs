@@ -10,15 +10,14 @@ using UnityEngine.UI;
 
 public class novoPredio : MonoBehaviour, ISelecionavel
 {
-    //    ControleAglomeracao Controles = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-    ControleAglomeracao Controles;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+    //    ControleAglomeracao gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+    ControleAglomeracao gerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
     /// <summary>
     /// sistema de celulas para vizinhanca, substituiu os raycast e posicao xyz
     /// 
     /// checar quais precisam ficar. tvz so os dictionary e os list<tipoEspacoConstruido>. 
     /// </summary>
-    public Dictionary<Vector2Int, Celula> celulasVizinhas = new Dictionary<Vector2Int, Celula>();
     public Dictionary<Vector2Int, Celula> celulasVonNeumann = new Dictionary<Vector2Int, Celula>();
     public Dictionary<Vector2Int, Celula> celulasVonNeumann_Comp = new Dictionary<Vector2Int, Celula>();
     public Dictionary<Vector2Int, Celula> celulasMoore = new Dictionary<Vector2Int, Celula>();
@@ -33,28 +32,14 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public List<novoPredio> vizinhos_originais_rua_VNC;
     public List<lugar> vizinhos_originais_lugar_VNC;
 
-
     [SerializeField] InputsMorfo valoresEntrada;
     public InputsMorfo entradas;
 
     Celula minhaCelula;
     [SerializeField] public string enderecoCelula;
-    [SerializeField] public Vector2Int end_Celula = new Vector2Int (0,0);
-
-    GameObject _propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
-    GameObject _propriedades_L;// = GameObject.Find("propriedades_lugar_alocado");
+    [SerializeField] public Vector2Int endCelula = new Vector2Int (0,0);
 
     public TipoEspacoConstruido np_tipo;
-    Text IM_nome_obj;
-    ///enderecoCelular qd criado
-    Text IM_predios_VizinhosTotal_Inicial;// = GameObject.Find("TextVizinhosTotal_Inicial");
-    Text IM_predios_texto_VizinhosInicial_Predios;// = GameObject.Find("TextVizinhosInicial_Predios");
-    Text IM_predios_texto_VizinhosInicial_Ruas;// = GameObject.Find("TextVizinhosInicial_Ruas");
-
-    ///enderecoCelular qd clickado
-    Text IM_predios_texto_VizinhosClick_Total;// = GameObject.Find("TextVizinhosTotal_Click");
-    Text IM_predios_texto_VizinhosClick_Predios;// = GameObject.Find("TextVizinhosClick_Predios");
-    Text IM_predios_texto_VizinhosClick_Ruas;// = GameObject.Find("TextVizinhosClick_Ruas");
 
 
     //propriedades relativas interface ISelecionavel
@@ -77,15 +62,13 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     private lugar lugartemp;
 
     ValoresReferenciaNormalizacao referencia_normalizacao;
+    bool _isovista_calculada;
 
     /// <summary>
     /// ////////daki pra baixo td pode sair. substituido pelo sistema de celulas.
     /// revisar, por la, quais precisam ficar.
     /// </summary>
-    public List<Vector3> enderecos_da_vizinhanca;
-    public List<Vector3> enderecos_da_vizinhanca_VN;
-    public List<Vector3> enderecos_da_vizinhanca_VNcomp;
-    public List<Vector3> enderecos_da_vizinhanca_Moore;
+
     public int np_saldoVizinhos;
     public List<novoPredio> np_meus_vizinhos_predio;
     public List<novoPredio> np_meus_vizinhos_rua;
@@ -100,61 +83,47 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public List<novoPredio> np_click_vizinhanca_quina_orto;
     //revisar para classificar de ortogonais(von neuman) ou diagonais (moore)
 
-    /// <summary>
-    /// verificar se vale mais a pena concentrar aki os scriptObj, ou faze-los de prefab
-    /// </summary>
-
-    // Start is called before the first frame update
-
     public delegate void MetodoEscolha();
     MetodoEscolha metodo_escolha;
 
-    public SO_EspacoConstruido _tipo_espaco;
+    public SO_EspacoConstruido tipoEspaco;
 
 
-    public novoPredio(string _nome)
+    public void atribuirDelegate(string nomeMetodo_T)
     {
-        np_half = Controles.TiposEspacoConstruido[0].transform.localScale / 2.1f;
-        np_nome = _nome;
+        if (string.IsNullOrEmpty(nomeMetodo_T))
+        {
+            Debug.LogWarning("atribuirDelegate: nome do método vazio");
+            metodo_escolha = null;
+            return;
+        }
 
-        atribuirDelegate(Controles.Tipo_Localizacao);
-        metodo_escolha();
-        //        Debug.Log("novo predio distancia de controles"+Controles.TdistObj.text);
-    }
+        MethodInfo methodInfo = this.GetType().GetMethod(nomeMetodo_T, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-    public novoPredio(string _nome, string nome_metodo)
-    {
-        np_nome = _nome;
-        np_half = Controles.TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        if (methodInfo == null)
+        {
+            Debug.LogError($"atribuirDelegate: Método '{nomeMetodo_T}' não encontrado em {this.GetType().Name}");
+            metodo_escolha = null;
+            return;
+        }
 
-        atribuirDelegate(nome_metodo);
-        metodo_escolha();
-        //        Debug.Log("novo predio distancia de controles"+Controles.TdistObj.text);
-    }
-    public novoPredio(Vector3 _endereco)
-    {
-        GameObject geo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        geo.transform.localScale = _tipo_espaco.escala;// Controles._so_construir[2].escala;
-        geo.GetComponent<Renderer>().material.color = _tipo_espaco.cor;//  Controles._so_construir[2].cor;
-
-        Mesh sphereMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
-        geo.GetComponent<MeshFilter>().mesh = sphereMesh;
-
-    }
-
-    public void atribuirDelegate(string _nome_metodo)
-    {
-        MethodInfo methodInfo = this.GetType().GetMethod(_nome_metodo, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        if (methodInfo != null)
+        try //if (methodInfo != null)
         {
             // Cria o delegate a partir do MethodInfo
             metodo_escolha = (MetodoEscolha)Delegate.CreateDelegate(typeof(MetodoEscolha), this, methodInfo);
+            return;
         }
-        else
+        catch (ArgumentException ex)
         {
-            Debug.LogError("Método não encontrado: " + _nome_metodo);
+            Debug.LogError($"atribuirDelegate: assinatura incompatível para '{nomeMetodo_T}': {ex.Message}");
         }
+        catch (Exception ex)
+        {
+            Debug.LogError($"atribuirDelegate: erro criando delegate para '{nomeMetodo_T}': {ex.GetType().Name}: {ex.Message}");
+        }
+
+        metodo_escolha = null;
+        return;
     }
 
 
@@ -165,45 +134,59 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             Debug.Log("tracking novoPredio");
         }
 
-        Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-        np_half = Controles.TiposEspacoConstruido[0].transform.localScale / 2.1f;
-        np_nome = "predio" + Controles.Geral_novosPrediosConstruidos.Count;
+        gerenteAmbiente = ControleAglomeracao.Instance; // = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        if (gerenteAmbiente == null)
+        {
+            // tentativa de fallback (caso o singleton não tenha sido inicializado por alguma razão)
+            gerenteAmbiente = FindObjectOfType<ControleAglomeracao>();
+        }
+
+        if (gerenteAmbiente == null)
+        {
+            Debug.LogError("novoPredio.Start: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");
+            enabled = false; // desativa este MonoBehaviour para evitar chamadas subsequentes
+            return;
+        }
+
+        _isovista_calculada = false;
+
+        np_half = gerenteAmbiente.espacoConstruido.transform.localScale / 2.1f;
+        np_nome = "predio" + gerenteAmbiente.Geral_novosPrediosConstruidos.Count;
         this.gameObject.name = np_nome;
         np_meuRenderer = this.gameObject.GetComponent<Renderer>();
 
         //configurando sobre interface ISelecionavel
         EstaSelecionado = false;
-        _propriedades_E_C = InputsMorfo.IM_propriedades_E_C; // GameObject.Find("propriedades_espaco_construido");
-        _propriedades_L = InputsMorfo.IM_propriedades_L;// GameObject.Find("propriedades_lugar_alocado");
 
-        //IM_nome_obj = InputsMorfo.IM_obj_nome;// = np_nome;
+        atribuirDelegate(gerenteAmbiente?.Tipo_Localizacao);
+        if (metodo_escolha != null)
+        {
+            try { metodo_escolha(); }
+            catch (Exception ex)
+            { Debug.LogError($"metodo_escolha invocação falhou: {ex.GetType().Name}: {ex.Message}"); }
+        }
+        else
+        { Debug.LogWarning("metodo_escolha não atribuído em novoPredio.Start()"); }
 
-        atribuirDelegate(Controles.Tipo_Localizacao);
-        metodo_escolha();
-        //        Controles.Geral_novosPrediosConstruidos.Add(this);
-        NP_Vizinhanca(true);
+        //        gerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
+//        NP_Vizinhanca(true);
         //        Debug.Log("novo predio start " + np_nome);
 
         //////////USO DAS CELULAS PARA CHECAR VIZINHOS
         bool criar = true;
-        celulasVizinhas = new Dictionary<Vector2Int, Celula>();
         celulasVonNeumann = new Dictionary<Vector2Int, Celula>();
-        celulasVonNeumann_Comp = new Dictionary<Vector2Int, Celula>();
-        celulasMoore = new Dictionary<Vector2Int, Celula>();
-        NP_Celulas_PegarVizinhas(celulasVizinhas, Celula.offsetsVonNeumann, criar, enderecos_da_vizinhanca);
+        NP_Celulas_PegarVizinhas(minhaCelula, celulasVonNeumann, Celula.offsetsVonNeumann, criar);//, enderecos_da_vizinhanca);
         criar = false;
-        NP_Celulas_PegarVizinhas(celulasVonNeumann, Celula.offsetsVonNeumann, criar, enderecos_da_vizinhanca_VN);
-        NP_Celulas_PegarVizinhas(celulasVonNeumann_Comp, Celula.offsetsVonNeumannComplemento, criar, enderecos_da_vizinhanca_VNcomp);
-        NP_Celulas_PegarVizinhas(celulasMoore, Celula.offsetsMoore, criar, enderecos_da_vizinhanca_Moore);
+//        celulasVonNeumann_Comp = new Dictionary<Vector2Int, Celula>();
+        celulasMoore = new Dictionary<Vector2Int, Celula>();
+//        NP_Celulas_PegarVizinhas(minhaCelula, celulasVonNeumann_Comp, Celula.offsetsVonNeumannComplemento, criar);//, enderecos_da_vizinhanca_VNcomp);
+        NP_Celulas_PegarVizinhas(minhaCelula, celulasMoore, Celula.offsetsMoore, criar);//, enderecos_da_vizinhanca_Moore);
 
         NP_GuardarVizinhosOriginais();
    
         debug_novoPredio = false;
         if (debug_novoPredio)
         {
-            Debug.Log(celulasVizinhas == null
-            ? "dictionary = NULL"
-            : $"dictionary OK | count_todos = {celulasVizinhas.Count}");
             Debug.Log(celulasVonNeumann == null
                 ? "dictionary = NULL"
                 : $"dictionary OK | count_todos = {celulasVonNeumann.Count}");
@@ -252,17 +235,17 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         bool collisionChecker = true;
         int contador = 0;
 
-        ///verificar se o endereco eh possivel:
+        ///verificar se o endereco eh espacoConstruido:
         ///1. nao sobrepoe
-        if (Controles.Geral_Lugares.Count <= 0) { return; }
+        if (gerenteAmbiente.Geral_Lugares.Count <= 0) { return; }
 
         int _np_index = 0;
 
         //        lugar lugartemp;
         while (collisionChecker == true)
         {
-            _np_index = UnityEngine.Random.Range(0, Controles.Geral_Lugares.Count);
-            lugartemp = Controles.Geral_Lugares[_np_index];
+            _np_index = UnityEngine.Random.Range(0, gerenteAmbiente.Geral_Lugares.Count);
+            lugartemp = gerenteAmbiente.Geral_Lugares[_np_index];
             np_endereco = lugartemp._endereco;
 
             // checagem local: permite substituir o proprio lugar
@@ -291,7 +274,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             }
 
             contador++;
-            if (contador > Controles.Geral_Lugares.Count)
+            if (contador > gerenteAmbiente.Geral_Lugares.Count)
             {
                 break;
             }
@@ -323,8 +306,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     {
         NP_CalcularIsovista();
 
-        float ref_medida_geral_ponderada = Controles.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
-        List<lugar> lista_medida_geral_ponderada = Controles.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        float ref_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
+        List<lugar> lista_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
         if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
 
         int _index_medida_geral_ponderada = UnityEngine.Random.Range(0, lista_medida_geral_ponderada.Count);
@@ -353,16 +336,16 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         //PRESERVA QUANDO FOR A SELECAO FOR EQUIVALENTE A MAIOR RUA. DAI ELA SE MANTEM COMO RUA
         //EH UM EXTRA, SER RUA DE MODO A NAO TRANCAR OS PREDIOS, E MANTER QD FOR A MAIOR.
         //        Debug.Log("maior distancia desse lugar: " + lugartemp.distanciaMaxima);
-        //        Debug.Log("maior distancia da rodada de medida: " + Controles.Geral_Lugares.Max(casa => casa.distanciaMaxima));
+        //        Debug.Log("maior distancia da rodada de medida: " + gerenteAmbiente.Geral_Lugares.Max(casa => casa.distanciaMaxima));
 
         // defesa: garantir que temos dados para comparar
-        if (Controles == null)
+        if (gerenteAmbiente == null)
         {
-            if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: Controles == null para " + np_nome);
+            if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: gerenteAmbiente == null para " + np_nome);
             return false;
         }
 
-        if (Controles.Geral_Lugares == null || Controles.Geral_Lugares.Count == 0)
+        if (gerenteAmbiente.Geral_Lugares == null || gerenteAmbiente.Geral_Lugares.Count == 0)
         {
             if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: Geral_Lugares vazio para " + np_nome);
             return false;
@@ -375,7 +358,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
 
         // proteger contra elementos nulos dentro da coleção
-        float maxDistancia = Controles.Geral_Lugares
+        float maxDistancia = gerenteAmbiente.Geral_Lugares
             .Where(c => c != null)
             .Select(c => c.iso.medidasBrutas.distanciaMaxima)
             .DefaultIfEmpty(float.MinValue)
@@ -408,80 +391,67 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     {
             if (c.novoPredio == null && c.lugar == null)
             {
-                GameObject go = Instantiate(Controles.vp, c.posicaoMundo, Quaternion.identity);
+                GameObject go = Instantiate(gerenteAmbiente.vizinhoPossivel, c.posicaoMundo, Quaternion.identity);
                 lugar porta_lugar = go.GetComponent<lugar>();
                 porta_lugar.addCelula(c);
-                c.addLugar(porta_lugar);// c.lugar = porta_lugar;
+                c.addLugar(porta_lugar);// cel_vizinha.lugar = porta_lugar;
             }
     }
 
 
-    public void NP_Celulas_PegarVizinhas(Dictionary<Vector2Int, Celula> dicionario_trabalho,  Vector2Int[] matriz_vizinhanca, bool criar, List<Vector3> lista_endereco_real_trabalho = null)
+    public void NP_Celulas_PegarVizinhas(Celula celula_T, Dictionary<Vector2Int, Celula> dicionario_T,  Vector2Int[] matrizVizinhanca_T, bool criar_T)//, List<Vector3> lista_endereco_real_trabalho = null)
     {
+        //Dictionary<Vector2Int, Celula> dicionario_T,          -> aonde ficam anotadas as celulas vizinhas
+        //Vector2Int[] matrizVizinhanca_T,                      -> referencia para encontrar a vizinhanca
+        //bool criar_T,                                         -> define se vai criar_T celulas vizinhas (ou so anotar quais sao)
+        //List<Vector3> lista_endereco_real_trabalho = null     -> aonde ficam os enderecos de mundo real das celulas vizinhas || DESNECESSARIOA como entrada, DELETADA
+        //minhaCelula (trocada por celula_T)                    -> celula de referencia para pegar vizinhanca
 
-        //        bool criar = true;
-        Vector3 celula_Mundo = new Vector3(0, 0, 0);
-//        Vector2Int[] enderecoCelular = new Vector2Int[matriz_vizinhanca.Length];
-//        Vector3[] enderecoReal = new Vector3[matriz_vizinhanca.Length];
-        if (debug_novoPredio) Debug.Log("nome do predio: " + np_nome + "\n" +
-                             "endereco do predio: " + minhaCelula.posicaoMundo.ToString());
-        if (minhaCelula != null)
+        if (celula_T == null || dicionario_T == null || matrizVizinhanca_T == null)
         {
-            celula_Mundo = minhaCelula.posicaoMundo;
-
-            if (debug_novoPredio) Debug.Log("minhaCelula endereco: " + minhaCelula.endereco.ToString() + "\n" +
-                                 "minhaCelula lugar no mundo: " + minhaCelula.posicaoMundo.ToString());
-            //            celula_Mundo = minhaCelula.posicaoMundo;
+            Debug.LogWarning("falta parametro de entrada, abortando NP_Celulas_PegarVizinhas\n" +
+                "celula_T: " + celula_T + ", dicionario_T: " + dicionario_T + ", matrizVizinhanca_T:" + matrizVizinhanca_T);
+            return;
         }
-        else
-        {
-            Debug.LogWarning("sem celula");
-        }
+        if (debug_novoPredio) Debug.Log(
+            "nome do predio: " + np_nome + "\n" + 
+            "minhaCelula endereco: " + celula_T.endereco.ToString() + "\n" +
+            "minhaCelula lugar no mundo: " + celula_T.posicaoMundo.ToString());
 
-
-//        celulasVizinhas
-        if (dicionario_trabalho == null) dicionario_trabalho = new Dictionary<Vector2Int, Celula>();
         ////////////SE FOR CRIAR TEM Q ZERAR a lista de celulas vizinhas
-//        Debug.Log("estado do dictionary: " + dicionario_trabalho.Count);
-        else if (criar && dicionario_trabalho != null)
+        if (criar_T)// && dicionario_T != null)
         {
-            if (debug_novoPredio) Debug.Log("NP CRIAR CELULAS: total celulasvizinhas: " + dicionario_trabalho.Count);
-            dicionario_trabalho.Clear();
-            if (lista_endereco_real_trabalho == null) lista_endereco_real_trabalho = new List<Vector3>();
-            lista_endereco_real_trabalho.Clear();
+            if (debug_novoPredio) Debug.Log("NP CRIAR CELULAS: total dictionary celulasvizinhas: " + dicionario_T.Count);
+            dicionario_T.Clear();
         }
 
-        for (int i = 0; i < matriz_vizinhanca.Length; i++)
-
+        for (int i = 0; i < matrizVizinhanca_T.Length; i++)
         {
-            if (minhaCelula == null) break; 
-            Vector2Int enderecoCelular = minhaCelula.endereco + matriz_vizinhanca[i];
+            Vector2Int enderecoCelular = celula_T.endereco + matrizVizinhanca_T[i];
             //enderecoReal[i] = enderecoReal;
-//            NP_CriarCelulas(enderecoCelular[i], enderecoReal[i], criar);
+            //            NP_CriarCelulas(enderecoCelular[i], enderecoReal[i], criar_T);
 
-            if (!Controles.livroCelulas.TryGetValue(enderecoCelular, out Celula celula) && criar)
+            if (!gerenteAmbiente.livroCelulas.TryGetValue(enderecoCelular, out Celula celula) && criar_T)
             {
-                float x = minhaCelula.posicaoMundo.x + matriz_vizinhanca[i].x * InputsMorfo.input_distanciaAdjacencia;
-                float z = minhaCelula.posicaoMundo.z + matriz_vizinhanca[i].y * InputsMorfo.input_distanciaAdjacencia;// tamanhoCelula;
-                Vector3 enderecoReal = new Vector3(x, minhaCelula.posicaoMundo.y, z);// celulasVizinhas[Celula.offsetsVonNeumann[i]] = new Celula(Celula.offsetsVonNeumann[i], enderecoReal);
-                celula = Controles.CriarCelula(enderecoCelular, enderecoReal);
+                float x = celula_T.posicaoMundo.x + matrizVizinhanca_T[i].x * InputsMorfo.input_distanciaAdjacencia;
+                float z = celula_T.posicaoMundo.z + matrizVizinhanca_T[i].y * InputsMorfo.input_distanciaAdjacencia;
+                Vector3 enderecoReal = new Vector3(x, celula_T.posicaoMundo.y, z);// celulasVizinhas[Celula.offsetsVonNeumann[i]] = new Celula(Celula.offsetsVonNeumann[i], enderecoReal);
+
+                celula = gerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);
                 if (celula != null)
                     NP_ColocarLugarNaCelula(celula);
-                lista_endereco_real_trabalho.Add(celula.posicaoMundo);
             }
             if (celula == null)
                 continue;
-            dicionario_trabalho.Add(enderecoCelular, celula);
-//            enderecos_da_vizinhanca.Add(celula.posicaoMundo);
-
+            dicionario_T.Add(enderecoCelular, celula);
         }
 
         debug_novoPredio = false;
         if (debug_novoPredio)
         {
-            string texto = "dicionario_trabalho tamanho: " + dicionario_trabalho.Count + ", estado criar: " + criar +"\n";
+            string texto = "dicionario_T tamanho: " + dicionario_T.Count + ", estado criar_T: " + criar_T +"\n";
 
-            foreach (var kvp in dicionario_trabalho)
+            foreach (var kvp in dicionario_T)
             {
                 texto += $"{kvp.Key} -> {kvp.Value} : {kvp.Value.novoPredio} : {kvp.Value.lugar}\n";
             }
@@ -494,7 +464,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     public void NP_CalcularIsovista()
     {
-        if (Controles.Geral_Lugares == null || Controles.Geral_Lugares.Count == 0)
+        if (gerenteAmbiente.Geral_Lugares == null || gerenteAmbiente.Geral_Lugares.Count == 0)
         {
             Debug.LogWarning("Nao ha lugares candidatos para avaliar.");
             return;
@@ -506,35 +476,39 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         ///NAO PRECISOU DO 1o LUGAR PQ BUSCAREFERENCIANORMALIZACAO FAZ L_CALCULEISOVISTAS PARA TODOS
         
         // ===== RESTANTE DA PRIMEIRA VARREDURA =====
-        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(Controles.Geral_Lugares, _templayer);
+        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(gerenteAmbiente.Geral_Lugares, _templayer);
 
         // ===== SEGUNDA VARREDURA: NORMALIZAR =====
-        Normalizador.NomalizarLista(Controles.Geral_Lugares, referencia_normalizacao);
+        Normalizador.NomalizarLista(gerenteAmbiente.Geral_Lugares, referencia_normalizacao);
+
+        _isovista_calculada = true;
+
     }
     public void NP_ChecarSeEhRua()
     {
-        bool _deve_ser_rua = false;
-        if (debug_novoPredio) Debug.Log("checar se eh rua valor de trancado: " + _deve_ser_rua);
+        bool deveSerRua_T = false;
+        if (debug_novoPredio) Debug.Log("checar se eh rua valor de trancado: " + deveSerRua_T);
 
-        // assegura que temos o controle
-        if (Controles == null) Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        // assegura que temos o controle  --- como garantir q foi recurado no awake e tirar esses testes
+//        if (gerenteAmbiente == null) gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
         // remove qualquer referência antiga para evitar duplicatas/contadores incorretos
-        Controles.Geral_novosPrediosConstruidos?.Remove(this);
-        Controles.Geral_novosPrediosRuas?.Remove(this);
+        gerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
+        gerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
         // NÃO removemos ainda de Geral_novosPrediosTotal aqui (mantemos registro geral), ou remova se preferir.
 
-        _tipo_espaco = ScriptableObject.CreateInstance<SO_EspacoConstruido>();
+        //        tipoEspaco = ScriptableObject.CreateInstance<SO_EspacoConstruido>();
 
         //VIZINHO TRANCADO TEM Q CHECAR Q ELE PROPRIO NAO VAI FICAR TRANCADO
-        checagem_vizinhos_trancados = NP_ChecaVizinhoTrancado();
-        checagem_vizinhos_quina = NP_ChecaVizinhoQuina();
+        checagem_vizinhos_trancados = NP_ChecaVizinhoTrancado(minhaCelula);//, celulasVonNeumann);
+        checagem_vizinhos_quina = NP_ChecaVizinhoQuina(minhaCelula);//, celulasVonNeumann_Comp);
 
+        if (_isovista_calculada == false) NP_CalcularIsovista();
         bool rua_por_maior_isovista = false;
         if (InputsMorfo.boolModoPreservaIso)
         {
-            NP_CalcularIsovista();
-            rua_por_maior_isovista = NP_PreservarMaiorIsovista();
+//            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
+            rua_por_maior_isovista = NP_PreservarMaiorIsovista(); ///pode ser substituido por uma comparacao medidasnormalizadas.maxdist ==1
             Debug.Log("maior isovista: ");// + lugartemp.distanciaMaxima + "valor referencia: " + referencia_normalizacao.distanciaMaxima_Max);
             Debug.Log(referencia_normalizacao.Publicar());
             Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
@@ -544,7 +518,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         bool profundidade = false;
         if (InputsMorfo.boolModoPreservaProfundidade)
         {
-            NP_CalcularIsovista();
+//            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
             profundidade = lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1;
             Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
             Debug.Log(referencia_normalizacao.Publicar());
@@ -552,82 +526,101 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
         }
 
-        _deve_ser_rua = checagem_vizinhos_trancados || checagem_vizinhos_quina || rua_por_maior_isovista|| profundidade;
+        deveSerRua_T = checagem_vizinhos_trancados || checagem_vizinhos_quina || rua_por_maior_isovista|| profundidade;
         
-        if (_deve_ser_rua)
-        Debug.Log($"deve_ser_rua: {_deve_ser_rua} = trancado: {checagem_vizinhos_trancados} + quina: {checagem_vizinhos_quina} + vista: {rua_por_maior_isovista} + profundidade: {profundidade}");
+        if (deveSerRua_T)
+        Debug.Log($"deve_ser_rua: {deveSerRua_T} = trancado: {checagem_vizinhos_trancados} + quina: {checagem_vizinhos_quina} + vista: {rua_por_maior_isovista} + profundidade: {profundidade}");
 
-        string rua = _deve_ser_rua ? "sim" : "nao";
+        string rua = deveSerRua_T ? "sim" : "nao";
 
         if (rua == "nao")
         {
-            _tipo_espaco = Controles.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
-            np_nome = _tipo_espaco.nome + Controles.Geral_novosPrediosConstruidos.Count.ToString();
+            tipoEspaco = gerenteAmbiente.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
+            np_nome = tipoEspaco.nome + gerenteAmbiente.Geral_novosPrediosConstruidos.Count.ToString();
          
-            if (!Controles.Geral_novosPrediosConstruidos.Contains(this))
-                Controles.Geral_novosPrediosConstruidos.Add(this);
+            if (!gerenteAmbiente.Geral_novosPrediosConstruidos.Contains(this))
+                gerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
         }
         else if (rua == "sim")
         {
-            _tipo_espaco = Controles.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
-            np_nome = _tipo_espaco.nome + Controles.Geral_novosPrediosRuas.Count.ToString();
+            tipoEspaco = gerenteAmbiente.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
+            np_nome = tipoEspaco.nome + gerenteAmbiente.Geral_novosPrediosRuas.Count.ToString();
 
-            if (!Controles.Geral_novosPrediosRuas.Contains(this))
-                Controles.Geral_novosPrediosRuas.Add(this);
+            if (!gerenteAmbiente.Geral_novosPrediosRuas.Contains(this))
+                gerenteAmbiente.Geral_novosPrediosRuas.Add(this);
         }
 
         this.name = np_nome;
-        np_tipo = _tipo_espaco.tipo;
+        np_tipo = tipoEspaco.tipo;
 
         if (np_tipo == TipoEspacoConstruido.Rua)
             debug_novoPredio = true;   
         if (debug_novoPredio) Debug.Log("pos checar se eh rua valor de trancado: " + rua + " nome obj: " +np_nome);
         debug_novoPredio = false;
 
-        gameObject.transform.localScale = _tipo_espaco.escala;
+        gameObject.transform.localScale = tipoEspaco.escala;
         var rend = gameObject.GetComponent<Renderer>();
         if (rend != null)
         {
-            rend.material.color = _tipo_espaco.cor;
+            rend.material.color = tipoEspaco.cor;
         }
-        gameObject.layer = LayerMask.NameToLayer(_tipo_espaco.layer);
+        gameObject.layer = LayerMask.NameToLayer(tipoEspaco.layer);
 
-        if (!Controles.Geral_novosPrediosTotal.Contains(this))
-            Controles.Geral_novosPrediosTotal.Add(this);
+        if (!gerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
+            gerenteAmbiente.Geral_novosPrediosTotal.Add(this);
     }
 
-    public bool NP_ChecaVizinhoTrancado()
+    public bool NP_ChecaVizinhoTrancado(Celula celula_T)//, Dictionary<Vector2Int, Celula> _vizinhanca)
     {
         debug_novoPredio = false;
         bool trancado = false;
-        bool[] vizinhos_trancados = {false, false, false, false};
+//        bool[] vizinhos_trancados = { false, false, false, false };
+        bool[] vizinhos_trancados = new bool [Celula.offsetsVonNeumann.Length];
 
         int i = 0;
         int vizinhospredios = 0;
-        foreach (Celula c in celulasVonNeumann.Values)
+        foreach (Vector2Int offset in Celula.offsetsVonNeumann)
+//            foreach (Celula cel_vizinha in _vizinhanca.Values)
         {
-            if (c != null && c.novoPredio != null && c.novoPredio.np_tipo == TipoEspacoConstruido.Predio)
-            {
+            if (!gerenteAmbiente.livroCelulas.TryGetValue(celula_T.endereco + offset, out Celula cel_vizinha))
+                continue;
+
+
+            if (cel_vizinha.novoPredio == null || cel_vizinha.novoPredio.np_tipo != TipoEspacoConstruido.Predio)
+                continue;
+//          if (cel_vizinha != null && cel_vizinha.novoPredio != null && cel_vizinha.novoPredio.np_tipo == TipoEspacoConstruido.Predio)
+//            {
                 vizinhospredios++;
                 int countPredios = 0;
-                foreach (Celula vizinhoa in c.novoPredio.celulasVonNeumann.Values) 
+
+            foreach (Vector2Int offset_vizinho in Celula.offsetsVonNeumann)
+//                foreach (Celula vizinho_vizinho in cel_vizinha.novoPredio.celulasVonNeumann.Values) 
+            {
+                if (!gerenteAmbiente.livroCelulas.TryGetValue(cel_vizinha.endereco + offset_vizinho, out Celula vizinho_vizinho))
+                    continue;
+
+                if (vizinho_vizinho.novoPredio != null 
+                 && vizinho_vizinho.novoPredio.np_tipo == TipoEspacoConstruido.Predio 
+                 && vizinho_vizinho.endereco != celula_T.endereco)
                 {
-                    if (vizinhoa != null && vizinhoa.novoPredio != null 
-                        && vizinhoa.novoPredio.np_tipo == TipoEspacoConstruido.Predio && vizinhoa.endereco != minhaCelula.endereco)
-                    {
                         countPredios++;
-                    }
-                }
-                
-                if (countPredios == 3)
-                {
-                    vizinhos_trancados[i] = true;
-                    if (debug_novoPredio) Debug.Log($"Vizinho trancado detectado em {c.endereco} com {countPredios} prédios checagem_vizinhos_trancados.");
                 }
             }
+                
+                if (countPredios >= 3)
+                {
+                    vizinhos_trancados[i] = true;
+                    /*if (debug_novoPredio)*/ Debug.Log($"Vizinho trancado detectado em {cel_vizinha.endereco} com {countPredios} prédios checagem_vizinhos_trancados.");
+                }
+//            }
             i++;
         }
-        trancado = (vizinhospredios ==4) || vizinhos_trancados[0] || vizinhos_trancados[1] || vizinhos_trancados[2] || vizinhos_trancados[3];
+        // CORREÇÃO: Verifica se algum vizinho está trancado usando LINQ ao invés de acessar índices fixos
+
+        trancado = vizinhos_trancados.Any(v => v);
+//        trancado = (vizinhospredios == 4) || vizinhos_trancados.Any(v => v);
+
+        //        trancado = (vizinhospredios == 4) || vizinhos_trancados[0] || vizinhos_trancados[1] || vizinhos_trancados[2] || vizinhos_trancados[3];
         if (vizinhospredios == 4) debug_novoPredio = true;
         if (debug_novoPredio) Debug.Log($"celula trancada: {trancado}, #vizinhos predios: {vizinhospredios}, v0.{vizinhos_trancados[0]}, v1.{vizinhos_trancados[1]}, " +
             $"  v.2{vizinhos_trancados[2]}, v3.{vizinhos_trancados[3]}");
@@ -681,59 +674,97 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         if (debug_novoPredio) Debug.Log(sb.ToString());
     }
 
-    public bool NP_ChecaVizinhoQuina()
+    public bool NP_ChecaVizinhoQuina(Celula celula_T)//, Dictionary<Vector2Int,Celula> _vizinhanca)
     {
         bool vizinhoEHquina = false;
         List<DebugVizinhoQuina> relatorio = new List<DebugVizinhoQuina>();
-        if (minhaCelula == null || celulasVonNeumann == null || celulasVonNeumann_Comp == null)
-        {
-            NP_Debug_LogRelatorio(relatorio, false);
-            return false;
-        }
+        //        if (minhaCelula == null || celulasVonNeumann == null || celulasVonNeumann_Comp == null)
+        //        {
+        //            NP_Debug_LogRelatorio(relatorio, false);
+        //            return false;
+        //        }
 
-        foreach (Celula c in celulasVonNeumann_Comp.Values)
-        {
+        foreach (Vector2Int offsetDiagonal in Celula.offsetsVonNeumannComplemento)
+   //         foreach (Celula celulaDiagonal in _vizinhanca.Values)
+//            foreach (Celula cel_vizinha in celulasVonNeumann_Comp.Values)
+            {
+
+            Vector2Int enderecoDiagonal = celula_T.endereco + offsetDiagonal;
+            if (!gerenteAmbiente.livroCelulas.TryGetValue(enderecoDiagonal, out Celula celulaDiagonal))
+                continue;
+
             // se NAO tem celula, ou NAO tem um novoPredio, ou EH uma rua, nao precisa checar se eh quina, pule pro proximo
-            if (c == null || c.novoPredio == null || c.novoPredio.np_tipo == TipoEspacoConstruido.Rua)
+            if (celulaDiagonal.novoPredio == null || celulaDiagonal.novoPredio.np_tipo == TipoEspacoConstruido.Rua)
                 continue;
             //so vai checar se a quina C for um predio
 
             DebugVizinhoQuina d = new DebugVizinhoQuina();
 
-            d.enderecoDiagonal = c.endereco;
-            d.nomeDiagonal = c.novoPredio.name;
-            d.tipoDiagonal = c.novoPredio.np_tipo;
+            d.enderecoDiagonal = celulaDiagonal.endereco;
+            d.nomeDiagonal = celulaDiagonal.novoPredio.name;
+            d.tipoDiagonal = celulaDiagonal.novoPredio.np_tipo;
 
-            Vector2Int para_orto = c.endereco;
-            d.orto1 = new Vector2Int(para_orto.x, minhaCelula.endereco.y);
-            d.orto2 = new Vector2Int(minhaCelula.endereco.x, para_orto.y);
+            Vector2Int para_orto = celulaDiagonal.endereco;
+//            d.orto1 = new Vector2Int(para_orto.x, minhaCelula.endereco.y);
+//            d.orto2 = new Vector2Int(minhaCelula.endereco.x, para_orto.y);
+            d.orto1 = new Vector2Int(para_orto.x, celula_T.endereco.y);
+            d.orto2 = new Vector2Int(celula_T.endereco.x, para_orto.y);
+
 
             // --- ORTO 1 ---
-            if (celulasVonNeumann.TryGetValue(d.orto1, out Celula c1) && c1?.novoPredio != null)
-            {
-                d.nomeOrto1 = c1.novoPredio.name;
-                d.tipoOrto1 = c1.novoPredio.np_tipo;
-                d.orto1EhRua = c1.novoPredio.np_tipo == TipoEspacoConstruido.Rua;
-            }
-            else
+            if (gerenteAmbiente.livroCelulas.TryGetValue(d.orto1, out Celula c1))
             {
                 d.nomeOrto1 = "null";
                 d.tipoOrto1 = null;
                 d.orto1EhRua = false;
+
+                if (c1?.novoPredio != null)
+                //                if (celulasVonNeumann.TryGetValue(d.orto1, out Celula c1) && c1?.novoPredio != null)
+                {
+                    d.nomeOrto1 = c1.novoPredio.name;
+                    d.tipoOrto1 = c1.novoPredio.np_tipo;
+                    d.orto1EhRua = c1.novoPredio.np_tipo == TipoEspacoConstruido.Rua;
+                }
+
+                else if (c1?.lugar != null)
+                {
+                    Dictionary<Vector2Int, Celula> vizinhos_VN = new Dictionary<Vector2Int, Celula>();
+//                    bool criar = false;
+
+                    ///////REFAZENDO NESSE PONTO
+ //                   NP_Celulas_PegarVizinhas(c1, vizinhos_VN, Celula.offsetsVonNeumann, criar);
+                    d.nomeOrto1 = c1.lugar.name;
+                    d.tipoOrto1 = null;
+                    d.orto1EhRua = NP_ChecaVizinhoTrancado(c1);//, vizinhos_VN);
+                }
             }
 
             // --- ORTO 2 ---
-            if (celulasVonNeumann.TryGetValue(d.orto2, out Celula c2) && c2?.novoPredio != null)
-            {
-                d.nomeOrto2 = c2.novoPredio.name;
-                d.tipoOrto2 = c2.novoPredio.np_tipo;
-                d.orto2EhRua = c2.novoPredio.np_tipo == TipoEspacoConstruido.Rua;
-            }
-            else
+            if (gerenteAmbiente.livroCelulas.TryGetValue(d.orto2, out Celula c2))
             {
                 d.nomeOrto2 = "null";
                 d.tipoOrto2 = null;
                 d.orto2EhRua = false;
+
+                if (c2?.novoPredio != null)
+//                if (celulasVonNeumann.TryGetValue(d.orto2, out Celula c2) && c2?.novoPredio != null)
+                {
+                    d.nomeOrto2 = c2.novoPredio.name;
+                    d.tipoOrto2 = c2.novoPredio.np_tipo;
+                    d.orto2EhRua = c2.novoPredio.np_tipo == TipoEspacoConstruido.Rua;
+                }
+                else if (c2?.lugar != null)
+                {
+                    Dictionary<Vector2Int, Celula> vizinhos_VN = new Dictionary<Vector2Int, Celula>();
+                  //  bool criar = false;
+
+                    ///////REFAZENDO NESSE PONTO
+//                    NP_Celulas_PegarVizinhas(c2, vizinhos_VN, Celula.offsetsVonNeumann, criar);
+                    d.nomeOrto2 = c2.lugar.name;
+                    d.tipoOrto2 = null;
+                    d.orto2EhRua = NP_ChecaVizinhoTrancado(c2);//, vizinhos_VN); ;
+                }
+
             }
 
             // --- REGRA ---
@@ -753,7 +784,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             }
         }
 
-        NP_Debug_LogRelatorio(relatorio, vizinhoEHquina);
+//        NP_Debug_LogRelatorio(relatorio, vizinhoEHquina);
         return vizinhoEHquina;
     }
     private void NP_GuardarVizinhosOriginais()
@@ -765,35 +796,29 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
 
         //////      VIZINHOS complementar VON NEUMANN
-        vizinhos_originais_tipos_VNC = celulasVonNeumann_Comp.Values
-            .Where(t => t != null && t.novoPredio != null)
-            .Select(t => t.novoPredio.np_tipo).ToList();
+//        vizinhos_originais_tipos_VNC = celulasVonNeumann_Comp.Values
+//            .Where(t => t != null && t.novoPredio != null)
+//            .Select(t => t.novoPredio.np_tipo).ToList();
     }
 
     public void Select()
     {
-        EstaSelecionado = true;
-        np_meuRenderer.material.color = _tipo_espaco.cor_selecao; //AtualizaCor();
-        
         //Debug.Log("novoPredio clicado: " + this.name +", estado: "+ EstaSelecionado);
 
-        _propriedades_L.SetActive(false);
-        _propriedades_E_C.SetActive(true);
+        EstaSelecionado = true;
+        np_meuRenderer.material.color = tipoEspaco.cor_selecao; //AtualizaCor();
+        
+        InputsMorfo.IM_propriedades_E_C.SetActive(true); // _propriedades_E_C.SetActive(true);
+        InputsMorfo.IM_propriedades_L.SetActive(false); ;// _propriedades_L.SetActive(false);
 
         ////enderecoCelular qd selecionado
         //click = true;
         //NP_MeusVizinhos();//  esteEC.EC_MeusVizinhos();
         //click = false;
 
-        if (celulasVonNeumann == null) Debug.Log("dictionary von nuemann null");
+        if (celulasMoore == null) Debug.Log("dictionary Moore null");
 
-        Dictionary<Vector2Int, Celula> celulasSelecionadas = new Dictionary<Vector2Int, Celula>();
-        NP_Celulas_PegarVizinhas(celulasSelecionadas, Celula.offsetsVonNeumann, false);
-        AtualizaCor(celulasSelecionadas, true);
-        
-        celulasSelecionadas.Clear();
-        NP_Celulas_PegarVizinhas(celulasSelecionadas, Celula.offsetsVonNeumannComplemento, false);
-        AtualizaCor(celulasSelecionadas, true);
+        AtualizaCor(celulasMoore, true);
 
         InputsMorfo.IM_obj_nome.text = np_nome; // IM_nome_obj.text = np_nome; 
 
@@ -806,7 +831,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         int count_original_ruas = vizinhos_originais_tipos_VN.Count(p =>
             p == TipoEspacoConstruido.Rua);
 
-        // .Count(c => c.novoPredio is TipoEspacoConstruido.Predio);
+        // .Count(cel_vizinha => cel_vizinha.novoPredio is TipoEspacoConstruido.Predio);
         InputsMorfo.IM_predios_texto_VizinhosInicial_Total.text = count_original_todos.ToString();// np_meus_vizinhos_predio.Count.ToString();
         InputsMorfo.IM_predios_texto_VizinhosInicial_Predios.text = count_original_predios.ToString();// np_meus_vizinhos_predio.Count(en => en.np_nome.Contains("predio")).ToString();
         InputsMorfo.IM_predios_texto_VizinhosInicial_Ruas.text = count_original_ruas.ToString();// np_meus_vizinhos_rua.Count(en => en.np_nome.Contains("rua")).ToString();
@@ -835,7 +860,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         Debug.Log($"meu tipo: {np_tipo}, trancado: {checagem_vizinhos_trancados}, quina: {checagem_vizinhos_quina}");
 
         _iso_display = new IsovistaP(np_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-        _iso_display.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+        _iso_display.CampoVisao(360, InputsMorfo.input_distanciaCampoVisao);
         _iso_display.isoMesh(_iso_display.pontosContorno, np_nome + "mesh");
 
     }
@@ -843,12 +868,13 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public void Deselect()
     {
         EstaSelecionado = false;
-        np_meuRenderer.material.color = _tipo_espaco.cor;// AtualizaCor();
+        np_meuRenderer.material.color = tipoEspaco.cor;// AtualizaCor();
         //Debug.Log("novoPredio clicado: " + this.name + "estado: " + EstaSelecionado);
 
         InputsMorfo.IM_obj_nome.text = "no selection";
-        _propriedades_E_C.SetActive(false);
-        _propriedades_L.SetActive(false);
+        
+        InputsMorfo.IM_propriedades_E_C.SetActive(false); // _propriedades_E_C.SetActive(false);
+        InputsMorfo.IM_propriedades_L.SetActive(false); ;// _propriedades_L.SetActive(false);
 
         // destruir iso mesh se existir
         if (_iso_display != null)
@@ -857,15 +883,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             _iso_display = null;
         }
 
-        Dictionary<Vector2Int, Celula> celulasSelecionadas = new Dictionary<Vector2Int, Celula>();
-        NP_Celulas_PegarVizinhas(celulasSelecionadas, Celula.offsetsVonNeumann, false);
-        AtualizaCor(celulasSelecionadas, false);
-       
-        celulasSelecionadas.Clear();// = new Dictionary<Vector2Int, Celula>();
-        NP_Celulas_PegarVizinhas(celulasSelecionadas, Celula.offsetsVonNeumannComplemento, false);
-        AtualizaCor(celulasSelecionadas, false);
-
-      
+        AtualizaCor(celulasMoore, false);
 
     }
 
@@ -881,30 +899,30 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             //Debug.Log("select click checagem_vizinhos_trancados Von Neumann, contados: " + celulasSelecionadas.Count);
             foreach (Celula vz in celulasSelecionadas.Values)
             {
-                if (vz != null && vz.novoPredio != null && vz.novoPredio.np_meuRenderer != null && vz.novoPredio._tipo_espaco != null)
+                if (vz != null && vz.novoPredio != null && vz.novoPredio.np_meuRenderer != null && vz.novoPredio.tipoEspaco != null)
                 {
                     //Debug.Log("atualizando vizinho. selecionado: " + selecionado +
-                    //    "novopredio: " + vz.novoPredio + "novopredio.tipo: " + vz.novoPredio._tipo_espaco);
-                    if (selecionado) vz.novoPredio.np_meuRenderer.material.color = vz.novoPredio._tipo_espaco.cor_selecao;
-                    if (!selecionado) vz.novoPredio.np_meuRenderer.material.color = vz.novoPredio._tipo_espaco.cor;
+                    //    "novopredio: " + vz.novoPredio + "novopredio.tipo: " + vz.novoPredio.tipoEspaco);
+                    if (selecionado) vz.novoPredio.np_meuRenderer.material.color = vz.novoPredio.tipoEspaco.cor_selecao;
+                    if (!selecionado) vz.novoPredio.np_meuRenderer.material.color = vz.novoPredio.tipoEspaco.cor;
                 }
             }
         }
     }
     public void seDestruir()
     {
-        if (Controles == null) Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        if (gerenteAmbiente == null) gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
         // Remover de todas as listas onde possa estar registrado
-        Controles.Geral_novosPrediosConstruidos?.Remove(this);
-        Controles.Geral_novosPrediosRuas?.Remove(this);
-        Controles.Geral_novosPrediosTotal?.Remove(this);
+        gerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
+        gerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
+        gerenteAmbiente.Geral_novosPrediosTotal?.Remove(this);
 
         // Finalmente destruir o GameObject
         Destroy(this.gameObject);
     }
 
-
+    /*
     public void NP_Vizinhanca(bool _gerar)
     {
         enderecos_da_vizinhanca = new List<Vector3>();
@@ -921,7 +939,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
             if (_gerar)
             {
-                //Instantiate(Controles.vp, _endereco_vizinho, Quaternion.identity);
+                //Instantiate(gerenteAmbiente.vizinhoPossivel, _endereco_vizinho, Quaternion.identity);
                 enderecos_da_vizinhanca.Add(_endereco_vizinho);
             }
             if (!_gerar) { enderecos_da_vizinhanca.Add(this.transform.position + new Vector3(_x, 0, _z)); }
@@ -938,7 +956,9 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
 
     }
+    */
 
+    /*
     void VELHO_isoplace()
     {
         ///carregar todos os valores
@@ -950,13 +970,13 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         int _templayer = (1 << LayerMask.NameToLayer("layer_predios"))
                          ;
 
-        foreach (lugar l in Controles.Geral_Lugares)
+        foreach (lugar l in gerenteAmbiente.Geral_Lugares)
         {
             l.L_CalculeIsovistas(_templayer);
         }
 
-        float ref_medida_geral_ponderada = Controles.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
-        List<lugar> lista_medida_geral_ponderada = Controles.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        float ref_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
+        List<lugar> lista_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
         if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
 
         int _index_medida_geral_ponderada = UnityEngine.Random.Range(0, lista_medida_geral_ponderada.Count);
@@ -969,7 +989,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         if (lugartemp != null)
         {
             var cols = lugartemp.GetComponentsInChildren<Collider>();
-            foreach (var c in cols) if (c != null) c.enabled = false;
+            foreach (var cel_vizinha in cols) if (cel_vizinha != null) cel_vizinha.enabled = false;
             if (lugartemp.minhaCelula != null)
             {
                 // centraliza destruição no próprio lugar
@@ -983,7 +1003,9 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         this.transform.position = np_endereco;
 
     }
+    */
 
+    /*
     public bool NP_ChecarQuinas()
     {
 
@@ -1064,6 +1086,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         return (eh_quina);
     }
-
+    */
    
 }

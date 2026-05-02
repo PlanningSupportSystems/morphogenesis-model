@@ -7,16 +7,16 @@ using System.Linq;
 
 public class ControleAglomeracao : MonoBehaviour
 {
+    public static ControleAglomeracao Instance { get; private set; }
+
     public bool tracking = true;
 
     public Button b_apagar;
     public Button b_gerarAglomeracao;
     public Button b_atribuirParametros;
 
-    public GameObject construcao;
-    public GameObject possivel;
-    public GameObject vp;
-    public GameObject quinas;
+    public GameObject espacoConstruido;
+    public GameObject vizinhoPossivel;
 
     /// transformar num enumerate? pra ter os nomes dos objetos, inves de numeracao
     public SO_EspacoConstruido[] _so_construir;  
@@ -53,7 +53,7 @@ public class ControleAglomeracao : MonoBehaviour
     public Terrain _terreno;
 
 
-    public  GameObject [] TiposEspacoConstruido;
+//    public  GameObject [] TiposEspacoConstruido;
     public InputField TdistObj;
     public InputField TresViz;
     public Text TespacoConstruido;
@@ -65,7 +65,29 @@ public class ControleAglomeracao : MonoBehaviour
 
     //    public event System.Action<float, string> mudouTerreno;
 
-    public float terrenoAtual; 
+    public float terrenoAtual;
+
+    private void Awake()
+    {
+        // Verifica se já existe uma instância
+        if (Instance != null && Instance != this)
+        {
+            // Já existe outra instância - destrói este objeto
+            Debug.LogWarning($"ControleAglomeracao: Instância duplicada detectada em '{gameObject.name}'. Destruindo...");
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    // ADICIONE este método para limpar a referência quando o objeto for destruído
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -117,7 +139,7 @@ public class ControleAglomeracao : MonoBehaviour
         if (tracking)
         {
             Debug.Log("tracking CA_IniciarControle");
-            GameObject[] prediosAC = GameObject.FindGameObjectsWithTag("PredioAC");
+//            GameObject[] prediosAC = GameObject.FindGameObjectsWithTag("PredioAC");
 //            Debug.Log("todos prediosAC achados: " + prediosAC.Length + "; pelo array de contagem:" + Geral_TotalEspacosConstruidos.Count);
         }
 
@@ -295,7 +317,7 @@ public class ControleAglomeracao : MonoBehaviour
         if (InputsMorfo.boolModoRandom) { Tipo_Localizacao = "aleatorio"; }
         if (InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "isoplace"; }
         ////////////fazer contorno para casos de os 2 selecionados ou nenhum selecionado
-        GameObject go = Instantiate(vp, pos_central, Quaternion.identity);
+        GameObject go = Instantiate(vizinhoPossivel, pos_central, Quaternion.identity);
         lugar porta_lugar = go.GetComponent<lugar>();
         Celula celulaZero = CriarCelula(new Vector2Int(0, 0), pos_central);
         celulaZero.addLugar(porta_lugar);// celulaZero.lugar = porta_lugar;
@@ -311,7 +333,7 @@ public class ControleAglomeracao : MonoBehaviour
             string nome = "ec_" + rodadas;
 
 //            Debug.Log("vezes so far: " + rodadas +"qts ja foram"+ Geral_novosPrediosConstruidos.Count);
-            Instantiate(possivel, new Vector3 (0,20,0), Quaternion.identity);
+            Instantiate(espacoConstruido, new Vector3 (0,20,0), Quaternion.identity);
 
             //            Debug.Log("CA TESTANDO| contagem Geral_Predios: " + Geral_Predios.Count + " p:" + Geral_Predios[Geral_Predios.Count - 1] + "; nomero de rodadas: " + rodadas);
             //            IM_predios_texto_VizinhosClick_Predios.GetComponent<Text>().text = esteEC.meusPrediosVizinhosClick.Count(e => e.meuNome.Contains("predio")).ToString();
@@ -342,7 +364,7 @@ public class ControleAglomeracao : MonoBehaviour
         //ScreenCapture.CaptureScreenshot(screenshotName + ".png");
 //        salvarImagens = new ScreenshotSaver();
 //        salvarImagens.FotoTela("zena" + rodadas);
-//        yield return StartCoroutine(salvarImagens.FotoTela("zena" + rodadas));
+        yield return StartCoroutine(salvarImagens.FotoTela("zena" + rodadas));
 
         //        yield return new WaitForEndOfFrame();
 

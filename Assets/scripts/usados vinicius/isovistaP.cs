@@ -79,7 +79,7 @@ public class IsovistaP
         public float angulo;
     }
 
-    public void campoVisao(int _qtdRaios = 0, float _raio = 0, Vector3 _centroIsovista = default(Vector3))  //  ( 0,10000,0))// (0,10000,0))
+    public void CampoVisao(int _qtdRaios = 0, float _raio = 0, Vector3 _centroIsovista = default(Vector3))  //  ( 0,10000,0))// (0,10000,0))
     {
 
         if (InputsMorfo.tracking)
@@ -91,13 +91,24 @@ public class IsovistaP
         if (_qtdRaios == 0) { _qtdRaios = totalRaios; }
         if (_raio == 0) { _raio = raioVisao; }
         if (_centroIsovista == default(Vector3)) { _centroIsovista = centro; }
-
         //        Debug.Log("centro isovista: " + _centroIsovista);
 
+        // proteção: qtdRaios inválida impede cálculos confiáveis
+        if (_qtdRaios <= 0)
+        {
+            Debug.LogWarning($"campoVisao: número de raios inválido ({_qtdRaios}). Abortando cálculo.");
+            // zera saídas mínimas para manter consistência
+            pontosContorno = new List<Vector3>();
+            distanciasPontosContorno = new List<float>();
+            profundidadesPorRaio = new List<float>();
+            profundidadeMaximaRua = 0f;
+            areaIsovista = 0f;
+            medidasBrutas = new MedidasBrutas(0, 0, 0, 0, 0, 0, 0, 0);
+            return;
+        }
         // Arrays para armazenar raios que atingiram e que não atingiram objetos
         //        RaycastHit[] raiosAtingiram = new RaycastHit[_qtdRaios];          //substituido por list pra virar public
-        objVistos = new List<RaycastHit>();
-//        espacosVistos = new HashSet<EspacoConstruido>();
+        objVistos = new List<RaycastHit>();     // espacosVistos = new HashSet<EspacoConstruido>();
         npVistos = new HashSet<novoPredio>();
         RaycastHit[] raiosNaoAtingiram = new RaycastHit[_qtdRaios];
         List<float> angulosLivres = new List<float>();
@@ -167,17 +178,36 @@ public class IsovistaP
             Debug.Log($"isovista setores detectados: {quantidadeSetores} | fecharMalha={fecharMalha}");
         }
 
-        // dentro de campoVisao(), depois de pontosContorno = _verticesIsovista;
+        // dentro de CampoVisao(), depois de pontosContorno = _verticesIsovista;
 //        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 1);
         areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 0);
         if (debug_iso) Debug.Log("area isovista foi de: " + areaIsovista);// 1 pula o centro
 
         distanciasPontosContorno = new List<float>();
-        foreach(Vector3 pC in pontosContorno)
+        if (pontosContorno != null && pontosContorno.Count > 0)
         {
-            distanciasPontosContorno.Add(Vector3.Distance(_centroIsovista, pC));
+            foreach (Vector3 pC in pontosContorno)
+            {
+                distanciasPontosContorno.Add(Vector3.Distance(_centroIsovista, pC));
+            }
+            //      Debug.Log("distanciass ISOVISTA " + distanciasPontosContorno.Count + $"[{string.Join(",", distanciasPontosContorno)}]");
         }
-  //      Debug.Log("distanciass ISOVISTA " + distanciasPontosContorno.Count + $"[{string.Join(",", distanciasPontosContorno)}]");
+
+        if (distanciasPontosContorno == null || distanciasPontosContorno.Count == 0)
+        {
+            // sem pontos válidos: zera medidas e sai
+            distanciaMaxima = distanciaMinima = distanciaMedia = distanciaTotal = 0f;
+            profundidadeMaximaRua = (profundidadesPorRaio != null && profundidadesPorRaio.Count > 0) ? profundidadesPorRaio.Max() : 0f;
+            medidasBrutas = new MedidasBrutas(
+                distanciaMaxima,
+                distanciaMedia,
+                distanciaMinima,
+                0, 0, 0,
+                profundidadeMaximaRua,
+                areaIsovista
+            );
+            return;
+        }
 
         distanciaMaxima = distanciasPontosContorno.Max();
         distanciaMinima= distanciasPontosContorno.Min();
@@ -225,7 +255,8 @@ public class IsovistaP
                 }
             }
         }
-        profundidadeMaximaRua = profundidadesPorRaio.Max();
+        profundidadeMaximaRua = (profundidadesPorRaio != null && profundidadesPorRaio.Count > 0) ? profundidadesPorRaio.Max() : 0f;
+//        profundidadeMaximaRua = profundidadesPorRaio.Max();
         if (debug_iso) Debug.Log("profundidade máxima de ruas: " + profundidadeMaximaRua);
 
         medidasBrutas = new MedidasBrutas(
@@ -243,10 +274,15 @@ public class IsovistaP
 
     public ValoresReferenciaNormalizacao BuscarReferenciaNormalizacao(List<lugar>todoLugar)
     {
+        if (todoLugar == null || todoLugar.Count == 0)
+        {
+            Debug.LogWarning("BuscarReferenciaNormalizacao: lista todoLugar nula ou vazia. Retornando valor default.");
+            return default(ValoresReferenciaNormalizacao);
+        }
         // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
         lugar primeiroLugar = todoLugar[0];
         if (medidasBrutas.Equals(default(MedidasBrutas)))
-            campoVisao();   // calculou primeiroLugar.iso.medidasBrutas
+            CampoVisao();   // calculou primeiroLugar.iso.medidasBrutas
         ValoresReferenciaNormalizacao referencias_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.iso.medidasBrutas);
         // ===== RESTANTE DA PRIMEIRA VARREDURA ===== ATUALIZACAO DOS VALORES
         for (int i = 1; i < todoLugar.Count; i++)
@@ -378,10 +414,10 @@ public class IsovistaP
 
             ultimoPontoRua = pontoSaidaRua;
 
-            Debug.DrawLine(ultimoHitRua.point, pontoSaidaRua, Color.cyan, 10f);
-            Debug.Log(
-                $"ISO rua FINAL ang={_raio_graus:F1} | entrada={ultimoHitRua.point} | saida={pontoSaidaRua} | collider={ultimoHitRua.collider.name}"
-            );
+//            Debug.DrawLine(ultimoHitRua.point, pontoSaidaRua, Color.cyan, 10f);
+//            Debug.Log(
+//                $"ISO rua FINAL ang={_raio_graus:F1} | entrada={ultimoHitRua.point} | saida={pontoSaidaRua} | collider={ultimoHitRua.collider.name}"
+//            );
         }
         profundidadeDosRaios.Add(depth);
         switch (estado)
@@ -528,6 +564,12 @@ public class IsovistaP
             Debug.Log("tracking isovistaP");
         }
 
+        if (_pontosIso == null || _pontosIso.Count < 2)
+        {
+            Debug.LogWarning("isoMesh: pontos insuficientes para criar mesh (precisa de pelo menos 2 pontos de contorno). Abortando.");
+            return;
+        }
+
         //        if (_pontosIso == default(Vector3)) { _pontosIso = centro; }
         Vector3 altura = new Vector3(0, 2.5f, 0);
 
@@ -535,6 +577,13 @@ public class IsovistaP
         var verts = new List<Vector3>(1 + _pontosIso.Count);
         verts.Add(centro);          // centro em index 0
         verts.AddRange(_pontosIso); // contorno em 1..N
+
+        // remover duplicata próxima ao centro por segurança
+        for (int i = verts.Count - 1; i >= 1; i--)
+        {
+            if (Vector3.Distance(verts[i], centro) <= 1e-3f)
+                verts.RemoveAt(i);
+        }
 
         for (int i = 0; i < verts.Count; i++)
         {
@@ -582,6 +631,11 @@ public class IsovistaP
             Debug.Log("tracking isovistaP");
         }
 
+        if (_pontosIsoMesh == null || _pontosIsoMesh.Count == 0)
+        {
+            Debug.LogWarning("CriarIsoMesh: lista de vértices vazia. Abortando criação de mesh.");
+            return;
+        }
 
         // Criar uma nova mesh  ---> meshIsovista
         //        Mesh mesh = new Mesh();
@@ -589,6 +643,32 @@ public class IsovistaP
 
         // Atribuir os vértices à mesh
         isovistamesh.vertices = _pontosIsoMesh.ToArray();
+
+        // validar triângulos: garantir que cada índice está no intervalo válido
+        int vertsCount = _pontosIsoMesh.Count;
+        var goodTris = new List<int>();
+        if (_triMesh != null && _triMesh.Length > 0)
+        {
+            for (int i = 0; i < _triMesh.Length; i += 3)
+            {
+                if (i + 2 >= _triMesh.Length) break;
+                int i0 = _triMesh[i];
+                int i1 = _triMesh[i + 1];
+                int i2 = _triMesh[i + 2];
+                if (i0 >= 0 && i0 < vertsCount && i1 >= 0 && i1 < vertsCount && i2 >= 0 && i2 < vertsCount)
+                {
+                    goodTris.Add(i0); goodTris.Add(i1); goodTris.Add(i2);
+                }
+                else
+                {
+                    // descarta triângulo inválido
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("CriarIsoMesh: triângulos vazios/ nulos. Mesh será criada sem faces.");
+        }
 
         // Atribuir triângulos à mesh
         isovistamesh.triangles = _triMesh;

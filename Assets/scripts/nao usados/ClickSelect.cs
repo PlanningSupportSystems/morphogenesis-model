@@ -69,8 +69,8 @@ public class ClickSelect : MonoBehaviour
 
 //        esteNovoPredio = this.GetComponent<novoPredio>();
 //        esteLugar = this.GetComponent<lugar>();
-//        ControleAglomeracao Controles = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-//        ControleAglomeracao Controles = cs_ambiente.GetComponent<ControleAglomeracao>();
+//        ControleAglomeracao gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+//        ControleAglomeracao gerenteAmbiente = cs_ambiente.GetComponent<ControleAglomeracao>();
 
         //GameObject OBJ_nome = GameObject.Find("t_nome_obj");
 //        Text OBJ_nome = GameObject.Find("t_nome_obj").GetComponent<Text>();
@@ -139,7 +139,7 @@ public class ClickSelect : MonoBehaviour
             Debug.Log("click campo visao qual a layer: " + _templayer);
 
             iso = new IsovistaP(esteNovoPredio.np_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-            iso.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+            iso.CampoVisao(360, InputsMorfo.input_distanciaCampoVisao);
             iso.isoMesh(iso.pontosContorno, esteNovoPredio.np_nome + "mesh");
             */
 
@@ -188,7 +188,7 @@ public class ClickSelect : MonoBehaviour
      //                | (1 << LayerMask.NameToLayer("layer_lugares"))
                        ;
             iso = new IsovistaP( esteLugar._endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-            iso.campoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+            iso.CampoVisao(360, InputsMorfo.input_distanciaCampoVisao);
             iso.isoMesh(iso.pontosContorno, esteLugar._nome + "mesh");
 */
         }
@@ -220,8 +220,8 @@ public class ClickSelect : MonoBehaviour
                     if (vz == null) continue;
                     Renderer vz_objectRenderer = vz.GetComponent<Renderer>();
                     if (vz_objectRenderer == null) continue;
-                    if (vz._tipo_espaco != null)
-                        vz_objectRenderer.material.color = vz._tipo_espaco.cor;
+                    if (vz.tipoEspaco != null)
+                        vz_objectRenderer.material.color = vz.tipoEspaco.cor;
                 }
             }
 
@@ -232,8 +232,8 @@ public class ClickSelect : MonoBehaviour
                     if (vz == null) continue;
                     Renderer vz_objectRenderer = vz.GetComponent<Renderer>();
                     if (vz_objectRenderer == null) continue;
-                    if (vz._tipo_espaco != null)
-                        vz_objectRenderer.material.color = vz._tipo_espaco.cor;
+                    if (vz.tipoEspaco != null)
+                        vz_objectRenderer.material.color = vz.tipoEspaco.cor;
                 }
             }
         }

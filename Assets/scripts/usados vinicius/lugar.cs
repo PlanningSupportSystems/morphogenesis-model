@@ -18,8 +18,8 @@ public class lugar : MonoBehaviour, ISelecionavel
     GameObject _propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
     GameObject _propriedades_L;// = GameObject.Find("propriedades_lugar_alocado");
 
-    //    ControleAglomeracao Controles;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-    private ControleAglomeracao Controles;// = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+    //    ControleAglomeracao gerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+    private ControleAglomeracao _gerente_ambiente;// = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
 
     private Vector3 half = default;
     public Vector3 _endereco = default;
@@ -35,20 +35,20 @@ public class lugar : MonoBehaviour, ISelecionavel
 
     public bool debug_lugar = false;
 
-    public lugar(Vector3 _meu_end)
-    {
-        _endereco = _meu_end;
-        Start();
-    }
 
-    void Awake()
-    {
-        Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();    //Controles = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-        _nome = "lugar " + Controles.Geral_Lugares.Count.ToString();
-        this.gameObject.name = _nome;
-    }
     void Start()
     {
+        _gerente_ambiente = ControleAglomeracao.Instance;// GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();    //gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+        if (_gerente_ambiente == null)
+        {
+            Debug.LogError("lugar.Awake: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");
+            return;
+        }
+
+        _nome = "lugar " + _gerente_ambiente.Geral_Lugares.Count.ToString();
+        this.gameObject.name = _nome;
+
+
         //configurando sobre interface ISelecionavel
         EstaSelecionado = false;
         _propriedades_E_C = InputsMorfo.IM_propriedades_E_C; // GameObject.Find("propriedades_espaco_construido");
@@ -60,20 +60,20 @@ public class lugar : MonoBehaviour, ISelecionavel
         }
 
 // LEVADO PARA AWAKE
-        //      Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();  // Controles = Terrain.activeTerrain.GetComponent<ControleAglomeracao>(); 
-        //      _nome = "lugar " + Controles.Geral_Lugares.Count.ToString();
+        //      gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();  // gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>(); 
+        //      _nome = "lugar " + gerenteAmbiente.Geral_Lugares.Count.ToString();
         //      this.gameObject.name =  _nome;
         int nova_layer = LayerMask.NameToLayer("layer_lugares");
         gameObject.layer = nova_layer;
 
-        half = Controles.TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        half = _gerente_ambiente.espacoConstruido.transform.localScale / 2.1f;
         _endereco = this.transform.position;
 
-        contagem = Controles.contadorlugar;
-        Controles.contadorlugar++;
-        Controles.Geral_Lugares.Add(this);
-        _indice = Controles.Geral_Lugares.IndexOf(this);
-        //        Debug.Log(this.name + ", start indice: " + _indice + "; lugares count: " + Controles.Geral_Lugares.Count);
+        contagem = _gerente_ambiente.contadorlugar;
+        _gerente_ambiente.contadorlugar++;
+        _gerente_ambiente.Geral_Lugares.Add(this);
+        _indice = _gerente_ambiente.Geral_Lugares.IndexOf(this);
+        //        Debug.Log(this.name + ", start indice: " + _indice + "; lugares count: " + gerenteAmbiente.Geral_Lugares.Count);
 
         ///fazer checagem se esta sobrepondo alguem
         //        L_ChecaSobrepor();
@@ -102,8 +102,8 @@ public class lugar : MonoBehaviour, ISelecionavel
     public IsovistaP L_CalculeIsovistas(LayerMask _templayer)
     {
         ///substituir valores para raio_de_visao
-        iso = new IsovistaP(_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-        iso.campoVisao();
+        iso = new IsovistaP(_endereco, 720, InputsMorfo.input_distanciaCampoVisao, _templayer);
+        iso.CampoVisao();
 
         if (debug_lugar)
         {
@@ -157,15 +157,15 @@ public class lugar : MonoBehaviour, ISelecionavel
 
     private void OnTriggerEnter(Collider other)
     {
-        if (Controles == null)
+        if (_gerente_ambiente == null)
         {
-//            Controles = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-            Controles = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+//            gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+            _gerente_ambiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
         }
 
-        //        Debug.Log("triggger. " + this.name + ", contagem # " + contagem + ", lugares count: " + Controles.Geral_Lugares.Count + ", bati num lugar " + other.name );
-        //        Debug.Log("ta dentro de alguem trigger, "+ Controles.Geral_Lugares.Count + " lugares, eu " + this._nome + ", dentro de " + other.name);
+        //        Debug.Log("triggger. " + this.name + ", contagem # " + contagem + ", lugares count: " + gerenteAmbiente.Geral_Lugares.Count + ", bati num lugar " + other.name );
+        //        Debug.Log("ta dentro de alguem trigger, "+ gerenteAmbiente.Geral_Lugares.Count + " lugares, eu " + this._nome + ", dentro de " + other.name);
 
         if (other.TryGetComponent<lugar>(out lugar l))
         {
@@ -181,7 +181,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         {
             if (this.gameObject != null)
             {
-                //                Debug.Log("total lugares count " + Controles.Geral_Lugares.Count + ", indice: " + Controles.Geral_Lugares.IndexOf(this) + ", " + _indice);
+                //                Debug.Log("total lugares count " + gerenteAmbiente.Geral_Lugares.Count + ", indice: " + gerenteAmbiente.Geral_Lugares.IndexOf(this) + ", " + _indice);
 
                 seDestruir();
 
@@ -259,14 +259,20 @@ public class lugar : MonoBehaviour, ISelecionavel
 
         _propriedades_L.SetActive(true);
         _propriedades_E_C.SetActive(false);
+//        Debug.Log($"[SELECT {_nome}] iso={iso != null}, pontos={iso?.pontosContorno?.Count ?? -1}");
+
 
         LayerMask _templayer = LayerMask.GetMask("layer_predios", "layer_ruas");//, "layer_lugares");
 //        L_CalculeIsovistas(_templayer); // <<<< (normalizador.buscarRef calcula isovista de todos, entao nao precisa)
         ///primeira varredura, atualizando valores de referencia
-        ValoresReferenciaNormalizacao referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(Controles.Geral_Lugares, _templayer);
+        ValoresReferenciaNormalizacao referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(_gerente_ambiente.Geral_Lugares, _templayer);
+
+//        Debug.Log($"[SELECT {_nome}] brutas: area={iso.medidasBrutas.areaIsovista:F2}, distMax={iso.medidasBrutas.distanciaMaxima:F2}");
 
         ///segunda varredura, referencia para atualizacoes. no caso, so atualiza o THIS
         Normalizador.NomalizarLista(new List<lugar>{this}, referencia_normalizacao);
+//        Debug.Log($"[SELECT {_nome}] norm: area={iso.medidasNormalizadas.areaIsovista:F2}, distMax={iso.medidasNormalizadas.distanciaMaxima:F2}");
+
 //        medidasNormalizadas = Normalizador.Normalizar(iso.medidasBrutas, referencia_normalizacao);
 //        PonderarMedia();
 
@@ -301,7 +307,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         {
             foreach (novoPredio p in iso.npVistos)
             {
-                if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor_visto;
+                if (p != null) p.np_meuRenderer.material.color = p.tipoEspaco.cor_visto;
             }
         }
     }
@@ -321,7 +327,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         {
             foreach (novoPredio p in iso.npVistos)
             {
-                if (p != null) p.np_meuRenderer.material.color = p._tipo_espaco.cor;
+                if (p != null) p.np_meuRenderer.material.color = p.tipoEspaco.cor;
             }
         }
 
@@ -337,9 +343,9 @@ public class lugar : MonoBehaviour, ISelecionavel
     public void seDestruir()
     {
         // Remover com segurança da lista de controle
-        if (Controles != null && Controles.Geral_Lugares != null && Controles.Geral_Lugares.Contains(this))
+        if (_gerente_ambiente != null && _gerente_ambiente.Geral_Lugares != null && _gerente_ambiente.Geral_Lugares.Contains(this))
         {
-            Controles.Geral_Lugares.Remove(this);
+            _gerente_ambiente.Geral_Lugares.Remove(this);
         }
         minhaCelula.lugar = null; // Desassocia da célula
         if (debug_lugar) Debug.Log("LUGAR: Destruindo lugar: " + _nome);
