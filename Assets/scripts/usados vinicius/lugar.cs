@@ -21,7 +21,8 @@ public class lugar : MonoBehaviour, ISelecionavel
     //    ControleAglomeracao gerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
     private ControleAglomeracao _gerente_ambiente;// = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
 
-    private Vector3 half = default;
+    private float meio_EspacoConstruido = default;
+    private Vector3 meio_EspacoConstruido_Vector = default;
     public Vector3 _endereco = default;
     public string _nome;
     public bool eraoutrolugar = false;
@@ -66,7 +67,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         int nova_layer = LayerMask.NameToLayer("layer_lugares");
         gameObject.layer = nova_layer;
 
-        half = _gerente_ambiente.espacoConstruido.transform.localScale / 2.1f;
+        meio_EspacoConstruido_Vector = _gerente_ambiente.espacoConstruido.transform.localScale / 2f;
         _endereco = this.transform.position;
 
         contagem = _gerente_ambiente.contadorlugar;
@@ -99,10 +100,49 @@ public class lugar : MonoBehaviour, ISelecionavel
         if (debug_lugar) Debug.Log("LUGAR: lugar " + this._nome + " recebeu celula " + enderecoCelula);
     }
 
+
+    int CalcularQtdRaios()
+    {
+        float raioVisao = InputsMorfo.input_distanciaCampoVisao;
+        Vector3 tamanho_EspacoConstruido_Vector;
+
+        Renderer rend = _gerente_ambiente.espacoConstruido.GetComponent<Renderer>();
+        if (rend == null)
+        {
+            Debug.LogWarning("espacoConstruido sem Renderer! Usando padrão.");
+            tamanho_EspacoConstruido_Vector = new Vector3(1f, 1f, 1f);
+        }
+        else
+        {
+            // CORREÇÃO: Só atribui se rend não for null
+            tamanho_EspacoConstruido_Vector = rend.bounds.size;
+        }
+        float tamanhoCelula = Mathf.Min(tamanho_EspacoConstruido_Vector.x, tamanho_EspacoConstruido_Vector.z);
+
+        float espacamentoDesejado = tamanhoCelula;// * 0.5f;
+        int qtd = Mathf.CeilToInt((2f * Mathf.PI * raioVisao) / espacamentoDesejado);
+
+        debug_lugar = false;
+        if (debug_lugar)
+        {
+            Debug.Log($"CalcularQtdRaios: raioVisao={raioVisao:F2}, " +
+                      $"tamanhoVec={tamanho_EspacoConstruido_Vector}, " +
+                      $"tamanhoCelula={tamanhoCelula:F2}, " +
+                      $"espacamentoDesejado={espacamentoDesejado:F2}, " +
+                      $"qtdCalculada={qtd}, qtdClampada={Mathf.Clamp(qtd, 36, 720)}");
+        }
+        debug_lugar = false;
+
+        return Mathf.Clamp(qtd, 36, 720);
+    }
     public IsovistaP L_CalculeIsovistas(LayerMask _templayer)
     {
+
+        Renderer rend = _gerente_ambiente.espacoConstruido.GetComponent<Renderer>();
+
+        int totalRaios = CalcularQtdRaios();
         ///substituir valores para raio_de_visao
-        iso = new IsovistaP(_endereco, 720, InputsMorfo.input_distanciaCampoVisao, _templayer);
+        iso = new IsovistaP(_endereco, totalRaios, InputsMorfo.input_distanciaCampoVisao, _templayer);
         iso.CampoVisao();
 
         if (debug_lugar)

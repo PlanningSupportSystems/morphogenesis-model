@@ -50,6 +50,18 @@ public class IsovistaP
     public bool debug_iso = false;
     //medidas, nova definicao
 
+    public IsovistaP(Vector3 _centro)
+    {
+        centro = _centro;
+//        totalRaios = _totalRaios;
+//        raioVisao = _raioVisao;
+//        layerMask = LayerMask.GetMask("layer_predios", "layer_ruas");//, "layer_lugares");
+                                                                     //        layerMask = (1 << LayerMask.NameToLayer("layer_predios"))
+                                                                     //                | (1 << LayerMask.NameToLayer("layer_ruas"))
+                                                                     //                //| (1 << LayerMask.NameToLayer("layer_lugares"))
+//        ;
+    }
+
     public IsovistaP(Vector3 _centro, int _totalRaios, float _raioVisao)
     {
         centro = _centro;
@@ -60,7 +72,6 @@ public class IsovistaP
 //                | (1 << LayerMask.NameToLayer("layer_ruas"))
 //                //| (1 << LayerMask.NameToLayer("layer_lugares"))
                 ;
-
     }
 
     public IsovistaP(Vector3 _centro, int _totalRaios, float _raioVisao, LayerMask _layerMask)
@@ -78,6 +89,176 @@ public class IsovistaP
         public Vector3 ponto;
         public float angulo;
     }
+
+    public class ResultadoRaioVisao
+    {
+        public Ray raio;
+        public List<RaycastHit> transparentes = new List<RaycastHit>();
+        public RaycastHit? bloqueador;
+
+        public bool FoiBloqueado => bloqueador.HasValue;
+    }
+
+    public List<ResultadoRaioVisao> VarrerCampoVisao(
+    Vector3 centro,
+    float raio,
+    int qtdRaios,
+    LayerMask layerBloqueadores,
+    LayerMask layerTransparentes
+)
+    {
+        List<ResultadoRaioVisao> resultados = new List<ResultadoRaioVisao>();
+
+        if (qtdRaios <= 0 || raio <= 0f)
+        {
+            Debug.LogWarning("VarrerCampoVisao: raio ou qtdRaios inválidos.");
+            return resultados;
+        }
+
+        int maskTotal = layerBloqueadores.value | layerTransparentes.value;
+
+        if (maskTotal == 0)
+        {
+            Debug.LogWarning("VarrerCampoVisao: nenhuma layer informada.");
+            return resultados;
+        }
+
+        float passoAngulo = 360f / qtdRaios;
+
+        for (int i = 0; i < qtdRaios; i++)
+        {
+            float angRad = passoAngulo * i * Mathf.Deg2Rad;
+
+            Vector3 direcao = new Vector3(
+                Mathf.Cos(angRad),
+                0f,
+                Mathf.Sin(angRad)
+            );
+
+            Ray raioAtual = new Ray(centro, direcao);
+
+            ResultadoRaioVisao resultado = ProcessarRaioVisao(
+                raioAtual,
+                raio,
+                maskTotal
+            );
+
+            resultados.Add(resultado);
+        }
+
+        return resultados;
+    }
+
+    private ResultadoRaioVisao ProcessarRaioVisao(
+    Ray raioAtual,
+    float distanciaMaxima,
+    int maskTotal
+)
+    {
+        ResultadoRaioVisao resultado = new ResultadoRaioVisao();
+        resultado.raio = raioAtual;
+
+        RaycastHit[] hits = Physics.RaycastAll(
+            raioAtual,
+            distanciaMaxima,
+            maskTotal
+        );
+
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
+        {
+            if (EhBloqueadorCampoVisao(hit))
+            {
+                resultado.bloqueador = hit;
+                break;
+            }
+
+            if (EhTransparenteCampoVisao(hit))
+            {
+                resultado.transparentes.Add(hit);
+                continue;
+            }
+        }
+
+        return resultado;
+    }
+
+    private bool EhBloqueadorCampoVisao(RaycastHit hit)
+    {
+        novoPredio np = hit.collider.GetComponentInParent<novoPredio>();
+
+        return np != null && np.np_tipo == TipoEspacoConstruido.Predio;
+    }
+
+    private bool EhTransparenteCampoVisao(RaycastHit hit)
+    {
+        novoPredio np = hit.collider.GetComponentInParent<novoPredio>();
+
+        if (np != null && np.np_tipo == TipoEspacoConstruido.Rua)
+            return true;
+
+        lugar l = hit.collider.GetComponentInParent<lugar>();
+
+        if (l != null)
+            return true;
+
+        return false;
+    }
+
+    public List<lugar> LerLugaresVisiveis(List<ResultadoRaioVisao> resultados)
+    {
+        HashSet<lugar> vistos = new HashSet<lugar>();
+
+        foreach (ResultadoRaioVisao r in resultados)
+        {
+            foreach (RaycastHit hit in r.transparentes)
+            {
+                lugar l = hit.collider.GetComponentInParent<lugar>();
+
+                if (l != null)
+                    vistos.Add(l);
+            }
+        }
+
+        return vistos.ToList();
+    }
+
+    public int I_CalcularQtdRaios(Renderer objReferencia_T)
+    {
+        float raioVisao = InputsMorfo.input_distanciaCampoVisao;
+        Vector3 tamanho_EspacoConstruido_Vector;
+
+        Renderer rend = objReferencia_T;// _gerente_ambiente.espacoConstruido.GetComponent<Renderer>();
+        if (rend == null)
+        {
+            Debug.LogWarning("espacoConstruido sem Renderer! Usando padrão.");
+            tamanho_EspacoConstruido_Vector = new Vector3(1f, 1f, 1f);
+        }
+        else
+        {
+            // CORREÇÃO: Só atribui se rend não for null
+            tamanho_EspacoConstruido_Vector = rend.bounds.size;
+        }
+        float tamanhoCelula = Mathf.Min(tamanho_EspacoConstruido_Vector.x, tamanho_EspacoConstruido_Vector.z);
+
+        float espacamentoDesejado = tamanhoCelula;// * 0.5f;
+        int qtd = Mathf.CeilToInt((2f * Mathf.PI * raioVisao) / espacamentoDesejado);
+
+        bool debug_iso = true;
+        if (debug_iso)
+        {
+            Debug.Log($"CalcularQtdRaios: raioVisao={raioVisao:F2}, " +
+                      $"tamanhoVec={tamanho_EspacoConstruido_Vector}, " +
+                      $"tamanhoCelula={tamanhoCelula:F2}, " +
+                      $"espacamentoDesejado={espacamentoDesejado:F2}, " +
+                      $"qtdCalculada={qtd}, qtdClampada={Mathf.Clamp(qtd, 36, 720)}");
+        }
+        debug_iso = false;
+
+        return Mathf.Clamp(qtd, 36, 720);
+    }
+
 
     public void CampoVisao(int _qtdRaios = 0, float _raio = 0, Vector3 _centroIsovista = default(Vector3))  //  ( 0,10000,0))// (0,10000,0))
     {

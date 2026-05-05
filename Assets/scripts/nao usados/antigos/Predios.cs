@@ -57,7 +57,7 @@ public class Predios
     float distanciaAdjacencia;
 
 
-    public static Vector3 half = default;
+    public static Vector3 meio_EspacoConstruido = default;
 
 
 //    readonly ControleAglomeracao gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
@@ -132,10 +132,10 @@ public class Predios
         totalVizinhosPossiveis = (int)InputsMorfo.input_totalVizinhos;
         distanciaAdjacencia = InputsMorfo.input_distanciaAdjacencia;
 
-        //        Debug.Log("0 half-extents: " + half);
-//        half = Terrain.activeTerrain.GetComponent<ControleAglomeracao>().TiposEspacoConstruido[0].transform.localScale / 2.1f;
-        half = gerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
-        //      Debug.Log("1 half-extents: " + half);
+        //        Debug.Log("0 meio_EspacoConstruido-extents: " + meio_EspacoConstruido);
+//        meio_EspacoConstruido = Terrain.activeTerrain.GetComponent<ControleAglomeracao>().TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        meio_EspacoConstruido = gerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        //      Debug.Log("1 meio_EspacoConstruido-extents: " + meio_EspacoConstruido);
 
         //        predioPreFab = new GameObject();
 
@@ -213,7 +213,7 @@ public class Predios
 //                meuEnderecoXYZ = seleciona_enderecoAleatorio(gerenteAmbiente.Geral_EnderecosVizinhosPossiveis);  ///temporario, por teste de hashset
 
                 ///checar colisao. lembrar q se faces forem coladas, ele considera colisao, dai divisor se 2.1
-                collisionChecker = sobrepor.SP_SeEhPosicaoVazia(meuEnderecoXYZ, half);
+                collisionChecker = sobrepor.SP_SeEhPosicaoVazia(meuEnderecoXYZ, meio_EspacoConstruido);
                 //          Debug.Log("testando colisao de " + this.meuNome + "; #" + contador + " total de enderecos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
                 contador++;
@@ -300,7 +300,7 @@ public class Predios
 
         //quais sao os vizinhos
         //quantos vizinhos tem cada vizinho
-        string rua = predioPreFab.GetComponent<sobreposicoes>().SS_ChecaVizinhancadoAdjacente(meuEnderecoXYZ, half);
+        string rua = predioPreFab.GetComponent<sobreposicoes>().SS_ChecaVizinhancadoAdjacente(meuEnderecoXYZ, meio_EspacoConstruido);
         Debug.Log("rua: " + rua);
         return rua;
 

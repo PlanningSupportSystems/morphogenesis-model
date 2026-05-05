@@ -9,6 +9,7 @@ public class Celula
 
     public lugar lugar;
     public novoPredio novoPredio;
+    public List<Celula> vizinhosVN = new List<Celula>();
 
     public bool TemLugar => lugar != null;
     public bool TemNovoPredio => novoPredio != null;

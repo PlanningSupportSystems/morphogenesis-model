@@ -398,6 +398,16 @@ public class ControleAglomeracao : MonoBehaviour
         return celula;
     }
 
+    public void NotificarErroOcupacao(novoPredio np, lugar lugarTentado)
+    {
+        Debug.LogWarning($"Erro de ocupação em {lugarTentado?._nome}");
+
+        // aqui você pode:
+        // - contabilizar erro
+        // - tentar nova geração
+        // - logar estatística
+    }
+
     public void LimparCelulas()
     {
         if (livroCelulas == null || livroCelulas.Count == 0) return;

@@ -67,7 +67,7 @@ public class EspacoConstruido : MonoBehaviour
     //float distanciaAdjacencia;
 
 
-    public static Vector3 half = default;
+    public static Vector3 meio_EspacoConstruido = default;
 
     ControleAglomeracao gerenteAmbiente;
 
@@ -82,7 +82,7 @@ public class EspacoConstruido : MonoBehaviour
         Debug.Log("espaco construido");
 //        gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
         gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-        half = gerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        meio_EspacoConstruido = gerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
         pfab_meuVizinhoPossivel = gerenteAmbiente.espacoConstruido;
 
     }
@@ -228,7 +228,7 @@ public class EspacoConstruido : MonoBehaviour
             // meuEnderecoXYZ = new Vector3(0, 0, contador);
 
             ///checar colisao. lembrar q se faces forem coladas, ele considera colisao, dai divisor se 2.1
-            collisionChecker = sobrepor.SP_SeEhPosicaoVazia(meuEnderecoXYZ, half);
+            collisionChecker = sobrepor.SP_SeEhPosicaoVazia(meuEnderecoXYZ, meio_EspacoConstruido);
             //Debug.Log("testando colisao de " + this.meuNome + "; #" + contador + " total de enderecos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
             contador++;

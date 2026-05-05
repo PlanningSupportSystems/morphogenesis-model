@@ -215,13 +215,13 @@ public static class Normalizador
     {
         // ===== PRIMEIRO LUGAR ===== para setar o valor de referencia minimo e maxim sem problemas
         lugar primeiroLugar = todoLugar[0];
-        primeiroLugar.L_CalculeIsovistas(layermask);   // calculou primeiroLugar.iso.medidasBrutas
+//        primeiroLugar.L_CalculeIsovistas(layermask);   // calculou primeiroLugar.iso.medidasBrutas
         ValoresReferenciaNormalizacao referencias_normalizacao = new ValoresReferenciaNormalizacao(primeiroLugar.iso.medidasBrutas);
         // ===== RESTANTE DA PRIMEIRA VARREDURA ===== ATUALIZACAO DOS VALORES
         for (int i = 1; i < todoLugar.Count; i++)
         {
             lugar lugar = todoLugar[i];
-            lugar.L_CalculeIsovistas(layermask);
+//            lugar.L_CalculeIsovistas(layermask);
             Normalizador.ChecarSeReferencia(ref referencias_normalizacao, lugar.iso.medidasBrutas);// .minhasMedidasBrutas);
         }
         return referencias_normalizacao;

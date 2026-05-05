@@ -66,7 +66,7 @@ public static class sobrepor
         
         List<Predios> _os_vizinhos = new List<Predios>();
         // Obtém todos os colliders dos prefabs existentes
-        Collider[] colliders = Physics.OverlapBox(end_cheque, Predios.half, Quaternion.identity);
+        Collider[] colliders = Physics.OverlapBox(end_cheque, Predios.meio_EspacoConstruido, Quaternion.identity);
 //        Collider[] colliders = Physics.OverlapBox(transform.position, transform.localScale / 2f, Quaternion.identity);
 
         // Verifica se houve colisão com outros prefabs

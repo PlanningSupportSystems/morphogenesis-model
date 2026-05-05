@@ -98,10 +98,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc16158abe809f24ebc982cac5e8f89e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lugaresPossiveis: []
+  criarVizinhos: 0
+  vizinhos_originais_tipos_VN: 
+  vizinhos_originais_predio_VN: []
+  vizinhos_originais_rua_VN: []
+  vizinhos_originais_lugar_VN: []
+  vizinhos_originais_tipos_VNC: 
+  vizinhos_originais_predio_VNC: []
+  vizinhos_originais_rua_VNC: []
+  vizinhos_originais_lugar_VNC: []
+  valoresEntrada: {fileID: 0}
+  entradas: {fileID: 0}
+  enderecoCelula: 
+  endCelula: {x: 0, y: 0}
+  np_tipo: 0
   corOriginal: {r: 0, g: 0, b: 0, a: 0}
+  np_meuRenderer: {fileID: 0}
   np_nome: 
   np_endereco: {x: 0, y: 0, z: 0}
-  enderecos_da_vizinhanca: []
   np_saldoVizinhos: 0
   np_meus_vizinhos_predio: []
   np_meus_vizinhos_rua: []
@@ -112,9 +127,7 @@ MonoBehaviour:
   np_click_quinas: []
   np_click_vizinhanca_quina: []
   np_click_vizinhanca_quina_orto: []
-  valoresEntrada: {fileID: 0}
-  entradas: {fileID: 0}
-  _tipo_espaco: {fileID: 0}
+  tipoEspaco: {fileID: 0}
 --- !u!65 &-6337136962002205070
 BoxCollider:
   m_ObjectHideFlags: 0
