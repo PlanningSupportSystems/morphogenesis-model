@@ -50,7 +50,7 @@ public static class sobrepor
             //            _endereco_ref += new Vector3(_x, 0, _z);
 
             vizinhanca.Add(_endereco_ref + new Vector3(_x, 0, _z));
-            //            Debug.Log("dps" +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis[i]);
+            //            Debug.Log("dps" +GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +GerenteAmbiente.Geral_EnderecosVizinhosPossiveis[i]);
             //            Debug.Log("dist "+distanciaAdjacencia+"; angulo"+ angulo * Mathf.Rad2Deg+"; i" + i + "; x " + _x +"; z"+ _z + "; vizinho adicionado: " + lista_end_vinhancaPossivelTotal[i]);
         }
         return vizinhanca;

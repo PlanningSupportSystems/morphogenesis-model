@@ -11,9 +11,19 @@ using static IsovistaP;
 
 public class novoPredio : MonoBehaviour, ISelecionavel
 {
-    //    ControleAglomeracao gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-    ControleAglomeracao gerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+    //    ControleAglomeracao GerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+    ControleAglomeracao GerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+    public int indiceCriacao;
+    public int indiceNovoPredio;
+
+    public TipoEspacoConstruido np_tipo;
+
+    [SerializeField] public string enderecoCelula;
+    [SerializeField] public Vector2Int endCelula = new Vector2Int(0, 0);
+    public Celula minhaCelula;
+
     public List<lugar> lugaresPossiveis = new List<lugar>();
+
 
     public bool criarVizinhos = false;
     /// <summary>
@@ -37,14 +47,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public List<novoPredio> vizinhos_originais_rua_VNC;
     public List<lugar> vizinhos_originais_lugar_VNC;
 
-    [SerializeField] InputsMorfo valoresEntrada;
-    public InputsMorfo entradas;
 
-    Celula minhaCelula;
-    [SerializeField] public string enderecoCelula;
-    [SerializeField] public Vector2Int endCelula = new Vector2Int (0,0);
 
-    public TipoEspacoConstruido np_tipo;
 
 
     //propriedades relativas interface ISelecionavel
@@ -131,6 +135,25 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         return;
     }
 
+    public void Inicializar(ControleAglomeracao gerente)
+    {
+        GerenteAmbiente = gerente;
+        indiceCriacao = GerenteAmbiente.ContadorRodadas;
+
+        _isovista_calculada = false;
+
+        np_half = GerenteAmbiente.espacoConstruido.transform.localScale / 2.1f;
+
+
+
+        np_meuRenderer = gameObject.GetComponent<Renderer>();
+
+        EstaSelecionado = false;
+
+        lugaresPossiveis ??= new List<lugar>();
+        celulasVonNeumann ??= new Dictionary<Vector2Int, Celula>();
+        vizinhos_celulas_VN ??= new List<Celula>();
+    }
 
     void Start()
     {
@@ -139,14 +162,16 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             Debug.Log("tracking novoPredio");
         }
 
-        gerenteAmbiente = ControleAglomeracao.Instance; // = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-        if (gerenteAmbiente == null)
+        ///seguiu tudo para Inicializar()
+        /*
+        GerenteAmbiente = ControleAglomeracao.Instance; // = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        if (GerenteAmbiente == null)
         {
             // tentativa de fallback (caso o singleton não tenha sido inicializado por alguma razão)
-            gerenteAmbiente = FindObjectOfType<ControleAglomeracao>();
+            GerenteAmbiente = FindObjectOfType<ControleAglomeracao>();
         }
 
-        if (gerenteAmbiente == null)
+        if (GerenteAmbiente == null)
         {
             Debug.LogError("novoPredio.Start: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");
             enabled = false; // desativa este MonoBehaviour para evitar chamadas subsequentes
@@ -155,15 +180,17 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         _isovista_calculada = false;
 
-        np_half = gerenteAmbiente.espacoConstruido.transform.localScale / 2.1f;
-        np_nome = "predio" + gerenteAmbiente.Geral_novosPrediosConstruidos.Count;
+        np_half = GerenteAmbiente.espacoConstruido.transform.localScale / 2.1f;
+        np_nome = "predio" + GerenteAmbiente.Geral_novosPrediosConstruidos.Count;
         this.gameObject.name = np_nome;
         np_meuRenderer = this.gameObject.GetComponent<Renderer>();
 
         //configurando sobre interface ISelecionavel
         EstaSelecionado = false;
+        */
 
-        atribuirDelegate(gerenteAmbiente?.Tipo_Localizacao);
+
+        atribuirDelegate(GerenteAmbiente?.Tipo_Localizacao);
         if (metodo_escolha != null)
         {
             try { metodo_escolha(); }
@@ -175,8 +202,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
 
         //////////USO DAS CELULAS PARA CHECAR VIZINHOS
-        celulasVonNeumann = new Dictionary<Vector2Int, Celula>();
-        vizinhos_celulas_VN = new List<Celula>();
+        //        celulasVonNeumann = new Dictionary<Vector2Int, Celula>();  //foi para inicializar()
+        //        vizinhos_celulas_VN = new List<Celula>();                  //foi para inicializar()
         //        Legacy_NP_Celulas_PegarVizinhas(minhaCelula, celulasVonNeumann, Celula.offsetsVonNeumann, criarVizinhos);//, enderecos_da_vizinhanca);
         criarVizinhos = true; //virou parametro base
 //        NP_iterarVizinhanca(minhaCelula, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
@@ -241,13 +268,13 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     void aleatorio()
     {
-        if (gerenteAmbiente.Geral_Lugares == null || gerenteAmbiente.Geral_Lugares.Count == 0)
+        if (GerenteAmbiente.lugaresAtivos == null || GerenteAmbiente.lugaresAtivos.Count == 0)
             return;
 
         if (lugaresPossiveis == null || lugaresPossiveis.Count == 0)
         {
-            Debug.LogWarning("aleatorio: lugaresPossiveis vazio ou nulo. usando gerenteAmbiente.Geral_Lugares");
-            lugaresPossiveis = new List<lugar>(gerenteAmbiente.Geral_Lugares);
+            Debug.LogWarning("aleatorio: lugaresPossiveis vazio ou nulo. usando GerenteAmbiente.lugaresAtivos");
+            lugaresPossiveis = new List<lugar>(GerenteAmbiente.lugaresAtivos);
         }
 
         int index = UnityEngine.Random.Range(0, lugaresPossiveis.Count);
@@ -264,7 +291,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             Debug.LogWarning("aleatorio: célula já ocupada (estado inconsistente).");
             return;
         }
-//        aceitarcelula();
+        aceitarcelula();
     }
     void aceitarcelula()
     {
@@ -272,7 +299,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         {
             Debug.LogWarning("aceitarcelula: ambos trancado e quina estão verdadeiros. impossivel ocupar.");
             // notifica o gerente
-            gerenteAmbiente?.NotificarErroOcupacao(this, lugartemp);
+            GerenteAmbiente?.NotificarErroOcupacao(this, lugartemp);
 
             // destrói este objeto
             seDestruir();
@@ -287,15 +314,15 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         transform.position = np_endereco;
 
-   //     NP_CalcularIsovista();
+        NP_CalcularIsovista();
 
     }
     void isoplace()
     {
-        NP_CalcularIsovista();
+//        NP_CalcularIsovista();
 
-        float ref_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);  // List<lugar> lista_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
-        lugaresPossiveis = gerenteAmbiente.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Max(casa => casa.medida_geral_ponderada);  // List<lugar> lista_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        lugaresPossiveis = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
         if (lugaresPossiveis == null || lugaresPossiveis.Count == 0) return;    // if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
 
         aleatorio();
@@ -306,18 +333,18 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         //PRESERVA QUANDO FOR A SELECAO FOR EQUIVALENTE A MAIOR RUA. DAI ELA SE MANTEM COMO RUA
         //EH UM EXTRA, SER RUA DE MODO A NAO TRANCAR OS PREDIOS, E MANTER QD FOR A MAIOR.
         //        Debug.Log("maior distancia desse lugar: " + lugartemp.distanciaMaxima);
-        //        Debug.Log("maior distancia da rodada de medida: " + gerenteAmbiente.Geral_Lugares.Max(casa => casa.distanciaMaxima));
+        //        Debug.Log("maior distancia da rodada de medida: " + GerenteAmbiente.lugaresAtivos.Max(casa => casa.distanciaMaxima));
 
         // defesa: garantir que temos dados para comparar
-        if (gerenteAmbiente == null)
+        if (GerenteAmbiente == null)
         {
-            if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: gerenteAmbiente == null para " + np_nome);
+            if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: GerenteAmbiente == null para " + np_nome);
             return false;
         }
 
-        if (gerenteAmbiente.Geral_Lugares == null || gerenteAmbiente.Geral_Lugares.Count == 0)
+        if (GerenteAmbiente.lugaresAtivos == null || GerenteAmbiente.lugaresAtivos.Count == 0)
         {
-            if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: Geral_Lugares vazio para " + np_nome);
+            if (debug_novoPredio) Debug.LogWarning("NP_PreservarMaiorIsovista: lugaresAtivos vazio para " + np_nome);
             return false;
         }
 
@@ -328,7 +355,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
 
         // proteger contra elementos nulos dentro da coleção
-        float maxDistancia = gerenteAmbiente.Geral_Lugares
+        float maxDistancia = GerenteAmbiente.lugaresAtivos
             .Where(c => c != null)
             .Select(c => c.iso.medidasBrutas.distanciaMaxima)
             .DefaultIfEmpty(float.MinValue)
@@ -361,8 +388,9 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     {
             if (c.novoPredio == null && c.lugar == null)
             {
-                GameObject go = Instantiate(gerenteAmbiente.vizinhoPossivel, c.posicaoMundo, Quaternion.identity);
+                GameObject go = Instantiate(GerenteAmbiente.vizinhoPossivel, c.posicaoMundo, Quaternion.identity);
                 lugar porta_lugar = go.GetComponent<lugar>();
+                porta_lugar.Inicializar(GerenteAmbiente);
                 porta_lugar.addCelula(c);
                 c.addLugar(porta_lugar);// cel_vizinha.lugar = porta_lugar;
             }
@@ -371,7 +399,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     public void NP_CalcularIsovista()
     {
-        if (gerenteAmbiente.Geral_Lugares == null || gerenteAmbiente.Geral_Lugares.Count == 0)
+        if (GerenteAmbiente.lugaresAtivos == null || GerenteAmbiente.lugaresAtivos.Count == 0)
         {
             Debug.LogWarning("Nao ha lugares candidatos para avaliar.");
             return;
@@ -399,7 +427,11 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             LayerMask.GetMask("layer_lugares", "layer_ruas")
         );
 
-        List<lugar> lugaresVisiveis = iso_temp.LerLugaresVisiveis(resultados);
+        HashSet<lugar> lugaresVisiveis = new HashSet<lugar>(iso_temp.LerLugaresVisiveis(resultados));
+//        foreach (var l in lugaresVisiveis)
+//        {
+//            NP_iterarVizinhanca(l.minhaCelula, Celula.offsetsMoore, Action_AtualizaVizinhanca);
+//        }
         foreach (var lugar in lugaresVisiveis)
         {
             if (lugar != null)
@@ -410,11 +442,11 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         
 
         // ===== RESTANTE DA PRIMEIRA VARREDURA =====
-        //        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(gerenteAmbiente.Geral_Lugares, _templayer);
-        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(gerenteAmbiente.Geral_Lugares, _templayer);
+        //        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(GerenteAmbiente.lugaresAtivos, _templayer);
+        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(GerenteAmbiente.lugaresAtivos, _templayer);
 
         // ===== SEGUNDA VARREDURA: NORMALIZAR =====
-        Normalizador.NomalizarLista(gerenteAmbiente.Geral_Lugares, referencia_normalizacao);
+        Normalizador.NomalizarLista(GerenteAmbiente.lugaresAtivos, referencia_normalizacao);
 
         _isovista_calculada = true;
 
@@ -425,7 +457,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         float raioVisao = InputsMorfo.input_distanciaCampoVisao;
         Vector3 tamanho_EspacoConstruido_Vector;
 
-        Renderer rend = gerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
+        Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
         if (rend == null)
         {
             Debug.LogWarning("espacoConstruido sem Renderer! Usando padrão.");
@@ -462,8 +494,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         if (debug_novoPredio) Debug.Log("checar se eh rua valor de trancado: " + deveSerRua_T);
 
         // remove qualquer referência antiga para evitar duplicatas/contadores incorretos
-        gerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
-        gerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
+        GerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
+        GerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
         // NÃO removemos ainda de Geral_novosPrediosTotal aqui (mantemos registro geral), ou remova se preferir.
 
         //VIZINHO TRANCADO TEM Q CHECAR Q ELE PROPRIO NAO VAI FICAR TRANCADO
@@ -505,19 +537,26 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         if (rua == "nao")
         {
-            tipoEspaco = gerenteAmbiente.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
-            np_nome = tipoEspaco.nome + gerenteAmbiente.Geral_novosPrediosConstruidos.Count.ToString();
+
+            np_nome = "predio " + indiceCriacao.ToString() + "_";// + indiceNovoPredio.ToString();
+            gameObject.name = np_nome;
+
+            tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
+            indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosConstruidos.Count();
+            np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
          
-            if (!gerenteAmbiente.Geral_novosPrediosConstruidos.Contains(this))
-                gerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
+            if (!GerenteAmbiente.Geral_novosPrediosConstruidos.Contains(this))
+                GerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
         }
         else if (rua == "sim")
         {
-            tipoEspaco = gerenteAmbiente.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
-            np_nome = tipoEspaco.nome + gerenteAmbiente.Geral_novosPrediosRuas.Count.ToString();
+            tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
+            indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosRuas.Count();
+            np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
+            //            np_nome = tipoEspaco.nome + GerenteAmbiente.Geral_novosPrediosRuas.Count.ToString();
 
-            if (!gerenteAmbiente.Geral_novosPrediosRuas.Contains(this))
-                gerenteAmbiente.Geral_novosPrediosRuas.Add(this);
+            if (!GerenteAmbiente.Geral_novosPrediosRuas.Contains(this))
+                GerenteAmbiente.Geral_novosPrediosRuas.Add(this);
         }
 
         this.name = np_nome;
@@ -538,8 +577,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
         gameObject.layer = LayerMask.NameToLayer(tipoEspaco.layer);
 
-        if (!gerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
-            gerenteAmbiente.Geral_novosPrediosTotal.Add(this);
+        if (!GerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
+            GerenteAmbiente.Geral_novosPrediosTotal.Add(this);
     }
 
 
@@ -621,15 +660,24 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         InputsMorfo.IM_predios_texto_VizinhosInicial_Ruas.text = count_original_ruas.ToString();// np_meus_vizinhos_rua.Count(en => en.np_nome.Contains("rua")).ToString();
 
         ///enderecoCelular qd clickado
-//        int count_todos = vizinhos_celulas_VN.Count(t => t != null && t.novoPredio != null);
-        int count_todos = minhaCelula.vizinhosVN.Count(t => t != null && t.novoPredio != null);
-        int count_predios = minhaCelula.vizinhosVN.Count(p =>
-            p != null
-                && p.novoPredio != null
-                    && p.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
+//        int count_todos = minhaCelula.vizinhosVN.Count(t => t != null && t.novoPredio != null);
+        int count_todos = Celula.offsetsVonNeumann.Count
+            (offset => minhaCelula.vizinhosPorOffset.TryGetValue(offset, out Celula c) 
+            && c.novoPredio != null);
+        //        int count_predios = minhaCelula.vizinhosVN.Count
+        //            (p => p != null
+        //             && p.novoPredio != null
+        //             && p.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
+        int count_predios = Celula.offsetsVonNeumann.Count
+            (offset => minhaCelula.vizinhosPorOffset.TryGetValue(offset, out Celula c)
+             && c.novoPredio != null
+             && c.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
 
-        int count_ruas = minhaCelula.vizinhosVN.Count(p =>
-            p?.novoPredio?.np_tipo == TipoEspacoConstruido.Rua);
+//        int count_ruas = minhaCelula.vizinhosVN.Count(p =>
+//            p?.novoPredio?.np_tipo == TipoEspacoConstruido.Rua);
+        int count_ruas = Celula.offsetsVonNeumann.Count
+            (offset => minhaCelula.vizinhosPorOffset.TryGetValue(offset, out Celula c)
+             && c?.novoPredio?.np_tipo == TipoEspacoConstruido.Rua);
 
         InputsMorfo.IM_predios_texto_VizinhosClick_Total.text = count_todos.ToString();// np_meus_vizinhos_click_predio.Count.ToString();
         InputsMorfo.IM_predios_texto_VizinhosClick_Predios.text = count_predios.ToString();// np_meus_vizinhos_click_predio.Count(en => en.np_nome.Contains("predio")).ToString();
@@ -675,12 +723,12 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     public void seDestruir()
     {
-        if (gerenteAmbiente == null) gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        if (GerenteAmbiente == null) GerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
         // Remover de todas as listas onde possa estar registrado
-        gerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
-        gerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
-        gerenteAmbiente.Geral_novosPrediosTotal?.Remove(this);
+        GerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
+        GerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
+        GerenteAmbiente.Geral_novosPrediosTotal?.Remove(this);
 
         // Finalmente destruir o GameObject
         Destroy(this.gameObject);
@@ -695,7 +743,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         //exemplo de iteracao, pode ser adaptado para outros usos
         foreach (var offset_t in offset_T)
         {
-            gerenteAmbiente.livroCelulas.TryGetValue(
+            GerenteAmbiente.livroCelulas.TryGetValue(
                 celula_T.endereco + offset_t,
                 out Celula vizinha_t
             );
@@ -718,14 +766,15 @@ public class novoPredio : MonoBehaviour, ISelecionavel
                     offset_T.y * InputsMorfo.input_distanciaAdjacencia
                 );
 
-            Celula nova = gerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);
+            Celula nova = GerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);
             if (nova != null)
                 NP_ColocarLugarNaCelula(nova);
 
             vizinha_T = nova;
         }
 //        celulaBase_T.novoPredio.vizinhos_celulas_VN.Add(vizinha_T);
-        celulaBase_T.vizinhosVN.Add(vizinha_T);
+//        celulaBase_T.vizinhosVN.Add(vizinha_T);
+        celulaBase_T.vizinhosPorOffset[offset_T] = vizinha_T;
     }
     public void Action_GuardarVizinhosOriginais(Celula c_sem_uso, Celula celula_T, Vector2Int o_sem_uso)
     {
@@ -760,19 +809,26 @@ public class novoPredio : MonoBehaviour, ISelecionavel
                 if (celulaVizinha?.novoPredio?.np_tipo != TipoEspacoConstruido.Predio)
                     return;
 
-                criarVizinhos = false; // Garantir que não criamos vizinhos adicionais durante essa checagem
+                criarVizinhos = false; 
+// Garantir que não criamos vizinhos adicionais durante essa checagem
 //                celulaVizinha.novoPredio.vizinhos_celulas_VN.Clear();
-                celulaVizinha.vizinhosVN.Clear();
-                NP_iterarVizinhanca
-                    (celulaVizinha, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
-                int countPredios = celulaVizinha.vizinhosVN.Count
-                (p =>
-                    p != null
-                    && p.endereco != celula_T.endereco
-                    && p.novoPredio != null
-                    && p.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
+//                celulaVizinha.vizinhosVN.Clear();
+//                NP_iterarVizinhanca
+//                    (celulaVizinha, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
+
+//                int countPredios = celulaVizinha.vizinhosVN.Count
+//                (p => p != null
+//                 && p.endereco != celula_T.endereco
+//                 && p.novoPredio != null
+//                 && p.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
 //                Debug.Log($"Checando vizinho {celulaVizinha.endereco} para trancamento: encontrou {countPredios} prédios adjacentes.");
-                if (countPredios >= 3)
+
+                int count_predios = Celula.offsetsVonNeumann.Count
+                    (offset => minhaCelula.vizinhosPorOffset.TryGetValue(offset, out Celula c)
+                     && c.novoPredio != null
+                     && c.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
+
+                if (count_predios >= 3)
                     trancado = true;
             };
 
@@ -809,7 +865,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
                 d.orto2 = celulaBase.endereco + new Vector2Int(0, offsetDiagonal.y);
 
                 // --- ORTO 1 ---
-                if (gerenteAmbiente.livroCelulas.TryGetValue(d.orto1, out Celula c1))
+                if (GerenteAmbiente.livroCelulas.TryGetValue(d.orto1, out Celula c1))
                 {
                     if (c1?.novoPredio != null)
                     {
@@ -826,7 +882,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
                 }
 
                 // --- ORTO 2 ---
-                if (gerenteAmbiente.livroCelulas.TryGetValue(d.orto2, out Celula c2))
+                if (GerenteAmbiente.livroCelulas.TryGetValue(d.orto2, out Celula c2))
                 {
                     if (c2?.novoPredio != null)
                     {
@@ -898,13 +954,13 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             //enderecoReal[i] = enderecoReal;
             //            NP_CriarCelulas(enderecoCelular[i], enderecoReal[i], criar_T);
 
-            if (!gerenteAmbiente.livroCelulas.TryGetValue(enderecoCelular, out Celula celula) && criar_T)
+            if (!GerenteAmbiente.livroCelulas.TryGetValue(enderecoCelular, out Celula celula) && criar_T)
             {
                 float x = celula_T.posicaoMundo.x + matrizVizinhanca_T[i].x * InputsMorfo.input_distanciaAdjacencia;
                 float z = celula_T.posicaoMundo.z + matrizVizinhanca_T[i].y * InputsMorfo.input_distanciaAdjacencia;
                 Vector3 enderecoReal = new Vector3(x, celula_T.posicaoMundo.y, z);// celulasVizinhas[Celula.offsetsVonNeumann[i]] = new Celula(Celula.offsetsVonNeumann[i], enderecoReal);
 
-                celula = gerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);
+                celula = GerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);
                 if (celula != null)
                     NP_ColocarLugarNaCelula(celula);
             }
@@ -940,7 +996,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         {
 
             Vector2Int enderecoDiagonal = celula_T.endereco + offsetDiagonal;
-            if (!gerenteAmbiente.livroCelulas.TryGetValue(enderecoDiagonal, out Celula celulaDiagonal))
+            if (!GerenteAmbiente.livroCelulas.TryGetValue(enderecoDiagonal, out Celula celulaDiagonal))
                 continue;
 
             // se NAO tem celula, ou NAO tem um novoPredio, ou EH uma rua, nao precisa checar se eh quina, pule pro proximo
@@ -958,7 +1014,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             d.orto2 = new Vector2Int(celula_T.endereco.x, para_orto.y); //new Vector2Int(minhaCelula.endereco.x, para_orto.y);
 
             // --- ORTO 1 ---
-            if (gerenteAmbiente.livroCelulas.TryGetValue(d.orto1, out Celula c1))
+            if (GerenteAmbiente.livroCelulas.TryGetValue(d.orto1, out Celula c1))
             {
                 d.nomeOrto1 = "null";
                 d.tipoOrto1 = null;
@@ -988,7 +1044,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             }
 
             // --- ORTO 2 ---
-            if (gerenteAmbiente.livroCelulas.TryGetValue(d.orto2, out Celula c2))
+            if (GerenteAmbiente.livroCelulas.TryGetValue(d.orto2, out Celula c2))
             {
                 d.nomeOrto2 = "null";
                 d.tipoOrto2 = null;
@@ -1047,7 +1103,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         foreach (Vector2Int offset in Celula.offsetsVonNeumann)
         //            foreach (Celula cel_vizinha in _vizinhanca.Values)
         {
-            if (!gerenteAmbiente.livroCelulas.TryGetValue(celula_T.endereco + offset, out Celula cel_vizinha))
+            if (!GerenteAmbiente.livroCelulas.TryGetValue(celula_T.endereco + offset, out Celula cel_vizinha))
                 continue;
 
 
@@ -1061,7 +1117,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             foreach (Vector2Int offset_vizinho in Celula.offsetsVonNeumann)
             //                foreach (Celula vizinho_vizinho in cel_vizinha.novoPredio.celulasVonNeumann.Values) 
             {
-                if (!gerenteAmbiente.livroCelulas.TryGetValue(cel_vizinha.endereco + offset_vizinho, out Celula vizinho_vizinho))
+                if (!GerenteAmbiente.livroCelulas.TryGetValue(cel_vizinha.endereco + offset_vizinho, out Celula vizinho_vizinho))
                     continue;
 
                 if (vizinho_vizinho.novoPredio != null
@@ -1139,15 +1195,15 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         ///verificar se o endereco eh espacoConstruido:
         ///1. nao sobrepoe
-        if (gerenteAmbiente.Geral_Lugares.Count <= 0) { return; }
+        if (GerenteAmbiente.lugaresAtivos.Count <= 0) { return; }
 
         int _np_index = 0;
 
         //        lugar lugartemp;
         while (collisionChecker == true)
         {
-            _np_index = UnityEngine.Random.Range(0, gerenteAmbiente.Geral_Lugares.Count);
-            lugartemp = gerenteAmbiente.Geral_Lugares[_np_index];
+            _np_index = UnityEngine.Random.Range(0, GerenteAmbiente.lugaresAtivos.Count);
+            lugartemp = GerenteAmbiente.lugaresAtivos[_np_index];
             np_endereco = lugartemp._endereco;
 
             // checagem local: permite substituir o proprio lugar
@@ -1176,7 +1232,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             }
 
             contador++;
-            if (contador > gerenteAmbiente.Geral_Lugares.Count)
+            if (contador > GerenteAmbiente.lugaresAtivos.Count)
             {
                 break;
             }
@@ -1208,8 +1264,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     {
         NP_CalcularIsovista();
 
-        float ref_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Max(casa => casa.medida_geral_ponderada);
-        List<lugar> lista_medida_geral_ponderada = gerenteAmbiente.Geral_Lugares.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Max(casa => casa.medida_geral_ponderada);
+        List<lugar> lista_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
         if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
         
         int _index_medida_geral_ponderada = UnityEngine.Random.Range(0, lista_medida_geral_ponderada.Count);

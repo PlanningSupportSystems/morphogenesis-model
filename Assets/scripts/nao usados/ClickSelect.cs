@@ -69,8 +69,8 @@ public class ClickSelect : MonoBehaviour
 
 //        esteNovoPredio = this.GetComponent<novoPredio>();
 //        esteLugar = this.GetComponent<lugar>();
-//        ControleAglomeracao gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-//        ControleAglomeracao gerenteAmbiente = cs_ambiente.GetComponent<ControleAglomeracao>();
+//        ControleAglomeracao GerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+//        ControleAglomeracao GerenteAmbiente = cs_ambiente.GetComponent<ControleAglomeracao>();
 
         //GameObject OBJ_nome = GameObject.Find("t_nome_obj");
 //        Text OBJ_nome = GameObject.Find("t_nome_obj").GetComponent<Text>();
@@ -165,7 +165,7 @@ public class ClickSelect : MonoBehaviour
                            | (1 << LayerMask.NameToLayer("layer_ruas"))
                       //   | (1 << LayerMask.NameToLayer("layer_lugares"))
                            ;
-            foreach (lugar l in cs_ambiente.Geral_Lugares)
+            foreach (lugar l in cs_ambiente.lugaresAtivos)
             {
                 l.L_CalculeIsovistas(_templayer);
             }

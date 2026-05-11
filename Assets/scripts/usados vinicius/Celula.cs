@@ -2,18 +2,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Celula
 {
     public Vector2Int endereco;
     public Vector3 posicaoMundo;
 
+    public int indiceCriacao; // Índice de criação para controle de ordem
+    public int indiceCriacaoLugar;
+    public int indiceCriacaoNovoPredio;
+
     public lugar lugar;
     public novoPredio novoPredio;
     public List<Celula> vizinhosVN = new List<Celula>();
+    public HashSet<Celula> vizinhosMoore = new HashSet<Celula>();
+    public Dictionary<Vector2Int, Celula> vizinhosPorOffset = new Dictionary<Vector2Int, Celula>();
 
     public bool TemLugar => lugar != null;
+    public bool TemLugarAtivo => lugar != null && lugar.gameObject.activeSelf;
     public bool TemNovoPredio => novoPredio != null;
-    public bool EstaLivreParaOcupar => lugar != null && novoPredio == null;
+    public bool TemNovoPredioAtivo => novoPredio != null && novoPredio.gameObject.activeSelf;
+    public bool EstaLivreParaOcupar => TemLugarAtivo && novoPredio == null;
 
     public static readonly Vector2Int[] offsetsVonNeumann = new Vector2Int[]
     {
@@ -62,6 +71,7 @@ public class Celula
             return;
         }
         this.lugar = lugar;
+        indiceCriacaoLugar = lugar.indiceCriacao;
 
         string nomeCampo = this.lugar != null ? this.lugar._nome : null;
         string nomeMostrar = !string.IsNullOrEmpty(nomeCampo) ? nomeCampo : "<null-ou-vazio>";
@@ -72,12 +82,15 @@ public class Celula
     public void addnovoPredio(novoPredio novoPredio)
     {
         this.novoPredio = novoPredio;
-        if (this.lugar != null)
-        {
-//            Debug.Log("CELULA: Destruindo lugar: " + this.lugar._nome + " para adicionar novoPredio: "+ this.novoPredio.np_nome);
+        indiceCriacaoNovoPredio = novoPredio.indiceCriacao;
 
-            this.lugar.seDestruir();
-            this.lugar = null;
+        if (TemLugarAtivo)
+        {
+            //            Debug.Log("CELULA: Destruindo lugar: " + this.lugar._nome + " para adicionar novoPredio: "+ this.novoPredio.np_nome);
+
+            this.lugar.Desativar();
+//            this.lugar.seDestruir();
+//            this.lugar = null;
 
 //            if (this.lugar != null) Debug.Log("CELULA: nao destruiu o lugar: " + this.lugar._nome);
 //            if (this.lugar == null) Debug.Log("CELULA: lugar destruido com sucesso"); 

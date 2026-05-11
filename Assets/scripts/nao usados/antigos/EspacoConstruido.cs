@@ -69,7 +69,7 @@ public class EspacoConstruido : MonoBehaviour
 
     public static Vector3 meio_EspacoConstruido = default;
 
-    ControleAglomeracao gerenteAmbiente;
+    ControleAglomeracao GerenteAmbiente;
 
 
 
@@ -80,10 +80,10 @@ public class EspacoConstruido : MonoBehaviour
     private void Awake()
     {
         Debug.Log("espaco construido");
-//        gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-        gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-        meio_EspacoConstruido = gerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
-        pfab_meuVizinhoPossivel = gerenteAmbiente.espacoConstruido;
+//        GerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+        GerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        meio_EspacoConstruido = GerenteAmbiente.TiposEspacoConstruido[0].transform.localScale / 2.1f;
+        pfab_meuVizinhoPossivel = GerenteAmbiente.espacoConstruido;
 
     }
     public void Start()
@@ -93,14 +93,14 @@ public class EspacoConstruido : MonoBehaviour
         EC_EscolherLocalizacaoIsovista();
 
         lista_end_vinhancaPossivelTotal = EC_enderecoVizinhanca(meuEnderecoXYZ);
-        gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.UnionWith(lista_end_vinhancaPossivelTotal); ///vizinhanca espacoConstruido eh adicionada. tem q checar onde ela eh
+        GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.UnionWith(lista_end_vinhancaPossivelTotal); ///vizinhanca espacoConstruido eh adicionada. tem q checar onde ela eh
                                                                                                ///utilizada e atualizada. acho q eh so adicionada
 
         //        Debug.Log("ola? " + valoresEntrada.teste);
         //        Debug.Log("ola??? " + InputsMorfo.ptz);
 
         EC_MeusVizinhos();
-        //        Debug.Log("ESPACO CONSTRUIDO| geral total espacos construidos: " + gerenteAmbiente.Geral_Predios.Count);
+        //        Debug.Log("ESPACO CONSTRUIDO| geral total espacos construidos: " + GerenteAmbiente.Geral_Predios.Count);
         EC_ChecaVizinhoTrancado();
         //        gameObject.AddComponent<BoxCollider>().size = new Vector3(2, 2, 2);
         //EC_ChecarSeEhRua();
@@ -154,12 +154,12 @@ public class EspacoConstruido : MonoBehaviour
 
         //        rua = P_ChecarDiferenciacaoAcessoRua();
 
-        //        Debug.Log("PREDIOS| ANTES total de espaco construido: " + gerenteAmbiente.Geral_PrediosConstruidos.Count);
+        //        Debug.Log("PREDIOS| ANTES total de espaco construido: " + GerenteAmbiente.Geral_PrediosConstruidos.Count);
 
         SO_EspacoConstruido tipoEspaco = ScriptableObject.CreateInstance<SO_EspacoConstruido>();
 
-        //SO_EspacoConstruido tipoEspaco = SO_EspacoConstruido.CreateInstance(SO_EspacoConstruido);//  . tipoEspaco = SO_EspacoConstruido.CreateInstance (so_  ();// gerenteAmbiente._so_construir[0]; 
-        //        SO_EspacoConstruido tipoEspaco = new SO_EspacoConstruido();// gerenteAmbiente._so_construir[0]; 
+        //SO_EspacoConstruido tipoEspaco = SO_EspacoConstruido.CreateInstance(SO_EspacoConstruido);//  . tipoEspaco = SO_EspacoConstruido.CreateInstance (so_  ();// GerenteAmbiente._so_construir[0]; 
+        //        SO_EspacoConstruido tipoEspaco = new SO_EspacoConstruido();// GerenteAmbiente._so_construir[0]; 
 
         if (_viz_trancado) { rua = "sim"; }
         else if (!_viz_trancado) { rua = "nao"; }
@@ -170,18 +170,18 @@ public class EspacoConstruido : MonoBehaviour
         {
             //          qualprefab = 0;
             //            Debug.Log("meu nome durante: " + meuNome);
-            tipoEspaco = gerenteAmbiente._so_construir[0];
-            meuNome = tipoEspaco.nome + gerenteAmbiente.Geral_Predios.Count.ToString();//  "rua";
-            gerenteAmbiente.Geral_Predios.Add(this);
+            tipoEspaco = GerenteAmbiente._so_construir[0];
+            meuNome = tipoEspaco.nome + GerenteAmbiente.Geral_Predios.Count.ToString();//  "rua";
+            GerenteAmbiente.Geral_Predios.Add(this);
             //            Debug.Log("nome SO durante: " + tipoEspaco.nome);
         }
         else if (rua == "sim")
         {
             //            qualprefab = 1;
             //            Debug.Log("meu nome durante false: " + meuNome);
-            tipoEspaco = gerenteAmbiente._so_construir[1];
-            meuNome = tipoEspaco.nome + gerenteAmbiente.Geral_Ruas.Count.ToString();//  "rua";
-            gerenteAmbiente.Geral_Ruas.Add(this);
+            tipoEspaco = GerenteAmbiente._so_construir[1];
+            meuNome = tipoEspaco.nome + GerenteAmbiente.Geral_Ruas.Count.ToString();//  "rua";
+            GerenteAmbiente.Geral_Ruas.Add(this);
             //            Debug.Log("nome SO durante false: " + tipoEspaco.nome);
         }
 
@@ -193,12 +193,12 @@ public class EspacoConstruido : MonoBehaviour
         gameObject.transform.localScale = tipoEspaco.escala;// -= new Vector3(0, 1.6f, 0);
         gameObject.GetComponent<Renderer>().material.color = tipoEspaco.cor;// Color.white;
 
-        //        Debug.Log("PREDIOS| DPS IF total de espaco construido: " + gerenteAmbiente.Geral_PrediosConstruidos.Count);
+        //        Debug.Log("PREDIOS| DPS IF total de espaco construido: " + GerenteAmbiente.Geral_PrediosConstruidos.Count);
         //        Debug.Log("qualprefab: " + qualprefab);
 
         //        this.transform.position = meuEnderecoXYZ;
 
-        gerenteAmbiente.Geral_TotalEspacosConstruidos.Add(this);
+        GerenteAmbiente.Geral_TotalEspacosConstruidos.Add(this);
 
 
     }
@@ -208,11 +208,11 @@ public class EspacoConstruido : MonoBehaviour
         if (tracking)
         {
             Debug.Log("tracking EC_EscolherLocalizacao");
-//            Debug.Log("EC| espacos ja construidos: " + gerenteAmbiente.Geral_PrediosConstruidos.Count + "; " +
-//              "vizinhos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+//            Debug.Log("EC| espacos ja construidos: " + GerenteAmbiente.Geral_PrediosConstruidos.Count + "; " +
+//              "vizinhos possiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
         }
 
-        //        gameObject.name = meuNome = "EC " + gerenteAmbiente.Geral_Predios.Count.ToString();//  "rua";
+        //        gameObject.name = meuNome = "EC " + GerenteAmbiente.Geral_Predios.Count.ToString();//  "rua";
 
         bool collisionChecker = true;
 
@@ -223,23 +223,23 @@ public class EspacoConstruido : MonoBehaviour
         int contador = 0;
         while (collisionChecker == true)
         {
-            //Debug.Log("qtos enderecos possiveis: "+ gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
-            meuEnderecoXYZ = EC_seleciona_enderecoAleatorio(gerenteAmbiente.Geral_EnderecosVizinhosPossiveis);
+            //Debug.Log("qtos enderecos possiveis: "+ GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+            meuEnderecoXYZ = EC_seleciona_enderecoAleatorio(GerenteAmbiente.Geral_EnderecosVizinhosPossiveis);
             // meuEnderecoXYZ = new Vector3(0, 0, contador);
 
             ///checar colisao. lembrar q se faces forem coladas, ele considera colisao, dai divisor se 2.1
             collisionChecker = sobrepor.SP_SeEhPosicaoVazia(meuEnderecoXYZ, meio_EspacoConstruido);
-            //Debug.Log("testando colisao de " + this.meuNome + "; #" + contador + " total de enderecos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+            //Debug.Log("testando colisao de " + this.meuNome + "; #" + contador + " total de enderecos possiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
             contador++;
             //Debug.Log("contador: "+ contador);
-            if (contador > gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count)
+            if (contador > GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count)
             {
                 //Debug.Log("estourou opcoes, valor collider: " +collisionChecker + "; contador: "+contador);
                 break;
             }
         }
-        gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Remove(meuEnderecoXYZ);
+        GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Remove(meuEnderecoXYZ);
 
         //      }
 
@@ -261,10 +261,10 @@ public class EspacoConstruido : MonoBehaviour
         }
 
         //        Debug.Log("EC| inicializou escolher localizacao");
-        //        Debug.Log("EC| espacos ja construidos: " + gerenteAmbiente.Geral_PrediosConstruidos.Count + "; " +
-        //          "vizinhos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+        //        Debug.Log("EC| espacos ja construidos: " + GerenteAmbiente.Geral_PrediosConstruidos.Count + "; " +
+        //          "vizinhos possiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
-        //        gameObject.name = meuNome = "EC " + gerenteAmbiente.Geral_Predios.Count.ToString();//  "rua";
+        //        gameObject.name = meuNome = "EC " + GerenteAmbiente.Geral_Predios.Count.ToString();//  "rua";
 
         bool collisionChecker = true;
 
@@ -274,7 +274,7 @@ public class EspacoConstruido : MonoBehaviour
 
         List<IsovistaP> _vizinhos = new List<IsovistaP>();
         int contador = 0;
-        foreach (Vector3 _endereco in gerenteAmbiente.Geral_EnderecosVizinhosPossiveis)
+        foreach (Vector3 _endereco in GerenteAmbiente.Geral_EnderecosVizinhosPossiveis)
         {
             IsovistaP temp = new IsovistaP(_endereco, 8, 10);
             temp.CampoVisao(12, 10);
@@ -283,9 +283,9 @@ public class EspacoConstruido : MonoBehaviour
         IsovistaP t2 = _vizinhos.OrderByDescending(item => item.espacosVistos.Count).FirstOrDefault();
         meuEnderecoXYZ = t2.centro;
         //            HashSet<Vector3> _rankingVizinhos = _vizinhos.
-        //        Debug.Log("EC lugar iso| antes, Geral_EnderecosVizinhosPossiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
-        gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Remove(meuEnderecoXYZ);
-        Debug.Log("EC lugar iso| depois, Geral_EnderecosVizinhosPossiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+        //        Debug.Log("EC lugar iso| antes, Geral_EnderecosVizinhosPossiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+        GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Remove(meuEnderecoXYZ);
+        Debug.Log("EC lugar iso| depois, Geral_EnderecosVizinhosPossiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
 
         //        }
 
@@ -308,7 +308,7 @@ public class EspacoConstruido : MonoBehaviour
             Debug.Log("tracking P seleciona_enderecoAleatorio");
         }
 
-        //gerenteAmbiente.Geral_VizinhosPossiveis
+        //GerenteAmbiente.Geral_VizinhosPossiveis
         int index = Random.Range(0, _lista_possibilidades.Count - 1);
 
         Vector3 endreturn = new Vector3();// = _lista_possibilidades[index];
@@ -324,10 +324,10 @@ public class EspacoConstruido : MonoBehaviour
         }
         //            Vector3 endreturn = _lista_possibilidades[index];
 
-        //        Debug.Log("total de vizinhos possiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; endereco escolhido aleatorio: " + endreturn);
+        //        Debug.Log("total de vizinhos possiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; endereco escolhido aleatorio: " + endreturn);
         //        _lista_possibilidades.Remove(endreturn);// 
         //        _lista_possibilidades.RemoveAt(index);// 
-        //gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.RemoveAt(index);
+        //GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.RemoveAt(index);
 
         return endreturn;
     }
@@ -341,7 +341,7 @@ public class EspacoConstruido : MonoBehaviour
         }
 
         HashSet<Vector3> enderecos = new HashSet<Vector3>();
-        //        Debug.Log("PREDIOS| geral total VizinhosPossiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+        //        Debug.Log("PREDIOS| geral total VizinhosPossiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
         float _passo_angulo = (360 / (int)InputsMorfo.input_totalVizinhos) * Mathf.Deg2Rad;
 
         for (int i = 0; i < InputsMorfo.input_totalVizinhos; i++) //  totalVizinhosPossiveis; i++)
@@ -354,13 +354,13 @@ public class EspacoConstruido : MonoBehaviour
             //            Instantiate(pfab_meuVizinhoPossivel,_endereco_ref + new Vector3(_x, 0, _z), Quaternion.identity);
             //            pfab_meuVizinhoPossivel.transform.position = _endereco_ref + new Vector3(_x, 0, _z);
             //            pfab_meuVizinhoPossivel.GetComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-            //            gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Add(_endereco_ref + new Vector3(_x, 0, _z));
-            //            Debug.Log("dps" +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +gerenteAmbiente.Geral_EnderecosVizinhosPossiveis[i]);
+            //            GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Add(_endereco_ref + new Vector3(_x, 0, _z));
+            //            Debug.Log("dps" +GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count + "; end: " +GerenteAmbiente.Geral_EnderecosVizinhosPossiveis[i]);
             //            Debug.Log("dist "+distanciaAdjacencia+"; angulo"+ angulo * Mathf.Rad2Deg+"; i" + i + "; x " + _x +"; z"+ _z + "; vizinho adicionado: " + lista_end_vinhancaPossivelTotal[i]);
         }
 
         return enderecos;
-        //      Debug.Log("PREDIOS| atualizado geral total VizinhosPossiveis: " + gerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
+        //      Debug.Log("PREDIOS| atualizado geral total VizinhosPossiveis: " + GerenteAmbiente.Geral_EnderecosVizinhosPossiveis.Count);
     }
 
     public void EC_MeusVizinhos()

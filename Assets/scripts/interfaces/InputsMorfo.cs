@@ -190,9 +190,9 @@ public class InputsMorfo : MonoBehaviour
             Debug.Log("tracking IM START");
         }
 
-        //gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        //GerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
         gerenteAmbiente = ControleAglomeracao.Instance;
-        //        gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+        //        GerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
         if (gerenteAmbiente == null)
         {
             Debug.LogError("InputMorfo.Start: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");

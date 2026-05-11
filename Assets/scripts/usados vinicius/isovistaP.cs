@@ -229,7 +229,7 @@ public class IsovistaP
         float raioVisao = InputsMorfo.input_distanciaCampoVisao;
         Vector3 tamanho_EspacoConstruido_Vector;
 
-        Renderer rend = objReferencia_T;// _gerente_ambiente.espacoConstruido.GetComponent<Renderer>();
+        Renderer rend = objReferencia_T;// GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
         if (rend == null)
         {
             Debug.LogWarning("espacoConstruido sem Renderer! Usando padrão.");

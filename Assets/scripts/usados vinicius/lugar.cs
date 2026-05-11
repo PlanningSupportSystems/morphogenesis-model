@@ -10,6 +10,13 @@ using UnityEngine.UI;
 
 public class lugar : MonoBehaviour, ISelecionavel
 {
+    //    ControleAglomeracao GerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+    private ControleAglomeracao GerenteAmbiente;// = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+
+    public int indiceCriacao;
+    public int indiceLugar;
+    public int contagem = 0;
+
     public Celula minhaCelula;
     [SerializeField] public string enderecoCelula;
     //propriedades relativas interface ISelecionavel
@@ -18,37 +25,59 @@ public class lugar : MonoBehaviour, ISelecionavel
     GameObject _propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
     GameObject _propriedades_L;// = GameObject.Find("propriedades_lugar_alocado");
 
-    //    ControleAglomeracao gerenteAmbiente;// = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-    private ControleAglomeracao _gerente_ambiente;// = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
 
     private float meio_EspacoConstruido = default;
     private Vector3 meio_EspacoConstruido_Vector = default;
     public Vector3 _endereco = default;
     public string _nome;
     public bool eraoutrolugar = false;
-    public int contagem = 0;
-    private int _indice;
 
     public IsovistaP iso;                   //incorporou todas as medidas sobre isovista. 
 //    public MedidasBrutas minhasMedidasBrutas;         
 //    public MedidasNormalizadas medidasNormalizadas;
     public float medida_geral_ponderada;    //unica coisa q ficou fora foi essa
 
-    public bool debug_lugar = false;
+    bool debug_lugar = false;
 
+
+    void Awake()
+    {
+    }
+
+    public void Inicializar(ControleAglomeracao gerente)
+    {
+        GerenteAmbiente = gerente;
+
+        if (GerenteAmbiente.TodosLugares == null)
+            GerenteAmbiente.TodosLugares = new SortedDictionary<int, lugar>();
+
+        if (GerenteAmbiente.lugaresAtivos == null)
+            GerenteAmbiente.lugaresAtivos = new List<lugar>();
+
+        indiceCriacao = GerenteAmbiente.ContadorRodadas;
+        indiceLugar = GerenteAmbiente.contadorlugar;
+        contagem = GerenteAmbiente.contadorlugar;
+        GerenteAmbiente.contadorlugar++;
+
+        _nome = "lugar " + indiceCriacao.ToString() + "_" + indiceLugar.ToString();
+        gameObject.name = _nome;
+        gameObject.layer = LayerMask.NameToLayer("layer_lugares");
+
+        if (!GerenteAmbiente.TodosLugares.ContainsKey(indiceLugar))
+            GerenteAmbiente.TodosLugares.Add(indiceLugar, this);
+
+        if (!GerenteAmbiente.lugaresAtivos.Contains(this))
+            GerenteAmbiente.lugaresAtivos.Add(this);
+
+    }
 
     void Start()
     {
-        _gerente_ambiente = ControleAglomeracao.Instance;// GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();    //gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-        if (_gerente_ambiente == null)
+        if (GerenteAmbiente == null)
         {
-            Debug.LogError("lugar.Awake: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");
+            Debug.LogError("lugar.Start: ControleAglomeracao não inicializado.");
             return;
         }
-
-        _nome = "lugar " + _gerente_ambiente.Geral_Lugares.Count.ToString();
-        this.gameObject.name = _nome;
-
 
         //configurando sobre interface ISelecionavel
         EstaSelecionado = false;
@@ -60,21 +89,8 @@ public class lugar : MonoBehaviour, ISelecionavel
             Debug.Log("tracking lugar");
         }
 
-// LEVADO PARA AWAKE
-        //      gerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();  // gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>(); 
-        //      _nome = "lugar " + gerenteAmbiente.Geral_Lugares.Count.ToString();
-        //      this.gameObject.name =  _nome;
-        int nova_layer = LayerMask.NameToLayer("layer_lugares");
-        gameObject.layer = nova_layer;
-
-        meio_EspacoConstruido_Vector = _gerente_ambiente.espacoConstruido.transform.localScale / 2f;
+        meio_EspacoConstruido_Vector = GerenteAmbiente.espacoConstruido.transform.localScale / 2f;
         _endereco = this.transform.position;
-
-        contagem = _gerente_ambiente.contadorlugar;
-        _gerente_ambiente.contadorlugar++;
-        _gerente_ambiente.Geral_Lugares.Add(this);
-        _indice = _gerente_ambiente.Geral_Lugares.IndexOf(this);
-        //        Debug.Log(this.name + ", start indice: " + _indice + "; lugares count: " + gerenteAmbiente.Geral_Lugares.Count);
 
         ///fazer checagem se esta sobrepondo alguem
         //        L_ChecaSobrepor();
@@ -87,7 +103,6 @@ public class lugar : MonoBehaviour, ISelecionavel
         L_CalculeIsovistas(_templayer);
 
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -97,6 +112,7 @@ public class lugar : MonoBehaviour, ISelecionavel
     {
         minhaCelula = c;
         enderecoCelula = c.endereco.ToString();
+//        minhaCelula.indiceCriacaoLugar = indiceLugar;
         if (debug_lugar) Debug.Log("LUGAR: lugar " + this._nome + " recebeu celula " + enderecoCelula);
     }
 
@@ -106,7 +122,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         float raioVisao = InputsMorfo.input_distanciaCampoVisao;
         Vector3 tamanho_EspacoConstruido_Vector;
 
-        Renderer rend = _gerente_ambiente.espacoConstruido.GetComponent<Renderer>();
+        Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
         if (rend == null)
         {
             Debug.LogWarning("espacoConstruido sem Renderer! Usando padrão.");
@@ -138,7 +154,7 @@ public class lugar : MonoBehaviour, ISelecionavel
     public IsovistaP L_CalculeIsovistas(LayerMask _templayer)
     {
 
-        Renderer rend = _gerente_ambiente.espacoConstruido.GetComponent<Renderer>();
+        Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
 
         int totalRaios = CalcularQtdRaios();
         ///substituir valores para raio_de_visao
@@ -197,15 +213,15 @@ public class lugar : MonoBehaviour, ISelecionavel
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_gerente_ambiente == null)
+        if (GerenteAmbiente == null)
         {
-//            gerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
-            _gerente_ambiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
+//            GerenteAmbiente = Terrain.activeTerrain.GetComponent<ControleAglomeracao>();
+            GerenteAmbiente = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
 
         }
 
-        //        Debug.Log("triggger. " + this.name + ", contagem # " + contagem + ", lugares count: " + gerenteAmbiente.Geral_Lugares.Count + ", bati num lugar " + other.name );
-        //        Debug.Log("ta dentro de alguem trigger, "+ gerenteAmbiente.Geral_Lugares.Count + " lugares, eu " + this._nome + ", dentro de " + other.name);
+        //        Debug.Log("triggger. " + this.name + ", contagem # " + contagem + ", lugares count: " + GerenteAmbiente.lugaresAtivos.Count + ", bati num lugar " + other.name );
+        //        Debug.Log("ta dentro de alguem trigger, "+ GerenteAmbiente.lugaresAtivos.Count + " lugares, eu " + this._nome + ", dentro de " + other.name);
 
         if (other.TryGetComponent<lugar>(out lugar l))
         {
@@ -221,7 +237,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         {
             if (this.gameObject != null)
             {
-                //                Debug.Log("total lugares count " + gerenteAmbiente.Geral_Lugares.Count + ", indice: " + gerenteAmbiente.Geral_Lugares.IndexOf(this) + ", " + _indice);
+                //                Debug.Log("total lugares count " + GerenteAmbiente.lugaresAtivos.Count + ", indice: " + GerenteAmbiente.lugaresAtivos.IndexOf(this) + ", " + _indice);
 
                 seDestruir();
 
@@ -305,7 +321,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         LayerMask _templayer = LayerMask.GetMask("layer_predios", "layer_ruas");//, "layer_lugares");
 //        L_CalculeIsovistas(_templayer); // <<<< (normalizador.buscarRef calcula isovista de todos, entao nao precisa)
         ///primeira varredura, atualizando valores de referencia
-        ValoresReferenciaNormalizacao referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(_gerente_ambiente.Geral_Lugares, _templayer);
+        ValoresReferenciaNormalizacao referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(GerenteAmbiente.lugaresAtivos, _templayer);
 
 //        Debug.Log($"[SELECT {_nome}] brutas: area={iso.medidasBrutas.areaIsovista:F2}, distMax={iso.medidasBrutas.distanciaMaxima:F2}");
 
@@ -382,13 +398,41 @@ public class lugar : MonoBehaviour, ISelecionavel
     }
     public void seDestruir()
     {
-        // Remover com segurança da lista de controle
-        if (_gerente_ambiente != null && _gerente_ambiente.Geral_Lugares != null && _gerente_ambiente.Geral_Lugares.Contains(this))
+        if (GerenteAmbiente == null)
+            GerenteAmbiente = ControleAglomeracao.Instance ?? GameObject.Find("ambiente")?.GetComponent<ControleAglomeracao>();
+
+        if (GerenteAmbiente != null)
         {
-            _gerente_ambiente.Geral_Lugares.Remove(this);
+            GerenteAmbiente.lugaresAtivos?.Remove(this);
+            GerenteAmbiente.lugaresDesativados?.Remove(this);
+            GerenteAmbiente.TodosLugares?.Remove(indiceLugar);
         }
-        minhaCelula.lugar = null; // Desassocia da célula
+
+        if (minhaCelula != null && minhaCelula.lugar == this)
+            minhaCelula.lugar = null; // Desassocia da célula apenas na limpeza total
+
         if (debug_lugar) Debug.Log("LUGAR: Destruindo lugar: " + _nome);
         Destroy(this.gameObject);
     }
-}
+    public void Desativar()
+    {
+        if (GerenteAmbiente == null)
+            GerenteAmbiente = ControleAglomeracao.Instance ?? GameObject.Find("ambiente")?.GetComponent<ControleAglomeracao>();
+
+        if (GerenteAmbiente != null)
+        {
+            GerenteAmbiente.lugaresAtivos?.Remove(this);
+
+            if (GerenteAmbiente.lugaresDesativados == null)
+                GerenteAmbiente.lugaresDesativados = new List<lugar>();
+
+            if (GerenteAmbiente.TodosLugares != null && !GerenteAmbiente.TodosLugares.ContainsKey(indiceLugar))
+                GerenteAmbiente.TodosLugares.Add(indiceLugar, this);
+
+            if (!GerenteAmbiente.lugaresDesativados.Contains(this))
+                GerenteAmbiente.lugaresDesativados.Add(this);
+        }
+
+        gameObject.SetActive(false);
+    }}
+

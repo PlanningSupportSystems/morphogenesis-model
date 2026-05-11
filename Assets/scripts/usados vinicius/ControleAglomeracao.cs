@@ -25,21 +25,23 @@ public class ControleAglomeracao : MonoBehaviour
     public float DistanciaObjetos;  //esses dois devem ser subsituidos pela leitura do valor centralizado em InputsMorfo;
     public int QtdVizinhanca;       //
 
-//    public List<EspacoConstruido> Geral_TotalEspacosConstruidos;
-//    public List<EspacoConstruido> Geral_Ruas;
-//    public List<EspacoConstruido> Geral_Predios;
-//    public List<Predios> Geral_PrediosConstruidos;
+    //    public List<EspacoConstruido> Geral_TotalEspacosConstruidos;
+    //    public List<EspacoConstruido> Geral_Ruas;
+    //    public List<EspacoConstruido> Geral_Predios;
+    //    public List<Predios> Geral_PrediosConstruidos;
+    public SortedDictionary<int, novoPredio> TudoConstruido;
     public List<novoPredio> Geral_novosPrediosConstruidos;
     public List<novoPredio> Geral_novosPrediosRuas;
     public List<novoPredio> Geral_novosPrediosTotal;
 
     //    public List<Predios> Geral_PrediosConstruidos;
     //    public List<Predios> GeralRuasConstruidos;
-    public List<lugar> Geral_Lugares;
+    public List<lugar> lugaresAtivos;
+    public List<lugar> lugaresDesativados;
+    public SortedDictionary<int, lugar> TodosLugares; 
+    
     public int contadorlugar;
-    public int lugar_obj_vistos_maximo;
-    public int lugar_predios_vistos_maximo;
-    public int lugar_ruas_vistos_maximo;
+    public int ContadorRodadas;
 
     public string Tipo_Localizacao;
 
@@ -159,11 +161,6 @@ public class ControleAglomeracao : MonoBehaviour
         float posInicialZ = Terrain.activeTerrain.terrainData.size.z / 2;
         Geral_EnderecosVizinhosPossiveis.Add(new Vector3 (posInicialX, 1, posInicialZ));
 
-        lugar_obj_vistos_maximo = 1;
-        lugar_predios_vistos_maximo = 1;
-        lugar_ruas_vistos_maximo = 1;
-
-
         if (InputsMorfo.IM_propriedades_E_C != null) { InputsMorfo.IM_propriedades_E_C.SetActive(false); }
         if (InputsMorfo.IM_propriedades_L != null) { InputsMorfo.IM_propriedades_L.SetActive(false); }
         if (InputsMorfo.IM_obj_nome != null) { InputsMorfo.IM_obj_nome.text = "no selection"; }
@@ -195,8 +192,7 @@ public class ControleAglomeracao : MonoBehaviour
                 {
                     p.seDestruir();
                 }
-//                Destroy(p.gameObject);
-//                DestroyImmediate(p.gameObject);
+//                Destroy(p.gameObject);    // DestroyImmediate(p.gameObject);
             }
             Geral_novosPrediosConstruidos.Clear();
         }
@@ -211,8 +207,7 @@ public class ControleAglomeracao : MonoBehaviour
                 {
                     p.seDestruir();
                 }
-//                Destroy(p.gameObject);
-                //                DestroyImmediate(p.gameObject);
+//                Destroy(p.gameObject);    // DestroyImmediate(p.gameObject);
             }
             Geral_novosPrediosRuas.Clear();
         }
@@ -228,29 +223,47 @@ public class ControleAglomeracao : MonoBehaviour
                     p.seDestruir();
                 }
 
-//                Destroy(p.gameObject);
-                //                DestroyImmediate(p.gameObject);
+//                Destroy(p.gameObject);    // DestroyImmediate(p.gameObject);
             }
             Geral_novosPrediosTotal.Clear();
         }
         //        Debug.Log("CA| total novos predios: " + Geral_novosPrediosConstruidos.Count);
 
-
-        if (Geral_Lugares == null) { Geral_Lugares = new List<lugar>(); }
+        if (TodosLugares == null)
+        {
+            TodosLugares = new SortedDictionary<int, lugar>();
+        }
         else
         {
-            foreach (lugar p in Geral_Lugares.ToArray())
+            foreach (var l in TodosLugares.Values.ToArray())
+            {
+                if (l != null)
+                    l.seDestruir();
+            }
+
+            TodosLugares.Clear();
+            lugaresAtivos?.Clear();
+            lugaresDesativados?.Clear();
+
+        }
+
+
+        if (lugaresAtivos == null) { lugaresAtivos = new List<lugar>(); }
+        else
+        {
+            foreach (lugar p in lugaresAtivos.ToArray())
             {
                 if (p != null)
                 {
                     p.seDestruir();
                 }
-                //DestroyImmediate(p.gameObject);
             }
-            Geral_Lugares.Clear();
+            lugaresAtivos.Clear();
         }
+
+        if (lugaresDesativados == null) { lugaresDesativados = new List<lugar>(); }
         contadorlugar = 0;
-        Debug.Log("CA| total lugares: " + Geral_Lugares.Count);
+        Debug.Log("CA| total lugares: " + lugaresAtivos.Count);
 
         GameObject.Find("Main Camera").GetComponent<ajusteCamera>().AdjustCameraToFitAllObjects();
 
@@ -266,13 +279,9 @@ public class ControleAglomeracao : MonoBehaviour
 //            Debug.Log("CA_CriarAglomeracao| botao gerar nova apertado: todos gameobj achados: " + inicio_antes_allObjects.Length + "; geral TotalESPACOconstruido: " + Geral_TotalEspacosConstruidos.Count);
         }
 
-            
         b_apagar.interactable = true;
         b_gerarAglomeracao.interactable = false;
         b_atribuirParametros.interactable = false;
-
-//    gerarAglomeracao.interactable = true;
-
 
         ///recuperando de inputo valor escrito na entrada de total de espacos a construir
         int quantidade = InputsMorfo.input_totalCasas;// 0;
@@ -300,25 +309,26 @@ public class ControleAglomeracao : MonoBehaviour
         //cenas para animacao ===  ScreenCapture.CaptureScreenshot(screenshotName + ".png");
 //        salvarImagens = new ScreenshotSaver();
 
-        int rodadas = 0;
+        ContadorRodadas = 0;
 //        Debug.Log("CA TESTANDO| ANTES contagem Geral_TotalEspacosConstruidos: " + Geral_TotalEspacosConstruidos.Count);
 
         float posInicialX = Terrain.activeTerrain.terrainData.size.x / 2;
         float posInicialZ = Terrain.activeTerrain.terrainData.size.z / 2;
         Vector3 pos_central = new Vector3(posInicialX, 1, posInicialZ);
 
-        Geral_Lugares = new List<lugar>();
 
         //        Debug.Log("geral predios a fazer: " + tCasas);
 
-        if (!InputsMorfo.boolModoRandom && !InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "aleatorio"; }
-        if (InputsMorfo.boolModoRandom && InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "isoplace"; }
-
-        if (InputsMorfo.boolModoRandom) { Tipo_Localizacao = "aleatorio"; }
+        Tipo_Localizacao = "aleatorio";
+//        if (!InputsMorfo.boolModoRandom && !InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "aleatorio"; }
+//        if (InputsMorfo.boolModoRandom) { Tipo_Localizacao = "aleatorio"; }
+//        if (InputsMorfo.boolModoRandom && InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "isoplace"; }
         if (InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "isoplace"; }
+
         ////////////fazer contorno para casos de os 2 selecionados ou nenhum selecionado
-        GameObject go = Instantiate(vizinhoPossivel, pos_central, Quaternion.identity);
-        lugar porta_lugar = go.GetComponent<lugar>();
+        GameObject go1 = Instantiate(vizinhoPossivel, pos_central, Quaternion.identity);
+        lugar porta_lugar = go1.GetComponent<lugar>();
+        porta_lugar.Inicializar(this);
         Celula celulaZero = CriarCelula(new Vector2Int(0, 0), pos_central);
         celulaZero.addLugar(porta_lugar);// celulaZero.lugar = porta_lugar;
         porta_lugar.addCelula(celulaZero);
@@ -330,20 +340,22 @@ public class ControleAglomeracao : MonoBehaviour
 
         while (this.Geral_novosPrediosConstruidos.Count < tCasas)
         {
-            string nome = "ec_" + rodadas;
+            ContadorRodadas++;
 
-//            Debug.Log("vezes so far: " + rodadas +"qts ja foram"+ Geral_novosPrediosConstruidos.Count);
-            Instantiate(espacoConstruido, new Vector3 (0,20,0), Quaternion.identity);
+            string nome = "ec_" + ContadorRodadas;
 
-            //            Debug.Log("CA TESTANDO| contagem Geral_Predios: " + Geral_Predios.Count + " p:" + Geral_Predios[Geral_Predios.Count - 1] + "; nomero de rodadas: " + rodadas);
+            //            Debug.Log("vezes so far: " + ContadorRodadas +"qts ja foram"+ Geral_novosPrediosConstruidos.Count);
+            GameObject go2 = Instantiate(espacoConstruido, new Vector3 (0,20,0), Quaternion.identity);
+            novoPredio np = go2.GetComponent<novoPredio>();
+            np.Inicializar (this);
+            //            Debug.Log("CA TESTANDO| contagem Geral_Predios: " + Geral_Predios.Count + " p:" + Geral_Predios[Geral_Predios.Count - 1] + "; nomero de ContadorRodadas: " + ContadorRodadas);
             //            IM_predios_texto_VizinhosClick_Predios.GetComponent<Text>().text = esteEC.meusPrediosVizinhosClick.Count(e => e.meuNome.Contains("predio")).ToString();
 
-//            salvarImagens.FotoTela("cena" + rodadas);
+//            salvarImagens.FotoTela("cena" + ContadorRodadas);
 //            salvarImagens.CaptureScreenshot(screenshotName + i + ".png");
             //cenas para animacao ===  ScreenCapture.CaptureScreenshot(screenshotName + i + ".png");
-            rodadas++;
 
-//          yield return StartCoroutine(salvarImagens.FotoTela("zena" + rodadas));
+//          yield return StartCoroutine(salvarImagens.FotoTela("zena" + ContadorRodadas));
             yield return new WaitForEndOfFrame();
             //            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
 
@@ -352,9 +364,9 @@ public class ControleAglomeracao : MonoBehaviour
             Truas.text = Geral_novosPrediosRuas.Count.ToString();
 
             //TROCAR PARA STOP UNTIL "QUER CONTINUAR"
-            if (rodadas > 100 * tCasas)
+            if (ContadorRodadas > 100 * tCasas)
             {
-                Debug.Log("ESTOUROU TOTAL de rodadas");
+                Debug.Log("ESTOUROU TOTAL de ContadorRodadas");
                 break;
             }
 
@@ -363,10 +375,10 @@ public class ControleAglomeracao : MonoBehaviour
 //        string screenshotName = "Screenshot_";// + Time.frameCount; // Nome da captura de tela
         //ScreenCapture.CaptureScreenshot(screenshotName + ".png");
 //        salvarImagens = new ScreenshotSaver();
-//        salvarImagens.FotoTela("zena" + rodadas);
-        yield return StartCoroutine(salvarImagens.FotoTela("zena" + rodadas));
+//        salvarImagens.FotoTela("zena" + ContadorRodadas);
+//        yield return StartCoroutine(salvarImagens.FotoTela("zena" + ContadorRodadas));
 
-        //        yield return new WaitForEndOfFrame();
+          yield return new WaitForEndOfFrame();
 
         //        salvarImagens.ZiparImagens();
         //        salvarImagens.SaveGIF();
@@ -429,7 +441,7 @@ public class ControleAglomeracao : MonoBehaviour
         livroCelulas.Clear();
 
         // Opcional: limpar listas/índices paralelos que mantêm referência a lugares/predios
-        if (Geral_Lugares != null) Geral_Lugares.Clear(); // se fizer sentido no fluxo de reinício
+        if (lugaresAtivos != null) lugaresAtivos.Clear(); // se fizer sentido no fluxo de reinício
     }
 
 }
