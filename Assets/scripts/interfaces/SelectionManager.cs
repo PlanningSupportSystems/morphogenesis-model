@@ -4,6 +4,7 @@ using UnityEngine;
 public class SelectionManager : MonoBehaviour
 {
     private Camera mainCamera;
+    private JanelaMundoRender janelaMundo;
     private ClickSelect currentSelection;
     private ClickSelect selectedGameObject;
     private ISelecionavel selecaoAtual;
@@ -13,6 +14,7 @@ public class SelectionManager : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main;
+        ObterJanelaMundo();
         selectedGameObject = null;
         selecaoAtual = null;
     }
@@ -21,7 +23,17 @@ public class SelectionManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0)) // Left mouse button
         {
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray;
+            if (ObterJanelaMundo() != null)
+            {
+                if (!janelaMundo.TryScreenPointToRay(Input.mousePosition, out ray))
+                    return;
+            }
+            else
+            {
+                ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            }
+
             RaycastHit hit;
 
             int layerMask = (1 << LayerMask.NameToLayer("layer_predios"))
@@ -41,7 +53,7 @@ public class SelectionManager : MonoBehaviour
                 ClickSelect selectable = hit.collider.GetComponent<ClickSelect>();
                 if (selectable != null)
                 {
-                    // se clicar no mesmo já selecionado -> desseleciona
+                    // se clicar no mesmo ja selecionado -> desseleciona
                     if (currentSelection == selectable)
                     {
                         currentSelection.Deselect();
@@ -78,6 +90,22 @@ public class SelectionManager : MonoBehaviour
                 */
             }
         }
+    }
+
+    private JanelaMundoRender ObterJanelaMundo()
+    {
+        if (janelaMundo != null)
+            return janelaMundo;
+
+        janelaMundo = FindObjectOfType<JanelaMundoRender>();
+        if (janelaMundo != null)
+            return janelaMundo;
+
+        GameObject janela = GameObject.Find("JanelaVisualizacao");
+        if (janela != null)
+            janelaMundo = janela.AddComponent<JanelaMundoRender>();
+
+        return janelaMundo;
     }
 
     void ProcessarClick()

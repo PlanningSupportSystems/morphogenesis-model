@@ -11,10 +11,13 @@ public class sliderTexto : MonoBehaviour
     private Slider _slider;
     private Text _texto;
     private InputField _inputField;
+    private Button _botaoMais;
+    private Button _botaoMenos;
 
 
     public event System.Action<float, string> OnvariavelChanged;
     public float variavel;
+    public float passo = 1f;
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +40,8 @@ public class sliderTexto : MonoBehaviour
             atualizeViaTexto(_inputField.text);
             _inputField.onValueChanged.AddListener(atualizeViaTexto);
         }
+
+        ConfigurarBotoesPasso();
 
         //        OnvariavelChanged?.Invoke(variavel, this.name); //event -> mudanca da variavel; broadcast 
 
@@ -65,6 +70,66 @@ public class sliderTexto : MonoBehaviour
         _slider.value = float.Parse(texto);//  toint( texto
         OnvariavelChanged?.Invoke(variavel, this.name); //event -> mudanca da variavel; broadcast 
 
+    }
+
+    public void Incrementar()
+    {
+        AlterarValor(passo);
+    }
+
+    public void Decrementar()
+    {
+        AlterarValor(-passo);
+    }
+
+    public void AlterarValor(float valor)
+    {
+        if (_slider == null)
+        {
+            _slider = GetComponentInChildren<Slider>();
+        }
+
+        if (_slider == null)
+        {
+            return;
+        }
+
+        _slider.value = Mathf.Clamp(
+            _slider.value + valor,
+            _slider.minValue,
+            _slider.maxValue
+        );
+    }
+
+    void ConfigurarBotoesPasso()
+    {
+        Button[] botoes = GetComponentsInChildren<Button>(true);
+
+        foreach (Button botao in botoes)
+        {
+            string nome = botao.gameObject.name.ToLower();
+
+            if (nome.Contains("mais") || nome.Contains("plus"))
+            {
+                _botaoMais = botao;
+            }
+            else if (nome.Contains("menos") || nome.Contains("minus"))
+            {
+                _botaoMenos = botao;
+            }
+        }
+
+        if (_botaoMais != null)
+        {
+            _botaoMais.onClick.RemoveListener(Incrementar);
+            _botaoMais.onClick.AddListener(Incrementar);
+        }
+
+        if (_botaoMenos != null)
+        {
+            _botaoMenos.onClick.RemoveListener(Decrementar);
+            _botaoMenos.onClick.AddListener(Decrementar);
+        }
     }
 
 }

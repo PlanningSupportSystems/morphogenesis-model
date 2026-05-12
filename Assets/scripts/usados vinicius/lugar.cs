@@ -319,6 +319,14 @@ public class lugar : MonoBehaviour, ISelecionavel
 
 
         LayerMask _templayer = LayerMask.GetMask("layer_predios", "layer_ruas");//, "layer_lugares");
+
+        foreach (var lugar in GerenteAmbiente.lugaresAtivos)
+        {
+            if (lugar != null)
+            {
+                lugar.L_CalculeIsovistas(_templayer);
+            }
+        }
 //        L_CalculeIsovistas(_templayer); // <<<< (normalizador.buscarRef calcula isovista de todos, entao nao precisa)
         ///primeira varredura, atualizando valores de referencia
         ValoresReferenciaNormalizacao referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(GerenteAmbiente.lugaresAtivos, _templayer);
@@ -391,7 +399,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         if (iso != null)
         {
             iso.destruirMesh();
-            iso = null;
+//            iso = null;
         }
 
 
@@ -434,5 +442,46 @@ public class lugar : MonoBehaviour, ISelecionavel
         }
 
         gameObject.SetActive(false);
-    }}
+    }
+
+    public void AtivarTempo(bool ativoNesseTempo)
+    {
+        if (GerenteAmbiente == null)
+            GerenteAmbiente = ControleAglomeracao.Instance ?? GameObject.Find("ambiente")?.GetComponent<ControleAglomeracao>();
+
+        if (GerenteAmbiente != null)
+        {
+            if (ativoNesseTempo)
+            {
+                if (GerenteAmbiente.lugaresAtivos == null)
+                    GerenteAmbiente.lugaresAtivos = new List<lugar>();
+
+                if (!GerenteAmbiente.lugaresAtivos.Contains(this))
+                    GerenteAmbiente.lugaresAtivos.Add(this);
+
+                GerenteAmbiente.lugaresDesativados?.Remove(this);
+
+                if (GerenteAmbiente.TodosLugares != null && !GerenteAmbiente.TodosLugares.ContainsKey(indiceLugar))
+                    GerenteAmbiente.TodosLugares.Add(indiceLugar, this);
+            }
+            else
+            {
+                GerenteAmbiente.lugaresAtivos?.Remove(this);
+
+                if (GerenteAmbiente.lugaresDesativados == null)
+                    GerenteAmbiente.lugaresDesativados = new List<lugar>();
+
+                if (!GerenteAmbiente.lugaresDesativados.Contains(this))
+                    GerenteAmbiente.lugaresDesativados.Add(this);
+
+                if (GerenteAmbiente.TodosLugares != null && !GerenteAmbiente.TodosLugares.ContainsKey(indiceLugar))
+                    GerenteAmbiente.TodosLugares.Add(indiceLugar, this);
+            }
+        }
+
+        gameObject.SetActive(ativoNesseTempo);
+    }
+
+
+}
 

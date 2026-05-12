@@ -130,4 +130,22 @@ public class Celula
 
         // Se houver outros recursos (eventos, subscriptions), limpe-os aqui.
     }
+
+    public void AplicarTempo(int ciclo)
+    {
+        bool predioExisteNesseTempo =
+            novoPredio != null &&
+            novoPredio.indiceCriacao <= ciclo;
+
+        bool lugarExisteNesseTempo =
+            lugar != null &&
+            lugar.indiceCriacao <= ciclo;
+
+        if (novoPredio != null)
+            novoPredio.AtivarTempo(predioExisteNesseTempo);
+
+        if (lugar != null)
+            lugar.AtivarTempo(lugarExisteNesseTempo && !predioExisteNesseTempo);
+    }
+
 }

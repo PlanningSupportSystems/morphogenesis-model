@@ -42,6 +42,7 @@ public class ControleAglomeracao : MonoBehaviour
     
     public int contadorlugar;
     public int ContadorRodadas;
+    public bool navegacaoTempoHabilitada = false;
 
     public string Tipo_Localizacao;
 
@@ -149,7 +150,8 @@ public class ControleAglomeracao : MonoBehaviour
 
         ///reset/atualizacao dos valores de Input, redicionamento do mapa (caso necessario)
         CAAtualizaValoresInput();
-//        this.GetComponent<levelgenerator>().iniciaMapa();
+        //        this.GetComponent<levelgenerator>().iniciaMapa();
+        navegacaoTempoHabilitada = false;
 
         ///reset das listas que contem variaveis de valores
         if (Geral_EnderecosVizinhosPossiveis == null) {Geral_EnderecosVizinhosPossiveis = new HashSet<Vector3>();}
@@ -372,13 +374,17 @@ public class ControleAglomeracao : MonoBehaviour
 
         }
 
-//        string screenshotName = "Screenshot_";// + Time.frameCount; // Nome da captura de tela
+        //        string screenshotName = "Screenshot_";// + Time.frameCount; // Nome da captura de tela
         //ScreenCapture.CaptureScreenshot(screenshotName + ".png");
-//        salvarImagens = new ScreenshotSaver();
-//        salvarImagens.FotoTela("zena" + ContadorRodadas);
-//        yield return StartCoroutine(salvarImagens.FotoTela("zena" + ContadorRodadas));
+        //        salvarImagens = new ScreenshotSaver();
+        //        salvarImagens.FotoTela("zena" + ContadorRodadas);
+        //        yield return StartCoroutine(salvarImagens.FotoTela("zena" + ContadorRodadas));
 
-          yield return new WaitForEndOfFrame();
+        FindObjectOfType<InputsMorfo>().IM_ConfigurarSliderTempo(ContadorRodadas);
+
+        navegacaoTempoHabilitada = true;
+        //        InputsMorfo.config
+        yield return new WaitForEndOfFrame();
 
         //        salvarImagens.ZiparImagens();
         //        salvarImagens.SaveGIF();
@@ -406,6 +412,7 @@ public class ControleAglomeracao : MonoBehaviour
             return livroCelulas[endereco];
         }
         Celula celula = new Celula(endereco, posicao);
+        celula.indiceCriacao = ContadorRodadas;
         livroCelulas.Add(endereco, celula);
         return celula;
     }
@@ -444,4 +451,13 @@ public class ControleAglomeracao : MonoBehaviour
         if (lugaresAtivos != null) lugaresAtivos.Clear(); // se fizer sentido no fluxo de reinício
     }
 
+    public void CA_NavegarTempo(int ciclo)
+    {
+        if (!navegacaoTempoHabilitada) return;
+
+        foreach (Celula celula in livroCelulas.Values)
+        {
+            celula.AplicarTempo(ciclo);
+        }
+    }
 }

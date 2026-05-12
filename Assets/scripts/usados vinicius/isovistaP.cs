@@ -360,8 +360,21 @@ public class IsovistaP
         }
 
         // dentro de CampoVisao(), depois de pontosContorno = _verticesIsovista;
-//        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 1);
-        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 0);
+        //        areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 1);
+        if (fecharMalha)
+        {
+            areaIsovista = CalcularAreaIsovistaXZ(pontosContorno, 0);
+        }
+        else
+        {
+            List<Vector3> pontosArea = new List<Vector3>();
+            pontosArea.Add(_centroIsovista);
+            pontosArea.AddRange(pontosContorno);
+
+            areaIsovista = CalcularAreaIsovistaXZ(pontosArea, 0);
+        }
+
+
         if (debug_iso) Debug.Log("area isovista foi de: " + areaIsovista);// 1 pula o centro
 
         distanciasPontosContorno = new List<float>();

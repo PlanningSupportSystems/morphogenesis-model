@@ -27,6 +27,7 @@ public class ajusteCamera : MonoBehaviour
 
     public RectTransform areaMenu1;
     public RectTransform areaMenu2;
+    public JanelaMundoRender janelaMundo;
 
     // orbit state
     private float yaw = 0f;
@@ -39,6 +40,8 @@ public class ajusteCamera : MonoBehaviour
 
     void Start()
     {
+        ObterJanelaMundo();
+
         // inicializa distância e ângulos a partir da transform atual e do centro do terreno
         Vector3 target = centroCam();
         distance = Vector3.Distance(transform.position, target);
@@ -168,6 +171,9 @@ public class ajusteCamera : MonoBehaviour
     // "corta" essa borda do rect visível (esquerda/direita/top/bottom).
     private Rect GetVisibleScreenRect()
     {
+        if (janelaMundo != null)
+            return janelaMundo.GetScreenRect();
+
         Rect visible = new Rect(0, 0, Screen.width, Screen.height);
 
         Rect[] menus = new Rect[2];
@@ -241,7 +247,12 @@ public class ajusteCamera : MonoBehaviour
         Camera cam = Camera.main ?? GetComponent<Camera>();
         if (cam == null || terreno == null) return centroCam();
 
-        Ray ray = cam.ScreenPointToRay(screenPoint);
+        Ray ray;
+        if (janelaMundo != null && janelaMundo.TryScreenPointToRay(screenPoint, out Ray rayJanela))
+            ray = rayJanela;
+        else
+            ray = cam.ScreenPointToRay(screenPoint);
+
         float terrainY = terreno.transform.position.y;
         Plane plane = new Plane(Vector3.up, new Vector3(0f, terrainY, 0f));
         if (plane.Raycast(ray, out float enter))
@@ -253,6 +264,9 @@ public class ajusteCamera : MonoBehaviour
 
     private bool cameraTaNoMenu()
     {
+        if (ObterJanelaMundo() != null)
+            return !janelaMundo.MouseDentroDaJanela();
+
         // 1) Se houver um EventSystem e o ponteiro estiver sobre qualquer elemento UI -> bloquear
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return true;
@@ -276,6 +290,22 @@ public class ajusteCamera : MonoBehaviour
         bool over2 = CheckRect(areaMenu2);
 
         return over1 || over2;
+    }
+
+    private JanelaMundoRender ObterJanelaMundo()
+    {
+        if (janelaMundo != null)
+            return janelaMundo;
+
+        janelaMundo = FindObjectOfType<JanelaMundoRender>();
+        if (janelaMundo != null)
+            return janelaMundo;
+
+        GameObject janela = GameObject.Find("JanelaVisualizacao");
+        if (janela != null)
+            janelaMundo = janela.AddComponent<JanelaMundoRender>();
+
+        return janelaMundo;
     }
 
     // ... métodos existentes (centroCam, reposicionar, alturaCam, AdjustCameraToFitAllObjects) mantidos ...

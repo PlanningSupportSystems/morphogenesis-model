@@ -49,12 +49,15 @@ public class InputsMorfo : MonoBehaviour
     public static float input_distanciaAdjacencia;
     public static float input_distanciaRegional;
     public static float input_distanciaCampoVisao;
+    public static float input_tempo;                //para navegar na linha do tempo
 
 
     public GameObject iTotalVizinhos; //public GameObject iAnguloVista;
     public GameObject iDistanciaAdjacencia;
     public GameObject iDistanciaRegional;
     public GameObject iDistanciaCampoVisao;
+    public GameObject iTempo;                       //para navegar na linha do tempo
+
     public Terrain terreno;
     public float tamanho;
 
@@ -229,6 +232,10 @@ public class InputsMorfo : MonoBehaviour
         iTotalVizinhos.AddComponent<sliderTexto>();
         iTotalVizinhos.GetComponent<sliderTexto>().OnvariavelChanged += IM_AtualizaVariaveis;
 
+        iTempo.AddComponent<sliderTexto>();                                         //navegar no tempo
+        iTempo.GetComponent<sliderTexto>().OnvariavelChanged += IM_AtualizaVariaveis;
+
+
         obj_p_distanciaMaxima.AddComponent<sliderTexto>();
         obj_p_distanciaMaxima.GetComponent<sliderTexto>().OnvariavelChanged += IM_AtualizaVariaveis;
 
@@ -262,8 +269,10 @@ public class InputsMorfo : MonoBehaviour
 //        iDistanciaAdjacencia.GetComponentInChildren<Slider>().value = 5;
         iDistanciaRegional.GetComponentInChildren<Slider>().value = (tamanho / 3) / 2;
         iDistanciaCampoVisao.GetComponentInChildren<Slider>().value = tamanho;// 50;// tamanho;
+        iTempo.GetComponentInChildren<Slider>().value = 0;
 
-            
+
+
         peso_distanciaMaxima = p_distanciaMaxima;
         peso_distanciaMinima = p_distanciaMinima;
         peso_distanciaMedia = p_distanciaMedia;
@@ -329,7 +338,12 @@ void IM_SetarValores()
 
         //iTotalVizinhos.GetComponentInChildren<Slider>().maxValue = 360;
         iTotalVizinhos.GetComponentInChildren<Slider>().minValue = 1;
-//        iTotalVizinhos.GetComponentInChildren<Slider>().value = 4;     ///esses valores nao podem ser modificados toda vez q eh reparametrizado, dai definidos so no start
+        //        iTotalVizinhos.GetComponentInChildren<Slider>().value = 4;     ///esses valores nao podem ser modificados toda vez q eh reparametrizado, dai definidos so no start
+        iTempo.GetComponentInChildren<Slider>().minValue = 0;
+        iTempo.GetComponentInChildren<Slider>().maxValue = 0;
+        iTempo.GetComponentInChildren<Slider>().wholeNumbers = true;
+
+
         IM_AtualizaVizinhosMax(0, "0");
 
     }
@@ -402,6 +416,10 @@ void IM_SetarValores()
             case "input_peso_profundidade_ruas":
                 peso_total_profundidade_rua = p_total_profundidade_rua = novaVar;
                 break;
+            case "input_Tempo":
+                input_tempo = novaVar;
+                break;
+
         }
 
 
@@ -454,6 +472,32 @@ void IM_SetarValores()
         vDistanciaRegional.text = input_distanciaRegional.ToString();
         vDistanciaCampoVisao.text = input_distanciaCampoVisao.ToString();
 //        terreno.GetComponent<ControleAglomeracao>().CAAtualizaValoresInput();
+    }
+
+    public void IM_ConfigurarSliderTempo(int rodadaMaxima)
+    {
+        Slider sliderTempo = iTempo.GetComponentInChildren<Slider>();
+        sliderTempo.minValue = 0;
+        sliderTempo.maxValue = rodadaMaxima;
+        sliderTempo.wholeNumbers = true;
+        sliderTempo.value = rodadaMaxima;
+        sliderTempo.interactable = true;
+        iTempo.GetComponentInChildren<InputField>().interactable = true;
+
+        sliderTexto st = iTempo.GetComponent<sliderTexto>();
+        st.OnvariavelChanged -= IM_AplicarTempo;
+        st.OnvariavelChanged += IM_AplicarTempo;
+
+        IM_AplicarTempo(sliderTempo.value, iTempo.name);
+    }
+
+    void IM_AplicarTempo(float novaVar, string varAtualizado)
+    {
+        if (varAtualizado != "input_Tempo")
+            return;
+
+        int ciclo = Mathf.RoundToInt(novaVar);
+        gerenteAmbiente.CA_NavegarTempo(ciclo);
     }
 
 }
