@@ -125,13 +125,19 @@ public class SelectionManager : MonoBehaviour
             selecaoAtual.Select();
         }
     }
+//    public bool TemSelecao()
+//    {
+//        return selecaoAtual != null;
+//    }
 
-    void LimparSelecao()
+    public void LimparSelecao()
     {
         if (selecaoAtual != null)
         {
             selecaoAtual.Deselect();
             selecaoAtual = null;
         }
+
     }
+
 }

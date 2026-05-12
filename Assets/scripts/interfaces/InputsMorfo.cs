@@ -9,6 +9,8 @@ using System;
 public class InputsMorfo : MonoBehaviour
 {
     ControleAglomeracao gerenteAmbiente;
+    private int ultimoCicloTempoAplicado = -1;
+
 
     public static bool tracking = false;
     //    public static string ptz = "aidentu 4";
@@ -491,12 +493,43 @@ void IM_SetarValores()
         IM_AplicarTempo(sliderTempo.value, iTempo.name);
     }
 
+    public void IM_ResetarSliderTempo()
+    {
+        Slider sliderTempo = iTempo.GetComponentInChildren<Slider>();
+        sliderTempo.minValue = 0;
+        sliderTempo.maxValue = 0;
+        sliderTempo.wholeNumbers = true;
+        sliderTempo.value = 0;
+        sliderTempo.interactable = false;
+
+        InputField inputTempo = iTempo.GetComponentInChildren<InputField>();
+        if (inputTempo != null)
+        {
+            inputTempo.text = "0";
+            inputTempo.interactable = false;
+        }
+
+        input_tempo = 0;
+        ultimoCicloTempoAplicado = 0;
+    }
+
     void IM_AplicarTempo(float novaVar, string varAtualizado)
     {
         if (varAtualizado != "input_Tempo")
             return;
 
         int ciclo = Mathf.RoundToInt(novaVar);
+
+//        if (ciclo == ultimoCicloTempoAplicado)
+//            return;
+
+//        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
+//        if (selectionManager != null && selectionManager.TemSelecao())
+//        {
+//            selectionManager.LimparSelecao();
+//        }
+
+//        ultimoCicloTempoAplicado = ciclo;
         gerenteAmbiente.CA_NavegarTempo(ciclo);
     }
 

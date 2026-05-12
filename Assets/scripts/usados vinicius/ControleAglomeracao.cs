@@ -151,7 +151,15 @@ public class ControleAglomeracao : MonoBehaviour
         ///reset/atualizacao dos valores de Input, redicionamento do mapa (caso necessario)
         CAAtualizaValoresInput();
         //        this.GetComponent<levelgenerator>().iniciaMapa();
+        contadorlugar = 0;
+        ContadorRodadas = 0;
         navegacaoTempoHabilitada = false;
+
+        InputsMorfo inputs = FindObjectOfType<InputsMorfo>();
+        if (inputs != null)
+        {
+            inputs.IM_ResetarSliderTempo();
+        }
 
         ///reset das listas que contem variaveis de valores
         if (Geral_EnderecosVizinhosPossiveis == null) {Geral_EnderecosVizinhosPossiveis = new HashSet<Vector3>();}
