@@ -145,7 +145,11 @@ public class Celula
             novoPredio.AtivarTempo(predioExisteNesseTempo);
 
         if (lugar != null)
+        {
             lugar.AtivarTempo(lugarExisteNesseTempo && !predioExisteNesseTempo);
+            if (lugar.gameObject.activeSelf)
+                lugar.AplicarCorTempo(ciclo+1);
+        }
     }
 
 }

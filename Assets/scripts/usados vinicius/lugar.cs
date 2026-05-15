@@ -21,7 +21,6 @@ public class lugar : MonoBehaviour, ISelecionavel
     [SerializeField] public string enderecoCelula;
     //propriedades relativas interface ISelecionavel
     public bool EstaSelecionado { get; set; }
-    public Color corOriginal;
     GameObject _propriedades_E_C;// = GameObject.Find("propriedades_espaco_construido");
     GameObject _propriedades_L;// = GameObject.Find("propriedades_lugar_alocado");
 
@@ -36,9 +35,29 @@ public class lugar : MonoBehaviour, ISelecionavel
 //    public MedidasBrutas minhasMedidasBrutas;         
 //    public MedidasNormalizadas medidasNormalizadas;
     public float medida_geral_ponderada;    //unica coisa q ficou fora foi essa
+    private Renderer meuRenderer;
+    public Color corOriginal;
+    public Color corPadrao = Color.red;
+    public Color corAtual;
+    public Color corElegivel = Color.yellow;
+    public Color corEleito = Color.green;
+    public Color corSelecionado = Color.cyan;
+
+    public EstadoCorLugar estadoSelecao;
+
+    public HashSet<int> rodadasElegivel = new HashSet<int>();
+    public HashSet<int> rodadasEleito = new HashSet<int>();
 
     bool debug_lugar = false;
 
+    public enum EstadoCorLugar
+    {
+        Normal,
+        Elegivel,
+        Eleito,
+        Select,
+        Deselect
+    }
 
     void Awake()
     {
@@ -79,6 +98,12 @@ public class lugar : MonoBehaviour, ISelecionavel
             return;
         }
 
+        meuRenderer = GetComponent<Renderer>();
+        corOriginal = meuRenderer.material.color;
+        corAtual = corOriginal;
+        estadoSelecao = EstadoCorLugar.Normal;
+//        corPadrao = GetComponent<Renderer>().material.color;
+
         //configurando sobre interface ISelecionavel
         EstaSelecionado = false;
         _propriedades_E_C = InputsMorfo.IM_propriedades_E_C; // GameObject.Find("propriedades_espaco_construido");
@@ -90,7 +115,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         }
 
         meio_EspacoConstruido_Vector = GerenteAmbiente.espacoConstruido.transform.localScale / 2f;
-        _endereco = this.transform.position;
+//        _endereco = this.transform.position;
 
         ///fazer checagem se esta sobrepondo alguem
         //        L_ChecaSobrepor();
@@ -100,7 +125,7 @@ public class lugar : MonoBehaviour, ISelecionavel
 //                        | (1 << LayerMask.NameToLayer("layer_ruas"))
 //                 //     | (1 << LayerMask.NameToLayer("layer_lugares"))
 //                        ;
-        L_CalculeIsovistas(_templayer);
+//        L_CalculeIsovistas(_templayer);
 
     }
     // Update is called once per frame
@@ -112,7 +137,8 @@ public class lugar : MonoBehaviour, ISelecionavel
     {
         minhaCelula = c;
         enderecoCelula = c.endereco.ToString();
-//        minhaCelula.indiceCriacaoLugar = indiceLugar;
+        //        minhaCelula.indiceCriacaoLugar = indiceLugar;
+        _endereco = c.posicaoMundo;
         if (debug_lugar) Debug.Log("LUGAR: lugar " + this._nome + " recebeu celula " + enderecoCelula);
     }
 
@@ -145,18 +171,18 @@ public class lugar : MonoBehaviour, ISelecionavel
                       $"tamanhoVec={tamanho_EspacoConstruido_Vector}, " +
                       $"tamanhoCelula={tamanhoCelula:F2}, " +
                       $"espacamentoDesejado={espacamentoDesejado:F2}, " +
-                      $"qtdCalculada={qtd}, qtdClampada={Mathf.Clamp(qtd, 36, 720)}");
+                      $"qtdCalculada={qtd}, qtdClampada={Mathf.Clamp(qtd, 36, 360)}");
         }
         debug_lugar = false;
 
-        return Mathf.Clamp(qtd, 36, 720);
+        return Mathf.Clamp(qtd, 36, 360);
     }
     public IsovistaP L_CalculeIsovistas(LayerMask _templayer)
     {
 
         Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
 
-        int totalRaios = CalcularQtdRaios();
+        int totalRaios = 360;// CalcularQtdRaios();
         ///substituir valores para raio_de_visao
         iso = new IsovistaP(_endereco, totalRaios, InputsMorfo.input_distanciaCampoVisao, _templayer);
         iso.CampoVisao();
@@ -192,6 +218,15 @@ public class lugar : MonoBehaviour, ISelecionavel
         AcumularPonderacao("area vista", iso.medidasNormalizadas.areaIsovista, InputsMorfo.peso_distanciaTotal, ref soma, ref somaPesos);
 
         medida_geral_ponderada = (somaPesos > 0f) ? soma / somaPesos : 0f;
+
+//        if (Mathf.Approximately(medida_geral_ponderada, 1f))
+//        {
+//            estadoSelecao = EstadoCorLugar.Elegivel;
+ //           AtualizarCor();
+ //       }
+        //        else
+        //            AtualizarCor(EstadoCorLugar.Normal);
+
     }
     void AcumularPonderacao(string nome, float valor, float peso, ref float soma, ref float somaPesos)
     {
@@ -310,8 +345,10 @@ public class lugar : MonoBehaviour, ISelecionavel
         EstaSelecionado = true;
         //        Debug.Log("lugar clicado: " + this.name +"estado: "+ EstaSelecionado);
 
-        corOriginal = GetComponent<Renderer>().material.color;
-        GetComponent<Renderer>().material.color = Color.yellow; // Exemplo de mudança visual para indicar seleção
+        //        corOriginal = GetComponent<Renderer>().material.color;
+        //GetComponent<Renderer>().material.color = Color.yellow; // Exemplo de mudança visual para indicar seleção
+        estadoSelecao = EstadoCorLugar.Select;
+        AtualizarCor();
 
         _propriedades_L.SetActive(true);
         _propriedades_E_C.SetActive(false);
@@ -385,7 +422,10 @@ public class lugar : MonoBehaviour, ISelecionavel
         _propriedades_E_C.SetActive(false);
         _propriedades_L.SetActive(false);
 
-        GetComponent<Renderer>().material.color = corOriginal;
+        //        GetComponent<Renderer>().material.color = corOriginal;
+        estadoSelecao = EstadoCorLugar.Deselect;
+        AtualizarCor();
+
 
         if (iso.npVistos != null)
         {
@@ -442,6 +482,61 @@ public class lugar : MonoBehaviour, ISelecionavel
         }
 
         gameObject.SetActive(false);
+    }
+
+    public void AplicarCorTempo(int ciclo)
+    {
+        if (rodadasEleito.Contains(ciclo))
+        {
+            estadoSelecao = EstadoCorLugar.Eleito;
+        }
+        else if (rodadasElegivel.Contains(ciclo))
+        {
+            estadoSelecao = EstadoCorLugar.Elegivel;
+        }
+        else
+        {
+            estadoSelecao = EstadoCorLugar.Normal;
+        }
+
+        AtualizarCor();
+        Debug.Log($"COR TEMPO {ciclo}: {_nome} elegivel={rodadasElegivel.Contains(ciclo)} eleito={rodadasEleito.Contains(ciclo)}");
+
+    }
+
+    public void AtualizarCor()
+    {
+        if (meuRenderer == null)
+            meuRenderer = GetComponent<Renderer>();
+
+        if (meuRenderer == null)
+            return;
+
+        switch (estadoSelecao)
+        {
+            case EstadoCorLugar.Normal:
+                corAtual = corPadrao;
+                meuRenderer.material.color = corAtual;
+                break;
+
+            case EstadoCorLugar.Elegivel:
+                corAtual = corElegivel;
+                meuRenderer.material.color = corAtual;
+                break;
+
+            case EstadoCorLugar.Eleito:
+                corAtual = corEleito;
+                meuRenderer.material.color = corAtual;
+                break;
+
+            case EstadoCorLugar.Select:
+                meuRenderer.material.color = corSelecionado;
+                break;
+
+            case EstadoCorLugar.Deselect:
+                meuRenderer.material.color = corAtual;
+                break;
+        }
     }
 
     public void AtivarTempo(bool ativoNesseTempo)

@@ -19,7 +19,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public TipoEspacoConstruido np_tipo;
 
     [SerializeField] public string enderecoCelula;
-    [SerializeField] public Vector2Int endCelula = new Vector2Int(0, 0);
+//    [SerializeField] public Vector2Int endCelula = new Vector2Int(0, 0);
     public Celula minhaCelula;
 
     public List<lugar> lugaresPossiveis = new List<lugar>();
@@ -39,6 +39,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     public List<TipoEspacoConstruido> vizinhos_originais_tipos_VN;
     public List<novoPredio> vizinhos_originais_predio_VN;
+    /*
     public List<novoPredio> vizinhos_originais_rua_VN;
     public List<lugar> vizinhos_originais_lugar_VN;
 
@@ -46,17 +47,14 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public List<novoPredio> vizinhos_originais_predio_VNC;
     public List<novoPredio> vizinhos_originais_rua_VNC;
     public List<lugar> vizinhos_originais_lugar_VNC;
-
-
-
-
+    */
 
     //propriedades relativas interface ISelecionavel
     public bool EstaSelecionado { get; set; }
-    public bool souVizinhoSelecionado{ get; set; }
-    public Color corOriginal;
+//    public bool souVizinhoSelecionado{ get; set; }
+//    public Color corOriginal;
     IsovistaP _iso_display;
-    public static bool click = false; //FAZER ALGO com os enderecoCelular, analisar
+//    public static bool click = false; //FAZER ALGO com os enderecoCelular, analisar
 
     public Renderer np_meuRenderer;
 
@@ -77,7 +75,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     /// ////////daki pra baixo td pode sair. substituido pelo sistema de celulas.
     /// revisar, por la, quais precisam ficar.
     /// </summary>
-
+    /*
     public int np_saldoVizinhos;
     public List<novoPredio> np_meus_vizinhos_predio;
     public List<novoPredio> np_meus_vizinhos_rua;
@@ -90,6 +88,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public List<novoPredio> np_click_quinas;
     public List<novoPredio> np_click_vizinhanca_quina;
     public List<novoPredio> np_click_vizinhanca_quina_orto;
+    */
     //revisar para classificar de ortogonais(von neuman) ou diagonais (moore)
 
     public delegate void MetodoEscolha();
@@ -200,6 +199,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         else
         { Debug.LogWarning("metodo_escolha não atribuído em novoPredio.Start()"); }
 
+        NP_ChecarSeEhRua();
 
         //////////USO DAS CELULAS PARA CHECAR VIZINHOS
         //        celulasVonNeumann = new Dictionary<Vector2Int, Celula>();  //foi para inicializar()
@@ -208,8 +208,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         criarVizinhos = true; //virou parametro base
 //        NP_iterarVizinhanca(minhaCelula, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
         NP_iterarVizinhanca(lugartemp.minhaCelula, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
-        NP_ChecarSeEhRua();
 
+        NP_CalcularIsovista();
 
         //        celulasVonNeumann_Comp = new Dictionary<Vector2Int, Celula>();
         //        celulasMoore = new Dictionary<Vector2Int, Celula>();
@@ -266,6 +266,36 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 //        if (InputsMorfo.boolModoPreservaIso) NP_PreservarMaiorIsovista();
     }
 
+    void isoplace()
+    {
+        //        NP_CalcularIsovista();
+
+        foreach (var l in GerenteAmbiente.lugaresAtivos)
+        {
+            Debug.Log($"{l._nome} media={l.medida_geral_ponderada:R}");
+        }
+        //        float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Max
+        //        (casa => casa.medida_geral_ponderada);  // List<lugar> lista_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+
+        //        lugaresPossiveis = GerenteAmbiente.lugaresAtivos
+        //            .Where(casa => Mathf.Approximately(casa.medida_geral_ponderada, ref_medida_geral_ponderada))
+        //            .ToList();
+
+        float toleranciaMediaPonderada = 0.001f;
+
+        float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos
+            .Max(casa => casa.medida_geral_ponderada);
+
+        lugaresPossiveis = GerenteAmbiente.lugaresAtivos
+            .Where(casa => Mathf.Abs(casa.medida_geral_ponderada - ref_medida_geral_ponderada) <= toleranciaMediaPonderada)
+            .ToList();
+
+        //        lugaresPossiveis = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
+        if (lugaresPossiveis == null || lugaresPossiveis.Count == 0) return;    // if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
+
+        aleatorio();
+    }
+
     void aleatorio()
     {
         if (GerenteAmbiente.lugaresAtivos == null || GerenteAmbiente.lugaresAtivos.Count == 0)
@@ -275,6 +305,17 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         {
             Debug.LogWarning("aleatorio: lugaresPossiveis vazio ou nulo. usando GerenteAmbiente.lugaresAtivos");
             lugaresPossiveis = new List<lugar>(GerenteAmbiente.lugaresAtivos);
+        }
+
+        int rodadaVisual = GerenteAmbiente.ContadorRodadas;
+
+        foreach (lugar l in lugaresPossiveis)
+        {
+            l.rodadasElegivel.Add(rodadaVisual);
+            l.estadoSelecao = lugar.EstadoCorLugar.Elegivel;
+            l.AtualizarCor();
+            Debug.Log($"REG ELEGIVEL rodada {rodadaVisual}: {l._nome}");
+
         }
 
         int index = UnityEngine.Random.Range(0, lugaresPossiveis.Count);
@@ -291,7 +332,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             Debug.LogWarning("aleatorio: célula já ocupada (estado inconsistente).");
             return;
         }
-        aceitarcelula();
+        //        aceitarcelula();
     }
     void aceitarcelula()
     {
@@ -307,6 +348,12 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             return;
         }
 
+        int rodadaVisual = GerenteAmbiente.ContadorRodadas;
+
+        lugartemp.rodadasEleito.Add(rodadaVisual);
+        lugartemp.estadoSelecao = lugar.EstadoCorLugar.Eleito;
+        lugartemp.AtualizarCor();
+
         np_endereco = lugartemp._endereco;
 
         setMinhaCelula(lugartemp.minhaCelula);
@@ -314,18 +361,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         transform.position = np_endereco;
 
-        NP_CalcularIsovista();
+        //        NP_CalcularIsovista();
 
-    }
-    void isoplace()
-    {
-//        NP_CalcularIsovista();
-
-        float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Max(casa => casa.medida_geral_ponderada);  // List<lugar> lista_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
-        lugaresPossiveis = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
-        if (lugaresPossiveis == null || lugaresPossiveis.Count == 0) return;    // if (lista_medida_geral_ponderada == null || lista_medida_geral_ponderada.Count == 0) return;
-
-        aleatorio();
     }
 
     public bool NP_PreservarMaiorIsovista()
@@ -435,11 +472,34 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             LayerMask.GetMask("layer_lugares", "layer_ruas")
         );
 
-        HashSet<lugar> lugaresVisiveis = new HashSet<lugar>(iso_temp.LerLugaresVisiveis(resultados));
-//        foreach (var l in lugaresVisiveis)
-//        {
-//            NP_iterarVizinhanca(l.minhaCelula, Celula.offsetsMoore, Action_AtualizaVizinhanca);
-//        }
+//        HashSet<lugar> lugaresVisiveis = new HashSet<lugar>(iso_temp.LerLugaresVisiveis(resultados));
+        HashSet<lugar> lugaresVisiveis = new HashSet<lugar>();
+
+        foreach (Vector3 origem in PegarPontosVisibilidadeNovoPredio())
+        {
+            IsovistaP iso_temp2 = new IsovistaP(origem);
+
+            List<ResultadoRaioVisao> resultados2 = iso_temp2.VarrerCampoVisao(
+                origem,
+                InputsMorfo.input_distanciaCampoVisao,
+                CalcularQtdRaios(),
+                LayerMask.GetMask("layer_predios"),
+                LayerMask.GetMask("layer_lugares", "layer_ruas")
+            );
+
+            foreach (lugar l in iso_temp2.LerLugaresVisiveis(resultados2))
+            {
+                if (l != null)
+                    lugaresVisiveis.Add(l);
+            }
+        }
+
+        //        foreach (var l in lugaresVisiveis)
+        //        {
+        //            NP_iterarVizinhanca(l.minhaCelula, Celula.offsetsMoore, Action_AtualizaVizinhanca);
+        //        }
+
+        
         foreach (var lugar in lugaresVisiveis)
         {
             if (lugar != null)
@@ -447,14 +507,16 @@ public class novoPredio : MonoBehaviour, ISelecionavel
                 lugar.L_CalculeIsovistas(_templayer);
             }
         }
+      
 
         foreach (var lugarAtivo in GerenteAmbiente.lugaresAtivos)
         {
             if (lugarAtivo == null) continue;
             if (!lugarAtivo.gameObject.activeSelf) continue;
 
-            if (lugarAtivo.iso == null)
+            if (lugarAtivo.iso == null || lugarAtivo.indiceCriacao == GerenteAmbiente.ContadorRodadas)
                 lugarAtivo.L_CalculeIsovistas(_templayer);
+
         }
 
         List<lugar> lugaresAtivosComIso = GerenteAmbiente.lugaresAtivos
@@ -474,12 +536,24 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         //        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(GerenteAmbiente.lugaresAtivos, _templayer);
         referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(lugaresAtivosComIso, _templayer);
 
+        foreach (var l in GerenteAmbiente.lugaresAtivos)
+        {
+            Debug.Log($"ANTES NORMALIZAR rodada {GerenteAmbiente.ContadorRodadas}: {l._nome} ativo={l.gameObject.activeSelf} iso={l.iso != null} media={l.medida_geral_ponderada}");
+        }
+
+        foreach (var l in lugaresAtivosComIso)
+        {
+            Debug.Log($"VAI NORMALIZAR rodada {GerenteAmbiente.ContadorRodadas}: {l._nome} , max: {l.iso.medidasBrutas.distanciaMaxima}");
+        }
+
         // ===== SEGUNDA VARREDURA: NORMALIZAR =====
         Normalizador.NomalizarLista(lugaresAtivosComIso, referencia_normalizacao);
 
         _isovista_calculada = true;
 
     }
+    
+
 
     int CalcularQtdRaios()
     {
@@ -514,6 +588,49 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         debug_novoPredio = false;
 
         return Mathf.Clamp(qtd, 36, 720);
+    }
+
+
+    private List<Vector3> PegarPontosVisibilidadeNovoPredio()
+    {
+        List<Vector3> pontos = new List<Vector3>();
+
+        Renderer rend = GetComponent<Renderer>();
+
+        if (rend != null)
+        {
+            Bounds b = rend.bounds;
+
+            float y = minhaCelula.posicaoMundo.y;
+
+            pontos.Add(new Vector3(b.min.x, y, b.min.z));
+            pontos.Add(new Vector3(b.min.x, y, b.max.z));
+            pontos.Add(new Vector3(b.max.x, y, b.min.z));
+            pontos.Add(new Vector3(b.max.x, y, b.max.z));
+
+            return pontos;
+        }
+
+        // fallback: usa tamanho da célula a partir do prefab espacoConstruido
+        Renderer rendCelula = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
+
+        float tamanhoCelula = 1f;
+
+        if (rendCelula != null)
+        {
+            Vector3 tam = rendCelula.bounds.size;
+            tamanhoCelula = Mathf.Min(tam.x, tam.z);
+        }
+
+        Vector3 c = minhaCelula.posicaoMundo;
+        float h = tamanhoCelula * 0.5f;
+
+        pontos.Add(c + new Vector3(-h, 0f, -h));
+        pontos.Add(c + new Vector3(-h, 0f, h));
+        pontos.Add(c + new Vector3(h, 0f, -h));
+        pontos.Add(c + new Vector3(h, 0f, h));
+
+        return pontos;
     }
 
     public void NP_ChecarSeEhRua()
@@ -844,21 +961,10 @@ public class novoPredio : MonoBehaviour, ISelecionavel
                     return;
 
                 criarVizinhos = false; 
-// Garantir que não criamos vizinhos adicionais durante essa checagem
-//                celulaVizinha.novoPredio.vizinhos_celulas_VN.Clear();
-//                celulaVizinha.vizinhosVN.Clear();
-//                NP_iterarVizinhanca
-//                    (celulaVizinha, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
-
-//                int countPredios = celulaVizinha.vizinhosVN.Count
-//                (p => p != null
-//                 && p.endereco != celula_T.endereco
-//                 && p.novoPredio != null
-//                 && p.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
 //                Debug.Log($"Checando vizinho {celulaVizinha.endereco} para trancamento: encontrou {countPredios} prédios adjacentes.");
 
                 int count_predios = Celula.offsetsVonNeumann.Count
-                    (offset => minhaCelula.vizinhosPorOffset.TryGetValue(offset, out Celula c)
+                    (offset => celulaVizinha.vizinhosPorOffset.TryGetValue(offset, out Celula c)
                      && c.novoPredio != null
                      && c.novoPredio.np_tipo == TipoEspacoConstruido.Predio);
 

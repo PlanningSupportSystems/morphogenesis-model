@@ -56,7 +56,7 @@ public class sliderTexto : MonoBehaviour
     {
         variavel = (Mathf.Round(v * 10) / 10);
         _texto.text = variavel.ToString("F1");
-        if (_inputField != null) { _inputField.text = _texto.text; }
+        if (_inputField != null) { _inputField.SetTextWithoutNotify(_texto.text); }
         
         OnvariavelChanged?.Invoke(variavel, this.name); //event -> mudanca da variavel; broadcast 
 
@@ -67,7 +67,8 @@ public class sliderTexto : MonoBehaviour
         float tt = (Mathf.Round(float.Parse(texto) * 10) / 10);
         if (tt > _slider.maxValue) { tt = _slider.maxValue; }
         _texto.text =  tt.ToString("F1");
-        _slider.value = float.Parse(texto);//  toint( texto
+        _slider.SetValueWithoutNotify(tt);//  toint( texto
+        variavel = tt;
         OnvariavelChanged?.Invoke(variavel, this.name); //event -> mudanca da variavel; broadcast 
 
     }
