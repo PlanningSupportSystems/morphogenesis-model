@@ -214,7 +214,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         AcumularPonderacao("objVisto", iso.medidasNormalizadas.totalObjVisto, InputsMorfo.peso_total_obj_visto, ref soma, ref somaPesos);
         AcumularPonderacao("predio", iso.medidasNormalizadas.totalPrediosVistos, InputsMorfo.peso_total_predio_visto, ref soma, ref somaPesos);
         AcumularPonderacao("rua", iso.medidasNormalizadas.totalRuasVistas, InputsMorfo.peso_total_rua_visto, ref soma, ref somaPesos);
-//        AcumularPonderacao("profundidade rua", medidasNormalizadas.ProfundidadeRua, InputsMorfo.peso_total_profundidade_rua, ref soma, ref somaPesos);
+        AcumularPonderacao("profundidade rua", iso.medidasNormalizadas.ProfundidadeRua, InputsMorfo.peso_total_profundidade_rua, ref soma, ref somaPesos);
         AcumularPonderacao("area vista", iso.medidasNormalizadas.areaIsovista, InputsMorfo.peso_distanciaTotal, ref soma, ref somaPesos);
 
         medida_geral_ponderada = (somaPesos > 0f) ? soma / somaPesos : 0f;
