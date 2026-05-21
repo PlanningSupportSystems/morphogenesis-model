@@ -15,6 +15,7 @@ public class lugar : MonoBehaviour, ISelecionavel
 
     public int indiceCriacao;
     public int indiceLugar;
+    public int? indiceBloqueio = null;
     public int contagem = 0;
 
     public Celula minhaCelula;
@@ -42,6 +43,7 @@ public class lugar : MonoBehaviour, ISelecionavel
     public Color corElegivel = Color.yellow;
     public Color corEleito = Color.green;
     public Color corSelecionado = Color.cyan;
+    public Color corBloqueado = Color.magenta;
 
     public EstadoCorLugar estadoSelecao;
 
@@ -56,7 +58,8 @@ public class lugar : MonoBehaviour, ISelecionavel
         Elegivel,
         Eleito,
         Select,
-        Deselect
+        Deselect,
+        Bloqueado
     }
 
     void Awake()
@@ -484,6 +487,32 @@ public class lugar : MonoBehaviour, ISelecionavel
         gameObject.SetActive(false);
     }
 
+    public void Bloquear()
+    {
+        if (GerenteAmbiente == null)
+            GerenteAmbiente = ControleAglomeracao.Instance ?? GameObject.Find("ambiente")?.GetComponent<ControleAglomeracao>();
+
+        if (GerenteAmbiente != null)
+        {
+            GerenteAmbiente.lugaresAtivos?.Remove(this);
+
+            //            if (GerenteAmbiente.lugaresBloqueados == null)
+            //                GerenteAmbiente.lugaresBloqueados = new List<lugar>();
+            if (GerenteAmbiente.lugaresDesativados == null)
+                GerenteAmbiente.lugaresDesativados = new List<lugar>();
+
+            if (GerenteAmbiente.TodosLugares != null && !GerenteAmbiente.TodosLugares.ContainsKey(indiceLugar))
+                GerenteAmbiente.TodosLugares.Add(indiceLugar, this);
+
+            //            if (!GerenteAmbiente.lugaresBloqueados.Contains(this))
+            //                GerenteAmbiente.lugaresBloqueados.Add(this);
+            if (!GerenteAmbiente.lugaresDesativados.Contains(this))
+                GerenteAmbiente.lugaresDesativados.Add(this);
+        }
+
+        estadoSelecao = EstadoCorLugar.Bloqueado;
+    }
+
     public void AplicarCorTempo(int ciclo)
     {
         if (rodadasEleito.Contains(ciclo))
@@ -493,6 +522,10 @@ public class lugar : MonoBehaviour, ISelecionavel
         else if (rodadasElegivel.Contains(ciclo))
         {
             estadoSelecao = EstadoCorLugar.Elegivel;
+        }
+        else if (indiceBloqueio.HasValue && ciclo >= indiceBloqueio)
+        {
+            estadoSelecao = EstadoCorLugar.Bloqueado;
         }
         else
         {
@@ -534,6 +567,11 @@ public class lugar : MonoBehaviour, ISelecionavel
                 break;
 
             case EstadoCorLugar.Deselect:
+                meuRenderer.material.color = corAtual;
+                break;
+
+            case EstadoCorLugar.Bloqueado:
+                corAtual = corBloqueado;
                 meuRenderer.material.color = corAtual;
                 break;
         }

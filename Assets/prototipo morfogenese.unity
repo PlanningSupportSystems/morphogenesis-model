@@ -9569,7 +9569,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 60, y: 0}
+  m_AnchoredPosition: {x: 80, y: 0}
   m_SizeDelta: {x: 60, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &683918254
@@ -22614,6 +22614,7 @@ MonoBehaviour:
   Geral_novosPrediosTotal: []
   lugaresAtivos: []
   lugaresDesativados: []
+  lugaresBloqueados: []
   contadorlugar: 0
   ContadorRodadas: 0
   navegacaoTempoHabilitada: 0
@@ -22890,7 +22891,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 1040, y: 0}
+  m_AnchoredPosition: {x: 1070, y: 0}
   m_SizeDelta: {x: 60, y: 40}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1722470302
@@ -24763,8 +24764,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1710538456}
-        m_TargetAssemblyTypeName: UnityEngine.MonoBehaviour, UnityEngine
-        m_MethodName: StopAllCoroutines
+        m_TargetAssemblyTypeName: ControleAglomeracao, Assembly-CSharp
+        m_MethodName: CA_PararAoTravar
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

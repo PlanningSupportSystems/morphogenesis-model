@@ -6,7 +6,8 @@ public enum TipoEspacoConstruido
 {
     Predio,
     Rua,
-    Lugar
+    Lugar,
+    Bloqueado
 }
 [CreateAssetMenu]
 public class SO_EspacoConstruido : ScriptableObject

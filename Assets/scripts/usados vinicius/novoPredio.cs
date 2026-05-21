@@ -5,6 +5,7 @@ using System.Collections.Generic;
 //using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.UI;
 using static IsovistaP;
@@ -16,11 +17,12 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     public int indiceCriacao;
     public int indiceNovoPredio;
 
-    public TipoEspacoConstruido np_tipo;
 
     [SerializeField] public string enderecoCelula;
 //    [SerializeField] public Vector2Int endCelula = new Vector2Int(0, 0);
     public Celula minhaCelula;
+    public OcupacaoCelula usoCelula;
+    public TipoEspacoConstruido np_tipo;
 
     public List<lugar> lugaresPossiveis = new List<lugar>();
 
@@ -143,8 +145,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         np_half = GerenteAmbiente.espacoConstruido.transform.localScale / 2.1f;
 
-
-
         np_meuRenderer = gameObject.GetComponent<Renderer>();
 
         EstaSelecionado = false;
@@ -199,7 +199,9 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         else
         { Debug.LogWarning("metodo_escolha não atribuído em novoPredio.Start()"); }
 
-        NP_ChecarSeEhRua();
+//        NP_ChecarSeEhRua();
+        TipoEspacoConstruido tipoTemp = DecidirEstadoCelula();
+        AplicarEstadoCelula(tipoTemp);
 
         //////////USO DAS CELULAS PARA CHECAR VIZINHOS
         //        celulasVonNeumann = new Dictionary<Vector2Int, Celula>();  //foi para inicializar()
@@ -274,12 +276,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         {
             Debug.Log($"{l._nome} media={l.medida_geral_ponderada:R}");
         }
-        //        float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Max
-        //        (casa => casa.medida_geral_ponderada);  // List<lugar> lista_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos.Where(casa => casa.medida_geral_ponderada == ref_medida_geral_ponderada).ToList();
-
-        //        lugaresPossiveis = GerenteAmbiente.lugaresAtivos
-        //            .Where(casa => Mathf.Approximately(casa.medida_geral_ponderada, ref_medida_geral_ponderada))
-        //            .ToList();
 
         float toleranciaMediaPonderada = 0.001f;
 
@@ -309,14 +305,22 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         int rodadaVisual = GerenteAmbiente.ContadorRodadas;
 
+        foreach (lugar l in GerenteAmbiente.lugaresAtivos)
+        {
+            l.estadoSelecao = lugar.EstadoCorLugar.Normal;
+            l.AplicarCorTempo(rodadaVisual);
+        }
+
         foreach (lugar l in lugaresPossiveis)
         {
             l.rodadasElegivel.Add(rodadaVisual);
             l.estadoSelecao = lugar.EstadoCorLugar.Elegivel;
-            l.AtualizarCor();
+            l.AplicarCorTempo(rodadaVisual);
+            //            l.AtualizarCor();
             Debug.Log($"REG ELEGIVEL rodada {rodadaVisual}: {l._nome}");
 
         }
+
 
         int index = UnityEngine.Random.Range(0, lugaresPossiveis.Count);
         lugartemp = lugaresPossiveis[index];
@@ -334,17 +338,121 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
         //        aceitarcelula();
     }
-    void aceitarcelula()
+
+    public enum OcupacaoCelula
     {
-        if (checagem_vizinhos_trancados && checagem_vizinhos_quina)
+        predio,
+        rua,
+        bloqueado
+    }
+
+    public TipoEspacoConstruido DecidirEstadoCelula()
+    {
+        bool trancado = Action_ChecaVizinhoTrancado(lugartemp.minhaCelula);
+        TipoEspacoConstruido usoTeste = trancado ? TipoEspacoConstruido.Rua : TipoEspacoConstruido.Predio;
+        //checa se tranca sendo predio.
+        //se trancado, deve retornar rua,
+        //se nao, retorna predio
+
+        bool temQuina = Action_ChecaQuina(lugartemp.minhaCelula, usoTeste); 
+        //usando rua ou predio do trancado
+        //se voltar q tem quina, deve ser bloqueado
+        //se nao tiver quina, retorna ok para a ocupacao q tinha sido sugerida
+
+        bool rua_por_maior_isovista = false;
+        if (InputsMorfo.boolModoPreservaIso)
         {
-            Debug.LogWarning("aceitarcelula: ambos trancado e quina estão verdadeiros. impossivel ocupar.");
-            // notifica o gerente
-            GerenteAmbiente?.NotificarErroOcupacao(this, lugartemp);
+            if (_isovista_calculada == false) NP_CalcularIsovista();
+            rua_por_maior_isovista = (lugartemp.iso.medidasNormalizadas.distanciaMaxima == 1); ///pode ser substituido por uma comparacao medidasnormalizadas.maxdist ==1
+            rua_por_maior_isovista = NP_PreservarMaiorIsovista(); ///pode ser substituido por uma comparacao medidasnormalizadas.maxdist ==1
+            Debug.Log("maior isovista: ");// + lugartemp.distanciaMaxima + "valor referencia: " + referencia_normalizacao.distanciaMaxima_Max);
+        }
 
-            // destrói este objeto
+        bool profundidade = false;
+        if (InputsMorfo.boolModoPreservaProfundidade)
+        {
+            if (_isovista_calculada == false) NP_CalcularIsovista();
+            profundidade = (lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1);
+            Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
+        }
+        if (_isovista_calculada && InputsMorfo.boolModoPreservaProfundidade || InputsMorfo.boolModoPreservaIso)
+        {
+            Debug.Log(referencia_normalizacao.Publicar());
+            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
+            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
+        }
+
+        if (profundidade || rua_por_maior_isovista)
+            usoTeste = TipoEspacoConstruido.Rua;
+
+        usoTeste = temQuina ? TipoEspacoConstruido.Bloqueado : usoTeste;
+
+        return usoTeste;
+    }
+
+    public void AplicarEstadoCelula(TipoEspacoConstruido usoTeste)
+    {
+        switch (usoTeste)
+        {
+            case TipoEspacoConstruido.Predio:
+                tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
+                indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosConstruidos.Count();
+                np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
+
+                if (!GerenteAmbiente.Geral_novosPrediosConstruidos.Contains(this))
+                    GerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
+                break;
+
+            case TipoEspacoConstruido.Rua:
+                tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
+                indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosRuas.Count();
+                np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
+
+                if (!GerenteAmbiente.Geral_novosPrediosRuas.Contains(this))
+                    GerenteAmbiente.Geral_novosPrediosRuas.Add(this);
+
+                break;
+            
+            case TipoEspacoConstruido.Bloqueado:
+                lugartemp.indiceBloqueio = GerenteAmbiente.ContadorRodadas;
+                lugartemp.Bloquear();
+                lugartemp.AtualizarCor();
+                Debug.LogWarning("bloqueado");
+                break;
+        }
+        Debug.LogWarning("bloqueado fora do case");
+
+
+        aceitarcelula(usoTeste);
+        if (usoTeste == TipoEspacoConstruido.Bloqueado)
+            return;
+
+        this.name = np_nome;
+        np_tipo = tipoEspaco.tipo;
+
+//        if (np_tipo == TipoEspacoConstruido.Rua)
+//            debug_novoPredio = true;
+//        if (debug_novoPredio) Debug.Log("pos checar se eh rua valor de trancado: " + rua + " nome obj: " + np_nome);
+//        debug_novoPredio = false;
+
+        gameObject.transform.localScale = tipoEspaco.escala;
+        var rend = gameObject.GetComponent<Renderer>();
+        if (rend != null)
+        {
+            rend.material.color = tipoEspaco.cor;
+        }
+        gameObject.layer = LayerMask.NameToLayer(tipoEspaco.layer);
+
+        if (!GerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
+            GerenteAmbiente.Geral_novosPrediosTotal.Add(this);
+    }
+
+    void aceitarcelula(TipoEspacoConstruido usoTeste)
+    {
+        if (usoTeste == TipoEspacoConstruido.Bloqueado)
+        {
+            Debug.LogWarning("aceitarcelula: usoTeste é Bloqueado, trancado e quina estão verdadeiros. impossivel ocupar.");
             seDestruir();
-
             return;
         }
 
@@ -463,7 +571,17 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         LayerMask bloqueadores = LayerMask.GetMask("layer_predios");
         LayerMask transparentes = LayerMask.GetMask("layer_lugares", "layer_ruas");
 
-        IsovistaP iso_temp = new IsovistaP(minhaCelula.posicaoMundo);
+        Vector3 pos_mundo = new Vector3();
+        if (minhaCelula.posicaoMundo == null)
+        {
+            pos_mundo = lugartemp.minhaCelula.posicaoMundo;
+        }
+        else if (minhaCelula.posicaoMundo != null)
+        {
+            pos_mundo = minhaCelula.posicaoMundo;
+        }
+
+        IsovistaP iso_temp = new IsovistaP(pos_mundo);
         List<ResultadoRaioVisao> resultados = iso_temp.VarrerCampoVisao(
             minhaCelula.posicaoMundo,
             InputsMorfo.input_distanciaCampoVisao,
@@ -633,99 +751,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         return pontos;
     }
 
-    public void NP_ChecarSeEhRua()
-    {
-        Celula celula_T = lugartemp.minhaCelula;
-        bool deveSerRua_T = false;
-        if (debug_novoPredio) Debug.Log("checar se eh rua valor de trancado: " + deveSerRua_T);
 
-        // remove qualquer referência antiga para evitar duplicatas/contadores incorretos
-        GerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
-        GerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
-        // NÃO removemos ainda de Geral_novosPrediosTotal aqui (mantemos registro geral), ou remova se preferir.
-
-        //VIZINHO TRANCADO TEM Q CHECAR Q ELE PROPRIO NAO VAI FICAR TRANCADO
-        checagem_vizinhos_trancados = Action_ChecaVizinhoTrancado(celula_T);// minhaCelula); // = Legacy_NP_ChecaVizinhoTrancado(minhaCelula);
-        checagem_vizinhos_quina = Action_ChecaVizinhoQuina(celula_T); // minhaCelula);//= Legacy_NP_ChecaVizinhoQuina(minhaCelula);
-
-        bool rua_por_maior_isovista = false;
-        if (InputsMorfo.boolModoPreservaIso)
-        {
-            if (_isovista_calculada == false) NP_CalcularIsovista();
-            //            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
-            rua_por_maior_isovista = NP_PreservarMaiorIsovista(); ///pode ser substituido por uma comparacao medidasnormalizadas.maxdist ==1
-            Debug.Log("maior isovista: ");// + lugartemp.distanciaMaxima + "valor referencia: " + referencia_normalizacao.distanciaMaxima_Max);
-            Debug.Log(referencia_normalizacao.Publicar());
-            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
-            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
-        }
-
-        bool profundidade = false;
-        if (InputsMorfo.boolModoPreservaProfundidade)
-        {
-            if (_isovista_calculada == false) NP_CalcularIsovista();
-            //            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
-            profundidade = lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1;
-            Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
-            Debug.Log(referencia_normalizacao.Publicar());
-            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
-            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
-        }
-
-        aceitarcelula();
-
-        deveSerRua_T = checagem_vizinhos_trancados || checagem_vizinhos_quina || rua_por_maior_isovista|| profundidade;
-        
-        if (deveSerRua_T)
-        Debug.Log($"deve_ser_rua: {deveSerRua_T} = trancado: {checagem_vizinhos_trancados} + quina: {checagem_vizinhos_quina} + vista: {rua_por_maior_isovista} + profundidade: {profundidade}");
-
-        string rua = deveSerRua_T ? "sim" : "nao";
-
-        if (rua == "nao")
-        {
-
-            np_nome = "predio " + indiceCriacao.ToString() + "_";// + indiceNovoPredio.ToString();
-            gameObject.name = np_nome;
-
-            tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
-            indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosConstruidos.Count();
-            np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
-         
-            if (!GerenteAmbiente.Geral_novosPrediosConstruidos.Contains(this))
-                GerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
-        }
-        else if (rua == "sim")
-        {
-            tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
-            indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosRuas.Count();
-            np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
-            //            np_nome = tipoEspaco.nome + GerenteAmbiente.Geral_novosPrediosRuas.Count.ToString();
-
-            if (!GerenteAmbiente.Geral_novosPrediosRuas.Contains(this))
-                GerenteAmbiente.Geral_novosPrediosRuas.Add(this);
-        }
-
-        this.name = np_nome;
-        np_tipo = tipoEspaco.tipo;
-
-//        aceitarcelula();
-
-        if (np_tipo == TipoEspacoConstruido.Rua)
-            debug_novoPredio = true;   
-        if (debug_novoPredio) Debug.Log("pos checar se eh rua valor de trancado: " + rua + " nome obj: " +np_nome);
-        debug_novoPredio = false;
-
-        gameObject.transform.localScale = tipoEspaco.escala;
-        var rend = gameObject.GetComponent<Renderer>();
-        if (rend != null)
-        {
-            rend.material.color = tipoEspaco.cor;
-        }
-        gameObject.layer = LayerMask.NameToLayer(tipoEspaco.layer);
-
-        if (!GerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
-            GerenteAmbiente.Geral_novosPrediosTotal.Add(this);
-    }
 
 
     public struct DebugVizinhoQuina
@@ -1061,6 +1087,159 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         return vizinhoEHquina;
     }
 
+    public bool Action_ChecaQuina(Celula celula_T, TipoEspacoConstruido usoTeste)//, Dictionary<Vector2Int,Celula> _vizinhanca)
+    {
+        bool vizinhoEHquina = false;
+        List<DebugVizinhoQuina> relatorio = new List<DebugVizinhoQuina>();
+
+        Action<Celula, Celula, Vector2Int> actionChecarQuina =
+            (celulaBase, celulaDiagonal, offsetDiagonal) =>
+            {
+                if (vizinhoEHquina)
+                    return;
+
+                // se NAO tem celula, ou NAO tem um novoPredio, nao precisa checar se eh quina, pule pro proximo
+                if (celulaDiagonal?.novoPredio == null)
+                    return;
+
+                //so vai checar se a quina C for um predio
+                DebugVizinhoQuina d = new DebugVizinhoQuina();
+
+                d.enderecoDiagonal = celulaDiagonal.endereco;
+                d.nomeDiagonal = celulaDiagonal.novoPredio.name;
+                d.tipoDiagonal = celulaDiagonal.novoPredio.np_tipo;
+
+                // A partir do offset diagonal, deriva os dois ortogonais intermediários.
+                d.orto1 = celulaBase.endereco + new Vector2Int(offsetDiagonal.x, 0);
+                d.orto2 = celulaBase.endereco + new Vector2Int(0, offsetDiagonal.y);
+
+                // --- ORTO 1 ---
+                if (!GerenteAmbiente.livroCelulas.TryGetValue(d.orto1, out Celula c1))
+                    return;
+                if (c1?.novoPredio == null)
+                    return;
+
+                    d.nomeOrto1 = c1.novoPredio.name;
+                    d.tipoOrto1 = c1.novoPredio.np_tipo;
+//                    d.orto1EhRua = c1.novoPredio.np_tipo == TipoEspacoConstruido.Rua;
+
+                // --- ORTO 2 ---
+                if (!GerenteAmbiente.livroCelulas.TryGetValue(d.orto2, out Celula c2))
+                    return;
+                if (c2?.novoPredio == null)
+                    return;
+                        d.nomeOrto2 = c2.novoPredio.name;
+                        d.tipoOrto2 = c2.novoPredio.np_tipo;
+                //                      d.orto2EhRua = c2.novoPredio.np_tipo == TipoEspacoConstruido.Rua;
+
+                // --- REGRA ---
+                if (d.tipoOrto1 == d.tipoOrto2 
+                 && d.tipoDiagonal == usoTeste 
+                 && usoTeste != d.tipoOrto1)
+                    vizinhoEHquina = true;
+                relatorio.Add(d);
+            };
+
+        NP_iterarVizinhanca(celula_T, Celula.offsetsVonNeumannComplemento, actionChecarQuina);
+
+        //        NP_Debug_LogRelatorio(relatorio, vizinhoEHquina);
+        return vizinhoEHquina;
+    }
+
+
+    public void NP_ChecarSeEhRua() //LEGACY
+    {
+        Celula celula_T = lugartemp.minhaCelula;
+        bool deveSerRua_T = false;
+        if (debug_novoPredio) Debug.Log("checar se eh rua valor de trancado: " + deveSerRua_T);
+
+        // remove qualquer referência antiga para evitar duplicatas/contadores incorretos
+        GerenteAmbiente.Geral_novosPrediosConstruidos?.Remove(this);
+        GerenteAmbiente.Geral_novosPrediosRuas?.Remove(this);
+        // NÃO removemos ainda de Geral_novosPrediosTotal aqui (mantemos registro geral), ou remova se preferir.
+
+        //VIZINHO TRANCADO TEM Q CHECAR Q ELE PROPRIO NAO VAI FICAR TRANCADO
+        checagem_vizinhos_trancados = Action_ChecaVizinhoTrancado(celula_T);// minhaCelula); // = Legacy_NP_ChecaVizinhoTrancado(minhaCelula);
+        checagem_vizinhos_quina = Action_ChecaVizinhoQuina(celula_T); // minhaCelula);//= Legacy_NP_ChecaVizinhoQuina(minhaCelula);
+
+        bool rua_por_maior_isovista = false;
+        if (InputsMorfo.boolModoPreservaIso)
+        {
+            if (_isovista_calculada == false) NP_CalcularIsovista();
+            //            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
+            rua_por_maior_isovista = NP_PreservarMaiorIsovista(); ///pode ser substituido por uma comparacao medidasnormalizadas.maxdist ==1
+            Debug.Log("maior isovista: ");// + lugartemp.distanciaMaxima + "valor referencia: " + referencia_normalizacao.distanciaMaxima_Max);
+            Debug.Log(referencia_normalizacao.Publicar());
+            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
+            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
+        }
+
+        bool profundidade = false;
+        if (InputsMorfo.boolModoPreservaProfundidade)
+        {
+            if (_isovista_calculada == false) NP_CalcularIsovista();
+            //            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
+            profundidade = lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1;
+            Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
+            Debug.Log(referencia_normalizacao.Publicar());
+            Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
+            Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
+        }
+
+        //        aceitarcelula();
+
+        deveSerRua_T = checagem_vizinhos_trancados || checagem_vizinhos_quina || rua_por_maior_isovista || profundidade;
+
+        if (deveSerRua_T)
+            Debug.Log($"deve_ser_rua: {deveSerRua_T} = trancado: {checagem_vizinhos_trancados} + quina: {checagem_vizinhos_quina} + vista: {rua_por_maior_isovista} + profundidade: {profundidade}");
+
+        string rua = deveSerRua_T ? "sim" : "nao";
+
+        if (rua == "nao")
+        {
+
+            np_nome = "predio " + indiceCriacao.ToString() + "_";// + indiceNovoPredio.ToString();
+            gameObject.name = np_nome;
+
+            tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Predio);// ._so_construir[0];
+            indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosConstruidos.Count();
+            np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
+
+            if (!GerenteAmbiente.Geral_novosPrediosConstruidos.Contains(this))
+                GerenteAmbiente.Geral_novosPrediosConstruidos.Add(this);
+        }
+        else if (rua == "sim")
+        {
+            tipoEspaco = GerenteAmbiente.PegarSO(TipoEspacoConstruido.Rua);// ._so_construir[0];
+            indiceNovoPredio = GerenteAmbiente.Geral_novosPrediosRuas.Count();
+            np_nome = tipoEspaco.nome + " " + indiceCriacao.ToString() + "_" + indiceNovoPredio.ToString();
+            //            np_nome = tipoEspaco.nome + GerenteAmbiente.Geral_novosPrediosRuas.Count.ToString();
+
+            if (!GerenteAmbiente.Geral_novosPrediosRuas.Contains(this))
+                GerenteAmbiente.Geral_novosPrediosRuas.Add(this);
+        }
+
+        this.name = np_nome;
+        np_tipo = tipoEspaco.tipo;
+
+        //        aceitarcelula();
+
+        if (np_tipo == TipoEspacoConstruido.Rua)
+            debug_novoPredio = true;
+        if (debug_novoPredio) Debug.Log("pos checar se eh rua valor de trancado: " + rua + " nome obj: " + np_nome);
+        debug_novoPredio = false;
+
+        gameObject.transform.localScale = tipoEspaco.escala;
+        var rend = gameObject.GetComponent<Renderer>();
+        if (rend != null)
+        {
+            rend.material.color = tipoEspaco.cor;
+        }
+        gameObject.layer = LayerMask.NameToLayer(tipoEspaco.layer);
+
+        if (!GerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
+            GerenteAmbiente.Geral_novosPrediosTotal.Add(this);
+    }
 
     public void Legacy_NP_Celulas_PegarVizinhas(Celula celula_T, Dictionary<Vector2Int, Celula> dicionario_T, Vector2Int[] matrizVizinhanca_T, bool criar_T)//, List<Vector3> lista_endereco_real_trabalho = null)
     {

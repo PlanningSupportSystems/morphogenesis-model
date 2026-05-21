@@ -38,6 +38,7 @@ public class ControleAglomeracao : MonoBehaviour
     //    public List<Predios> GeralRuasConstruidos;
     public List<lugar> lugaresAtivos;
     public List<lugar> lugaresDesativados;
+    public List<lugar> lugaresBloqueados;
     public SortedDictionary<int, lugar> TodosLugares; 
     
     public int contadorlugar;
@@ -468,4 +469,16 @@ public class ControleAglomeracao : MonoBehaviour
             celula.AplicarTempo(ciclo);
         }
     }
+    
+    public void CA_PararAoTravar()
+    {
+        StopAllCoroutines();
+
+        FindObjectOfType<InputsMorfo>().IM_ConfigurarSliderTempo(ContadorRodadas);
+        navegacaoTempoHabilitada = true;
+
+        b_gerarAglomeracao.interactable = true;
+        b_atribuirParametros.interactable = true;
+    }
+    
 }
