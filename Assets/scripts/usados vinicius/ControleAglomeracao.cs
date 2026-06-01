@@ -349,8 +349,12 @@ public class ControleAglomeracao : MonoBehaviour
         Debug.Log(string.Join(", ", livroCelulas));
         ///////////////////////////////////////////////////////////////////////////////
 
+        if (InputsMorfo.boolGravarImagens) 
+            salvarImagens.inicializarImagens();
+
         while (this.Geral_novosPrediosConstruidos.Count < tCasas)
         {
+
             ContadorRodadas++;
 
             string nome = "ec_" + ContadorRodadas;
@@ -362,17 +366,21 @@ public class ControleAglomeracao : MonoBehaviour
             //            Debug.Log("CA TESTANDO| contagem Geral_Predios: " + Geral_Predios.Count + " p:" + Geral_Predios[Geral_Predios.Count - 1] + "; nomero de ContadorRodadas: " + ContadorRodadas);
             //            IM_predios_texto_VizinhosClick_Predios.GetComponent<Text>().text = esteEC.meusPrediosVizinhosClick.Count(e => e.meuNome.Contains("predio")).ToString();
 
-//            salvarImagens.FotoTela("cena" + ContadorRodadas);
-//            salvarImagens.CaptureScreenshot(screenshotName + i + ".png");
             //cenas para animacao ===  ScreenCapture.CaptureScreenshot(screenshotName + i + ".png");
 
-//          yield return StartCoroutine(salvarImagens.FotoTela("zena" + ContadorRodadas));
             yield return new WaitForEndOfFrame();
             //            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
 
             TespacoConstruido.text = Geral_novosPrediosTotal.Count.ToString();
             Tpredios.text = Geral_novosPrediosConstruidos.Count.ToString();
             Truas.text = Geral_novosPrediosRuas.Count.ToString();
+
+
+
+            if (InputsMorfo.boolGravarImagens)
+            {
+                yield return StartCoroutine(salvarImagens.FotoTela("zena completa" + ContadorRodadas));
+            }
 
             //TROCAR PARA STOP UNTIL "QUER CONTINUAR"
             if (ContadorRodadas > 100 * tCasas)
@@ -395,8 +403,12 @@ public class ControleAglomeracao : MonoBehaviour
         //        InputsMorfo.config
         yield return new WaitForEndOfFrame();
 
-        //        salvarImagens.ZiparImagens();
-        //        salvarImagens.SaveGIF();
+        if (InputsMorfo.boolGravarImagens)
+        {
+//            salvarImagens.ZiparImagens();
+//            salvarImagens.SaveGIF();
+
+        }
     }
 
     public SO_EspacoConstruido PegarSO(TipoEspacoConstruido tipo)
@@ -480,5 +492,18 @@ public class ControleAglomeracao : MonoBehaviour
         b_gerarAglomeracao.interactable = true;
         b_atribuirParametros.interactable = true;
     }
-    
+
+    public void CA_BaixarImagens()
+    {
+        if (salvarImagens == null)
+        {
+            Debug.LogWarning("CA_BaixarImagens: salvarImagens nao inicializado.");
+            return;
+        }
+
+//        salvarImagens.BaixarZipWebGL();
+//        salvarImagens.BaixarGifWebGL();
+        salvarImagens.BaixarZipComGifWebGL();
+    }
+
 }

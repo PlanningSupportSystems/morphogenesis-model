@@ -74,8 +74,20 @@ public class NeuQuant
     public byte[] Process()
     {
         Learn();
+        Unbiasnet();
         Inxbuild();
         return ColorMap();
+    }
+
+    protected void Unbiasnet()
+    {
+        for (int i = 0; i < netsize; i++)
+        {
+            network[i][0] >>= netbiasshift;
+            network[i][1] >>= netbiasshift;
+            network[i][2] >>= netbiasshift;
+            network[i][3] = i;
+        }
     }
 
     public byte[] ColorMap()

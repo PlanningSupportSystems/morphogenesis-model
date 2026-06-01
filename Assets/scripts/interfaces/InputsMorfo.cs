@@ -80,6 +80,7 @@ public class InputsMorfo : MonoBehaviour
     [SerializeField] Toggle toggleModoIsoObj;
     [SerializeField] Toggle toggleModoPreservaIso;
     [SerializeField] Toggle toggleModoPreservaProfundidade;
+    [SerializeField] Toggle toggleGravarImagens;
 
     public static bool boolRuaMaisUm;
     public static bool boolModoIsovista;
@@ -87,6 +88,7 @@ public class InputsMorfo : MonoBehaviour
     public static bool boolModoIsoObj;
     public static bool boolModoPreservaIso;
     public static bool boolModoPreservaProfundidade;
+    public static bool boolGravarImagens;
 
 
     public GameObject paramedidas;
@@ -447,6 +449,7 @@ void IM_SetarValores()
         boolModoIsoObj = toggleModoIsoObj.isOn;
         boolModoPreservaIso = toggleModoPreservaIso.isOn;
         boolModoPreservaProfundidade = toggleModoPreservaProfundidade.isOn;
+        boolGravarImagens = toggleGravarImagens.isOn;
 
         vTotalCasas.text = itotalCasas.text;
         input_totalCasas = int.Parse(vTotalCasas.text);

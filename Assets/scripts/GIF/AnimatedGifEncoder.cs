@@ -6,7 +6,7 @@ public class AnimatedGifEncoder
 {
     protected int width;
     protected int height;
-    protected int transIndex;
+    protected int transIndex = -1;
     protected int repeat = -1;
     protected int delay = 0;
     protected bool started = false;
@@ -69,6 +69,22 @@ public class AnimatedGifEncoder
         try
         {
             if (!sizeSet) SetSize(im.width, im.height);
+
+            Color32[] colors = im.GetPixels32();
+            pixels = new byte[colors.Length * 3];
+
+            int p = 0;
+            for (int y = height - 1; y >= 0; y--)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    Color32 c = colors[y * width + x];
+                    pixels[p++] = c.r;
+                    pixels[p++] = c.g;
+                    pixels[p++] = c.b;
+                }
+            }
+
             // Implementation to convert Texture2D to byte array and other required steps
             AnalyzePixels(); // Convert image to pixels array and analyze
             if (firstFrame)
@@ -129,14 +145,15 @@ public class AnimatedGifEncoder
 
         // Criar uma instância de NeuQuant para processar os pixels e obter a paleta de cores
         NeuQuant nq = new NeuQuant(pixels, len, sample);
-        byte[] colorTab = nq.Process(); // Processar os pixels para obter a paleta de cores
+//        byte[] colorTab = nq.Process(); // Processar os pixels para obter a paleta de cores
+        colorTab = nq.Process(); // Processar os pixels para obter a paleta de cores
 
         // Ajustar a paleta de cores (se necessário)
         for (int i = 0; i < colorTab.Length; i += 3)
         {
-            byte temp = colorTab[i];
-            colorTab[i] = colorTab[i + 2];
-            colorTab[i + 2] = temp;
+//            byte temp = colorTab[i];
+//            colorTab[i] = colorTab[i + 2];
+//            colorTab[i + 2] = temp;
             usedEntry[i / 3] = false;
         }
 
@@ -207,7 +224,7 @@ public class AnimatedGifEncoder
         disp <<= 2;
         bw.Write((byte)(0 | disp | 0 | transp));
         WriteShort(delay);
-        bw.Write((byte)transIndex);
+        bw.Write((byte)(transIndex >= 0 ? transIndex : 0));
         bw.Write((byte)0);
     }
 
@@ -251,9 +268,12 @@ public class AnimatedGifEncoder
 
     protected void WritePalette()
     {
-        bw.Write(colorTab, 0, colorTab.Length);
-        int n = (3 * 256) - colorTab.Length;
-        for (int i = 0; i < n; i++)
+        int paletteSize = 3 * 256;
+        int bytesToWrite = Mathf.Min(colorTab.Length, paletteSize);
+
+        bw.Write(colorTab, 0, bytesToWrite);
+
+        for (int i = bytesToWrite; i < paletteSize; i++)
         {
             bw.Write((byte)0);
         }

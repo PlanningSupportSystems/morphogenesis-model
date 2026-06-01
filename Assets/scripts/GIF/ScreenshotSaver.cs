@@ -1,9 +1,12 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
+using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
+using System.Linq;
 //using UnityEditor.SearchService;
 
 
@@ -17,7 +20,7 @@ using System.IO.Compression;
 
 public class ScreenshotSaver : MonoBehaviour
 {
-    public static List<byte[]> jpgList = new List<byte[]>();
+    public static List<byte[]> imageList = new List<byte[]>();
     private List<string> filenames = new List<string>();
     public string NI = "screensaver";
 
@@ -31,17 +34,28 @@ public class ScreenshotSaver : MonoBehaviour
 //    [DllImport("__Internal")]
 //    private static extern void SaveFile(string filename, byte[] content, int length);
 
-    [DllImport("__Internal")]
-    private static extern void SaveAllFiles(string[] filenames, byte[][] contents, int[] lengths, int count);
+//    [DllImport("__Internal")]
+//    private static extern void SaveAllFiles(string[] filenames, byte[][] contents, int[] lengths, int count);
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    private static extern void DownloadFramesZip(string framesJson, string zipName);
+    [DllImport("__Internal")]
+    private static extern void DownloadFramesGif(string framesJson, string gifName, int delayMs);
+
+    [DllImport("__Internal")]
+    private static extern void DownloadFramesZipWithGif(string framesJson, string zipName, string gifName, int delayMs);
+
+#endif
 
     //    [DllImport("__Internal")]
     //private static extern void DownloadImage(string base64String, string fileName);
 
     public ScreenshotSaver()
     {
-        path = //@"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\prototipando\prototipando\prototipando\imagens salvas";
-         @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\@PSS\morphogenesis model\@imagens geradas\novas img";
+         //@"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\prototipando\prototipando\prototipando\imagens salvas";
+         //@"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\@PSS\morphogenesis model\@imagens geradas\novas img";
+        path = @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\@PSS\morphogenesis model\@imagens geradas\sprint webgl\";
     }
 
     public void Start()
@@ -56,76 +70,120 @@ public class ScreenshotSaver : MonoBehaviour
 
     public IEnumerator FotoTela(string filename)
     {
-        menu_foradafoto = GameObject.Find("Canvas");
-        //        Debug.Log("fototela screenshot, menu: " + (menu_foradafoto != null));
+//        menu_foradafoto = GameObject.Find("Canvas");
+//        //        Debug.Log("fototela screenshot, menu: " + (menu_foradafoto != null));
+//        if (menu_foradafoto != null)
+//        {
+//            menu_foradafoto.SetActive(false);
+//        }
+//        //        Debug.Log("menu ativo: " + menu_foradafoto.activeSelf);
 
-
-        if (menu_foradafoto != null)
-        {
-            menu_foradafoto.SetActive(false);
-        }
-        //        Debug.Log("menu ativo: " + menu_foradafoto.activeSelf);
         yield return new WaitForEndOfFrame();
 
-        Texture2D screenshot = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-        screenshot.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
-        screenshot.Apply();
+        RawImage rawImage = GameObject.Find("RawImage_Mundo")?.GetComponent<RawImage>();
+        RenderTexture rt = rawImage != null ? rawImage.texture as RenderTexture : null;
 
-        //private List<Texture2D> capturedFrames;// = new List<Texture2D>();
+        if (rt == null)
+        {
+            Debug.LogWarning("FotoTela: RawImage_Mundo sem RenderTexture.");
+            yield break;
+        }
 
-        capturedFrames = new List<Texture2D>();
-        capturedFrames.Add(screenshot);
-        byte[] jpgBytes = screenshot.EncodeToJPG();
+        RenderTexture anterior = RenderTexture.active;
+        Texture2D screenshot = null;// new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
 
-        System.IO.File.WriteAllBytes(path + filename + ".jpg", jpgBytes);
-        //        Debug.Log("imagem salva " + filename + " em: " + path);
+        try
+        {
+            RenderTexture.active = rt;
 
+            screenshot = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+            screenshot.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+//            screenshot.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+            screenshot.Apply();
 
-        jpgList.Add(jpgBytes);
-        filenames.Add(filename);
+//            //private List<Texture2D> capturedFrames;// = new List<Texture2D>();
+//            capturedFrames = new List<Texture2D>();
+//            capturedFrames.Add(screenshot);
 
-        //        Debug.Log("salvando imagens " + jpgList.Count);
+            byte[] pngBytes = screenshot.EncodeToPNG();
 
+            Directory.CreateDirectory(path);
+            filename = imageList.Count.ToString("D4") + " " + filename;
+            string filePath = Path.Combine(path, filename + ".png");
+            File.WriteAllBytes(filePath, pngBytes);
 
-        //        string base64String = System.Convert.ToBase64String(jpgBytes);
+//            System.IO.File.WriteAllBytes(path + filename + ".jpg", pngBytes);
+            //        Debug.Log("imagem salva " + filename + " em: " + path);
+
+            imageList.Add(pngBytes);
+            filenames.Add(filename);
+        }
+        finally
+        {
+            RenderTexture.active = anterior;
+
+            if (screenshot != null)
+                Destroy(screenshot);
+        }
+
+        //        Debug.Log("salvando imagens " + imageList.Count);
+
+        //        string base64String = System.Convert.ToBase64String(pngBytes);
         //        string fileName = "screenshot.jpg";
 
         // Chamada à função JavaScript
         //        DownloadImage(base64String, fileName);
-        if (menu_foradafoto != null)
-        {
-            menu_foradafoto.SetActive(true);
-        }
+        //        if (menu_foradafoto != null)
+        //        {
+        //            menu_foradafoto.SetActive(true);
+        //        }
 
-        Destroy(screenshot);
     }
 
     public void SaveGIF()
     {
+        if (imageList == null || imageList.Count == 0)
+        {
+            Debug.LogWarning("SaveGIF: nenhuma imagem foi gerada.");
+            return;
+        }
 
-        string path = System.IO.Path.Combine(Application.dataPath, "screenshot.gif");
+        Directory.CreateDirectory(path);
+        string gifPath = Path.Combine(path, "cenasaglomeradas.gif");
+
         AnimatedGifEncoder gifEncoder = new AnimatedGifEncoder();
 
         try
         {
             // Criar um FileStream para o arquivo GIF
-            using (FileStream fs = new FileStream(path, FileMode.Create))
+            using (FileStream fs = new FileStream(gifPath, FileMode.Create))
             {
                 gifEncoder.Start(fs);
                 Debug.Log("GIF Encoder started.");
                 gifEncoder.SetDelay(1000 / frameRate);
-                gifEncoder.SetRepeat(0);
+                gifEncoder.SetRepeat(5);
+                gifEncoder.SetDispose(1);
 
-                foreach (var frame in capturedFrames)
-                {
+                var framesOrdenados = filenames
+                    .Select((nome, i) => new { nome, bytes = imageList[i] })
+                    .OrderBy(f => f.nome)
+                    .ToList();
+
+                foreach (var frameData in framesOrdenados)
+//                    foreach (byte[] imageBytes in imageList)
+                    {
+                        Texture2D frame = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                    frame.LoadImage(frameData.bytes);
+
                     gifEncoder.AddFrame(frame);
-                    Debug.Log("Frame added.");
+
+                    Destroy(frame);
                 }
 
                 gifEncoder.Finish();
                 Debug.Log("GIF Encoder finished.");
             }
-            Debug.Log("GIF saved at: " + path);
+            Debug.Log("GIF saved at: " + gifPath);
 
         }
 
@@ -133,6 +191,101 @@ public class ScreenshotSaver : MonoBehaviour
         {
             Debug.LogError("Failed to save GIF: " + e.Message);
         }
+    }
+
+    public void BaixarZipWebGL()
+    {
+        if (imageList == null || imageList.Count == 0)
+        {
+            Debug.LogWarning("BaixarZipWebGL: nenhuma imagem foi gerada.");
+            return;
+        }
+
+        var framesOrdenados = filenames
+            .Select((nome, i) => new { nome, bytes = imageList[i] })
+            .OrderBy(f => f.nome)
+            .ToList();
+
+        List<string> itens = new List<string>();
+
+        foreach (var frame in framesOrdenados)
+        {
+            string nome = frame.nome.Replace("\\", "_").Replace("\"", "'");
+            string base64 = System.Convert.ToBase64String(frame.bytes);
+            itens.Add("{\"name\":\"" + nome + ".png\",\"data\":\"" + base64 + "\"}");
+        }
+
+        string json = "[" + string.Join(",", itens) + "]";
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        DownloadFramesZip(json, "cenasaglomeradas.zip");
+#else
+    ZiparImagens();
+#endif
+    }
+
+    public void BaixarGifWebGL()
+    {
+        if (imageList == null || imageList.Count == 0)
+        {
+            Debug.LogWarning("BaixarGifWebGL: nenhuma imagem foi gerada.");
+            return;
+        }
+
+        var framesOrdenados = filenames
+            .Select((nome, i) => new { nome, bytes = imageList[i] })
+            .OrderBy(f => f.nome)
+            .ToList();
+
+        List<string> itens = new List<string>();
+
+        foreach (var frame in framesOrdenados)
+        {
+            string nome = frame.nome.Replace("\\", "_").Replace("\"", "'");
+            string base64 = System.Convert.ToBase64String(frame.bytes);
+            itens.Add("{\"name\":\"" + nome + ".png\",\"data\":\"" + base64 + "\"}");
+        }
+
+        string json = "[" + string.Join(",", itens) + "]";
+        int delayMs = 1000 / 2;// frameRate;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        DownloadFramesGif(json, "cenasaglomeradas.gif", delayMs);
+#else
+    Debug.Log("BaixarGifWebGL: no Editor, o GIF via JavaScript so roda no WebGL/browser.");
+#endif
+    }
+
+    public void BaixarZipComGifWebGL()
+    {
+        if (imageList == null || imageList.Count == 0)
+        {
+            Debug.LogWarning("BaixarZipComGifWebGL: nenhuma imagem foi gerada.");
+            return;
+        }
+
+        var framesOrdenados = filenames
+            .Select((nome, i) => new { nome, bytes = imageList[i] })
+            .OrderBy(f => f.nome)
+            .ToList();
+
+        List<string> itens = new List<string>();
+
+        foreach (var frame in framesOrdenados)
+        {
+            string nome = frame.nome.Replace("\\", "_").Replace("\"", "'");
+            string base64 = System.Convert.ToBase64String(frame.bytes);
+            itens.Add("{\"name\":\"" + nome + ".png\",\"data\":\"" + base64 + "\"}");
+        }
+
+        string json = "[" + string.Join(",", itens) + "]";
+        int delayMs = 1000 / frameRate;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        DownloadFramesZipWithGif(json, "cenasaglomeradas.zip", "cenasaglomeradas.gif", delayMs);
+#else
+    ZiparImagens();
+#endif
     }
 
     private IEnumerator CaptureScreenshotCoroutine(string filename)
@@ -148,10 +301,10 @@ public class ScreenshotSaver : MonoBehaviour
 
         System.IO.File.WriteAllBytes(filename + "L.jpg", jpgBytes);
 
-        jpgList.Add(jpgBytes);
+        imageList.Add(jpgBytes);
         filenames.Add(filename);
 
-        Debug.Log("salvando imagens " + jpgList.Count);
+        Debug.Log("salvando imagens " + imageList.Count);
 
 
         Destroy(screenshot);
@@ -160,23 +313,33 @@ public class ScreenshotSaver : MonoBehaviour
 
     public void ZiparImagens()//string zipFilePath)
     {
+        if (imageList == null || imageList.Count == 0)
+        {
+            Debug.LogWarning("ZiparImagens: nenhuma imagem foi gerada.");
+            return;
+        }
+
+        if (filenames == null || filenames.Count != imageList.Count)
+        {
+            Debug.LogWarning("ZiparImagens: lista de nomes inconsistente com a lista de imagens.");
+            return;
+        }
+
+        Directory.CreateDirectory(path);
         //        string path = @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\prototipando\prototipando\prototipando\imagens salvas";
         string zipFilePath = Path.Combine(path, "cenasaglomeradas.zip");
 
-
         using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
+        using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
         {
-            using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+            for (int i = 0; i < imageList.Count; i++)
             {
-                for (int i = 0; i < jpgList.Count; i++)
-                {
-                    string entryName = $"image_{i + 1}.jpg";
-                    ZipArchiveEntry zipEntry = archive.CreateEntry(entryName);
+                string entryName = filenames[i] + ".png";
+                ZipArchiveEntry zipEntry = archive.CreateEntry(entryName);
 
-                    using (BinaryWriter writer = new BinaryWriter(zipEntry.Open()))
-                    {
-                        writer.Write(jpgList[i]);
-                    }
+                using (BinaryWriter writer = new BinaryWriter(zipEntry.Open()))
+                {
+                    writer.Write(imageList[i]);
                 }
             }
         }
@@ -184,16 +347,14 @@ public class ScreenshotSaver : MonoBehaviour
         Debug.Log($"ZIP file created at: {zipFilePath}");
     }
 
+    public void inicializarImagens()
+    {
+        imageList.Clear();
+        filenames.Clear();
 
-    //public void SaveAllScreenshotsAsZip()
-    //{
-    //    int count = jpgList.Count;
-    //    int[] lengths = new int[count];
-    //    for (int i = 0; i < count; i++)
-    //    {
-    //        lengths[i] = jpgList[i].Length;
-    //    }
-    //    Debug.Log("salvando imagens zip" + jpgList.Count);
-    //    SaveAllFiles(filenames.ToArray(), jpgList.ToArray(), lengths, count);
-    //}
+        string zipFilePath = Path.Combine(path, "cenasaglomeradas.zip");
+        if (File.Exists(zipFilePath))
+            File.Delete(zipFilePath);
+
+    }
 }

@@ -13,7 +13,7 @@ public class GifCreator : MonoBehaviour
         // Create a new GifEncoder
         //        var gifEncoder = new GifEncoder(outputFilePath, delayBetweenFrames);
 
-        // Loop through each image in the jpgList
+        // Loop through each image in the imageList
         foreach (var jpgBytes in jpgList)
         {
             // Load the JPG image into a Texture2D

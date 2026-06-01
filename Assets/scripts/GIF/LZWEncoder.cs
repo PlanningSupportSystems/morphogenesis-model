@@ -38,6 +38,8 @@ public class LZWEncoder
 
     private byte[] accum = new byte[256];
 
+    private bool clearFlag = false;
+
     public LZWEncoder(int width, int height, byte[] pixels, int color_depth)
     {
         imgW = width;
@@ -137,6 +139,7 @@ public class LZWEncoder
     {
         ResetCodeTable();
         freeEnt = ClearCode + 2;
+        clearFlag = true;
         Output(ClearCode, outs);
     }
 
@@ -171,6 +174,31 @@ public class LZWEncoder
 
         if (a_count >= 254)
             Flush(outs);
+
+        if (code == EOFCode)
+        {
+            while (cur_bits > 0)
+            {
+                Add((byte)(cur_accum & 0xff));
+                cur_accum >>= 8;
+                cur_bits -= 8;
+            }
+
+            Flush(outs);
+            return;
+        }
+
+        if (clearFlag)
+        {
+            n_bits = initCodeSize + 1;
+            maxcode = MAXCODE(n_bits);
+            clearFlag = false;
+        }
+        else if (freeEnt > maxcode)
+        {
+            n_bits++;
+            maxcode = n_bits == maxbits ? maxmaxcode : MAXCODE(n_bits);
+        }
     }
 
     private void Add(byte c)

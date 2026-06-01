@@ -11,7 +11,7 @@
 //public class ImageToGifConverter : MonoBehaviour
 //{
 //    // Lista de byte arrays das imagens capturadas
-//    private List<byte[]> jpgList = new List<byte[]>();
+//    private List<byte[]> imageList = new List<byte[]>();
 //    // Caminho onde o GIF será salvo
 //    public string outputGifPath = "path/to/output/your.gif";
 //    // Atraso opcional entre os frames do GIF (em milissegundos)
@@ -23,7 +23,7 @@
 //        CaptureScreenshot();
 
 //        // Crie o GIF a partir das imagens
-//        CreateGifFromImages(jpgList, outputGifPath, delay);
+//        CreateGifFromImages(imageList, outputGifPath, delay);
 //    }
 
 //    void CaptureScreenshot()
@@ -33,7 +33,7 @@
 //        screenshot.Apply();
 
 //        byte[] jpgBytes = screenshot.EncodeToJPG();
-//        jpgList.Add(jpgBytes);
+//        imageList.Add(jpgBytes);
 //    }
 
 //    void CreateGifFromImages(List<byte[]> images, string outputFile, int frameDelay)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 //using System.Drawing;
 
 //using System.Diagnostics;
@@ -154,40 +155,12 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         vizinhos_celulas_VN ??= new List<Celula>();
     }
 
-    void Start()
+    IEnumerator Start()
     {
         if (InputsMorfo.tracking)
         {
             Debug.Log("tracking novoPredio");
         }
-
-        ///seguiu tudo para Inicializar()
-        /*
-        GerenteAmbiente = ControleAglomeracao.Instance; // = GameObject.Find("ambiente").GetComponent<ControleAglomeracao>();
-        if (GerenteAmbiente == null)
-        {
-            // tentativa de fallback (caso o singleton não tenha sido inicializado por alguma razão)
-            GerenteAmbiente = FindObjectOfType<ControleAglomeracao>();
-        }
-
-        if (GerenteAmbiente == null)
-        {
-            Debug.LogError("novoPredio.Start: 'ambiente' com ControleAglomeracao não encontrado. Desativando componente.");
-            enabled = false; // desativa este MonoBehaviour para evitar chamadas subsequentes
-            return;
-        }
-
-        _isovista_calculada = false;
-
-        np_half = GerenteAmbiente.espacoConstruido.transform.localScale / 2.1f;
-        np_nome = "predio" + GerenteAmbiente.Geral_novosPrediosConstruidos.Count;
-        this.gameObject.name = np_nome;
-        np_meuRenderer = this.gameObject.GetComponent<Renderer>();
-
-        //configurando sobre interface ISelecionavel
-        EstaSelecionado = false;
-        */
-
 
         atribuirDelegate(GerenteAmbiente?.Tipo_Localizacao);
         if (metodo_escolha != null)
@@ -199,7 +172,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         else
         { Debug.LogWarning("metodo_escolha não atribuído em novoPredio.Start()"); }
 
-//        NP_ChecarSeEhRua();
+        yield return StartCoroutine(GravarImagens(" antes "));
+        //        NP_ChecarSeEhRua();
         TipoEspacoConstruido tipoTemp = DecidirEstadoCelula();
         AplicarEstadoCelula(tipoTemp);
 
@@ -210,6 +184,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         criarVizinhos = true; //virou parametro base
 //        NP_iterarVizinhanca(minhaCelula, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
         NP_iterarVizinhanca(lugartemp.minhaCelula, Celula.offsetsVonNeumann, Action_AtualizaVizinhanca);
+
+//        yield return StartCoroutine(GravarImagens(" depois "));
 
         NP_CalcularIsovista();
 
@@ -303,24 +279,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             lugaresPossiveis = new List<lugar>(GerenteAmbiente.lugaresAtivos);
         }
 
-        int rodadaVisual = GerenteAmbiente.ContadorRodadas;
-
-        foreach (lugar l in GerenteAmbiente.lugaresAtivos)
-        {
-            l.estadoSelecao = lugar.EstadoCorLugar.Normal;
-            l.AplicarCorTempo(rodadaVisual);
-        }
-
-        foreach (lugar l in lugaresPossiveis)
-        {
-            l.rodadasElegivel.Add(rodadaVisual);
-            l.estadoSelecao = lugar.EstadoCorLugar.Elegivel;
-            l.AplicarCorTempo(rodadaVisual);
-            //            l.AtualizarCor();
-            Debug.Log($"REG ELEGIVEL rodada {rodadaVisual}: {l._nome}");
-
-        }
-
+//        LugaresCorNormal(GerenteAmbiente.ContadorRodadas);
+        LugaresCorElegivel(GerenteAmbiente.ContadorRodadas);
 
         int index = UnityEngine.Random.Range(0, lugaresPossiveis.Count);
         lugartemp = lugaresPossiveis[index];
@@ -337,6 +297,39 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             return;
         }
         //        aceitarcelula();
+    }
+
+    void LugaresCorNormal(int rodadaVisual)
+    {
+        foreach (lugar l in GerenteAmbiente.lugaresAtivos)
+        {
+            l.estadoSelecao = lugar.EstadoCorLugar.Normal;
+            l.AplicarCorTempo(rodadaVisual);
+        }
+
+    }
+
+    void LugaresCorElegivel(int rodadaVisual)
+    {
+        foreach (lugar l in lugaresPossiveis)
+        {
+            l.rodadasElegivel.Add(rodadaVisual);
+            l.estadoSelecao = lugar.EstadoCorLugar.Elegivel;
+            l.AplicarCorTempo(rodadaVisual);
+            //            l.AtualizarCor();
+            Debug.Log($"REG ELEGIVEL rodada {rodadaVisual}: {l._nome}");
+
+        }
+
+    }
+
+    IEnumerator GravarImagens(string antesdps)
+    {
+        if (InputsMorfo.boolGravarImagens)
+        {
+            yield return StartCoroutine(GerenteAmbiente.salvarImagens.FotoTela("zena" + antesdps + GerenteAmbiente.ContadorRodadas));
+        }
+
     }
 
     public enum OcupacaoCelula
@@ -445,6 +438,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
         if (!GerenteAmbiente.Geral_novosPrediosTotal.Contains(this))
             GerenteAmbiente.Geral_novosPrediosTotal.Add(this);
+
+        LugaresCorNormal(GerenteAmbiente.ContadorRodadas + 1);
     }
 
     void aceitarcelula(TipoEspacoConstruido usoTeste)
@@ -468,9 +463,6 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         minhaCelula.addnovoPredio(this);
 
         transform.position = np_endereco;
-
-        //        NP_CalcularIsovista();
-
     }
 
     public bool NP_PreservarMaiorIsovista()
