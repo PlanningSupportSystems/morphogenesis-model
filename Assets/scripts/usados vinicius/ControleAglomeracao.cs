@@ -363,6 +363,8 @@ public class ControleAglomeracao : MonoBehaviour
             GameObject go2 = Instantiate(espacoConstruido, new Vector3 (0,20,0), Quaternion.identity);
             novoPredio np = go2.GetComponent<novoPredio>();
             np.Inicializar (this);
+            yield return StartCoroutine (np.ExecutarGeracao());
+
             //            Debug.Log("CA TESTANDO| contagem Geral_Predios: " + Geral_Predios.Count + " p:" + Geral_Predios[Geral_Predios.Count - 1] + "; nomero de ContadorRodadas: " + ContadorRodadas);
             //            IM_predios_texto_VizinhosClick_Predios.GetComponent<Text>().text = esteEC.meusPrediosVizinhosClick.Count(e => e.meuNome.Contains("predio")).ToString();
 

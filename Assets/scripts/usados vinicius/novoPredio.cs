@@ -155,7 +155,10 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         vizinhos_celulas_VN ??= new List<Celula>();
     }
 
-    IEnumerator Start()
+    public void Start()
+    {
+    }
+    public IEnumerator ExecutarGeracao()
     {
         if (InputsMorfo.tracking)
         {
