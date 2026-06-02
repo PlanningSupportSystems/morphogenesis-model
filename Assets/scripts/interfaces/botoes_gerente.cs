@@ -6,9 +6,14 @@ using UnityEngine.UI;
 
 public class botoes_gerente : MonoBehaviour
 {
+    ControleAglomeracao gerenteAmbiente;
+    InputsMorfo inputsMorfo;
+
     public Button b_apagar;
     public Button b_gerarAglomeracao;
     public Button b_atribuirParametros;
+    public Button b_antiTravar;
+    public Button downloadImagens;
 
     public GameObject sliders_isovista;
     public Toggle t_isovista;
@@ -19,6 +24,9 @@ public class botoes_gerente : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gerenteAmbiente = ControleAglomeracao.Instance;
+        inputsMorfo = GameObject.Find("PainelMorfogenese").GetComponent<InputsMorfo>();
+
         b_atribuirParametros.interactable = true;
         b_gerarAglomeracao.interactable = false;
         b_apagar.interactable = false;
@@ -44,6 +52,8 @@ public class botoes_gerente : MonoBehaviour
         b_atribuirParametros.interactable = true;
         b_gerarAglomeracao.interactable = true;
         b_apagar.interactable = false;
+        inputsMorfo.IM_AtribuirCasas();
+        inputsMorfo.IM_BotaoConfigurar();
 
     }
 
@@ -51,7 +61,8 @@ public class botoes_gerente : MonoBehaviour
     {
         b_atribuirParametros.interactable = false;
         b_gerarAglomeracao.interactable = false;
-        b_apagar.interactable = true;
+        //        b_apagar.interactable = true;
+        gerenteAmbiente.CriarAglomeracao();
 
     }
 
@@ -60,8 +71,33 @@ public class botoes_gerente : MonoBehaviour
         b_atribuirParametros.interactable = true;
         b_gerarAglomeracao.interactable = false;
         b_apagar.interactable = false;
+        downloadImagens.interactable = false;
 
+        gerenteAmbiente.CA_IniciarControle();
     }
+
+    public void DownloadImagens()
+    {
+        downloadImagens.GetComponentInChildren<Text>().text = "preparing...";
+        downloadImagens.interactable = false;
+        gerenteAmbiente.CA_BaixarImagens();
+    }
+
+    public void FimDownload()
+    {
+        downloadImagens.GetComponentInChildren<Text>().text = "download imagens";
+        downloadImagens.interactable = true;
+//        StartCoroutine(FimDownloadRotina());
+    }
+
+    IEnumerator FimDownloadRotina()
+    {
+        yield return new WaitForSeconds(1f);
+
+        downloadImagens.GetComponentInChildren<Text>().text = "download imagens";
+        downloadImagens.interactable = true;
+    }
+
     // Update is called once per frame
     void Update()
     {

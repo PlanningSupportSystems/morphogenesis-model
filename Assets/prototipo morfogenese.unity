@@ -4660,7 +4660,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 60, y: 0}
+  m_AnchoredPosition: {x: 90, y: 0}
   m_SizeDelta: {x: 100, y: 20}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &347201376
@@ -7918,7 +7918,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 572932847}
-  - component: {fileID: 572932848}
   m_Layer: 5
   m_Name: botoesGerar
   m_TagString: Untagged
@@ -7949,24 +7948,6 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -10, y: 100}
   m_Pivot: {x: 1, y: 1}
---- !u!114 &572932848
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 572932846}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ec81f93857530b4181e88528eb9b3a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  b_apagar: {fileID: 1009380053}
-  b_gerarAglomeracao: {fileID: 2038142960}
-  b_atribuirParametros: {fileID: 863599938}
-  sliders_isovista: {fileID: 1188777641}
-  t_isovista: {fileID: 788316685}
-  t_random: {fileID: 750390873}
 --- !u!1 &573477284
 GameObject:
   m_ObjectHideFlags: 0
@@ -11432,7 +11413,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 572932848}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: botoes_gerente, Assembly-CSharp
         m_MethodName: Toggle_Isovista
         m_Mode: 1
@@ -12563,31 +12544,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 497255048}
-        m_TargetAssemblyTypeName: InputsMorfo, Assembly-CSharp
-        m_MethodName: IM_BotaoConfigurar
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 497255048}
-        m_TargetAssemblyTypeName: InputsMorfo, Assembly-CSharp
-        m_MethodName: IM_AtribuirCasas
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 572932848}
+      - m_Target: {fileID: 1742102724}
         m_TargetAssemblyTypeName: botoes_gerente, Assembly-CSharp
         m_MethodName: Botao_AtribuirParametros
         m_Mode: 1
@@ -13657,7 +13614,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 60, y: 0}
+  m_AnchoredPosition: {x: 90, y: 0}
   m_SizeDelta: {x: 100, y: 20}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &947658215
@@ -14402,7 +14359,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 35}
-  m_SizeDelta: {x: 60, y: 20}
+  m_SizeDelta: {x: 90, y: 20}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1000988950
 MonoBehaviour:
@@ -14529,19 +14486,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1710538456}
-        m_TargetAssemblyTypeName: ControleAglomeracao, Assembly-CSharp
-        m_MethodName: CA_IniciarControle
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 572932848}
+      - m_Target: {fileID: 1742102724}
         m_TargetAssemblyTypeName: botoes_gerente, Assembly-CSharp
         m_MethodName: Botao_Apagar
         m_Mode: 1
@@ -17145,7 +17090,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 25}
-  m_SizeDelta: {x: 60, y: 20}
+  m_SizeDelta: {x: 90, y: 20}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1234156499
 MonoBehaviour:
@@ -17787,7 +17732,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 60, y: 0}
+  m_AnchoredPosition: {x: 90, y: 0}
   m_SizeDelta: {x: 100, y: 20}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1287376423
@@ -18633,7 +18578,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 10}
-  m_SizeDelta: {x: 60, y: 20}
+  m_SizeDelta: {x: 90, y: 20}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1335017391
 MonoBehaviour:
@@ -23031,9 +22976,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tracking: 0
-  b_apagar: {fileID: 1009380053}
-  b_gerarAglomeracao: {fileID: 2038142960}
-  b_atribuirParametros: {fileID: 863599938}
+  botoes_Gerente: {fileID: 0}
   espacoConstruido: {fileID: 5205444636005673537, guid: f7d691f7894e9c24b86303e6620a4257, type: 3}
   vizinhoPossivel: {fileID: 3173259012628812039, guid: 73a9f8feb365ec941a509544e6a5e844, type: 3}
   _so_construir:
@@ -23698,6 +23641,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1742102723}
+  - component: {fileID: 1742102724}
   m_Layer: 5
   m_Name: PaineisBotoes
   m_TagString: Untagged
@@ -23726,6 +23670,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -400}
   m_SizeDelta: {x: -10, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1742102724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742102722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ec81f93857530b4181e88528eb9b3a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  b_apagar: {fileID: 1009380053}
+  b_gerarAglomeracao: {fileID: 2038142960}
+  b_atribuirParametros: {fileID: 863599938}
+  b_antiTravar: {fileID: 1852557065}
+  downloadImagens: {fileID: 1973741836}
+  sliders_isovista: {fileID: 1188777641}
+  t_isovista: {fileID: 788316685}
+  t_random: {fileID: 750390873}
 --- !u!1 &1742166916
 GameObject:
   m_ObjectHideFlags: 0
@@ -25192,7 +25156,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1852557066}
   m_OnClick:
     m_PersistentCalls:
@@ -26633,14 +26597,14 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1973741837}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1710538456}
-        m_TargetAssemblyTypeName: ControleAglomeracao, Assembly-CSharp
-        m_MethodName: CA_BaixarImagens
+      - m_Target: {fileID: 1742102724}
+        m_TargetAssemblyTypeName: botoes_gerente, Assembly-CSharp
+        m_MethodName: DownloadImagens
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -27399,19 +27363,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1710538456}
-        m_TargetAssemblyTypeName: ControleAglomeracao, Assembly-CSharp
-        m_MethodName: CriarAglomeracao
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 572932848}
+      - m_Target: {fileID: 1742102724}
         m_TargetAssemblyTypeName: botoes_gerente, Assembly-CSharp
         m_MethodName: Botao_GerarAglomeracao
         m_Mode: 1

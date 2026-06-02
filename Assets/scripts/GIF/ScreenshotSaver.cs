@@ -288,6 +288,11 @@ public class ScreenshotSaver : MonoBehaviour
 #endif
     }
 
+    public bool TemImagens()
+    {
+        return imageList != null && imageList.Count > 0;
+    }
+
     private IEnumerator CaptureScreenshotCoroutine(string filename)
     {
         yield return new WaitForEndOfFrame();

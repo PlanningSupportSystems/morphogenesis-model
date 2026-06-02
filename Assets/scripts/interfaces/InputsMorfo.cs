@@ -13,11 +13,7 @@ public class InputsMorfo : MonoBehaviour
 
 
     public static bool tracking = false;
-    //    public static string ptz = "aidentu 4";
-    //    public string teste = "assim caraio mermo 4";
-    //    [SerializeField]
-    //    public float distAdj;
-    //    [SerializeField]
+
     public GameObject obj_p_distanciaMaxima; //public GameObject iAnguloVista;
     public GameObject obj_p_distanciaMinima;
     public GameObject obj_p_distanciaMedia;

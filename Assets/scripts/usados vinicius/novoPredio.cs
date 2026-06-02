@@ -344,6 +344,11 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     public TipoEspacoConstruido DecidirEstadoCelula()
     {
+        if (GerenteAmbiente.ContadorRodadas == 1)
+        {
+            return TipoEspacoConstruido.Predio;
+        }
+
         bool trancado = Action_ChecaVizinhoTrancado(lugartemp.minhaCelula);
         TipoEspacoConstruido usoTeste = trancado ? TipoEspacoConstruido.Rua : TipoEspacoConstruido.Predio;
         //checa se tranca sendo predio.

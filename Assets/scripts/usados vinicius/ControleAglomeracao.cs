@@ -11,9 +11,12 @@ public class ControleAglomeracao : MonoBehaviour
 
     public bool tracking = true;
 
-    public Button b_apagar;
-    public Button b_gerarAglomeracao;
-    public Button b_atribuirParametros;
+    public botoes_gerente botoes_Gerente;
+//    public Button b_apagar;
+//    public Button b_gerarAglomeracao;
+//    public Button b_atribuirParametros;
+
+    private bool pararDepoisDaRodada = false;
 
     public GameObject espacoConstruido;
     public GameObject vizinhoPossivel;
@@ -105,7 +108,8 @@ public class ControleAglomeracao : MonoBehaviour
         gerenteImagens = new GameObject("gerenteImagens");
         // Anexa o componente ScreenshotSaver ao novo GameObject
         //        ScreenshotSaver screenshotSaver = screenshotSaverObject.AddComponent<ScreenshotSaver>();
-        salvarImagens = gerenteImagens.AddComponent<ScreenshotSaver>();
+        salvarImagens = this.gameObject.AddComponent<ScreenshotSaver>();
+        botoes_Gerente = GameObject.Find("PaineisBotoes").GetComponent<botoes_gerente>();
 
         //        salvarImagens = new ScreenshotSaver();
         //        TdistObj.text = DistanciaObjetos.ToString();
@@ -290,9 +294,9 @@ public class ControleAglomeracao : MonoBehaviour
 //            Debug.Log("CA_CriarAglomeracao| botao gerar nova apertado: todos gameobj achados: " + inicio_antes_allObjects.Length + "; geral TotalESPACOconstruido: " + Geral_TotalEspacosConstruidos.Count);
         }
 
-        b_apagar.interactable = true;
-        b_gerarAglomeracao.interactable = false;
-        b_atribuirParametros.interactable = false;
+        botoes_Gerente.b_apagar.interactable = false;
+        botoes_Gerente.b_gerarAglomeracao.interactable = false;
+        botoes_Gerente.b_atribuirParametros.interactable = false;
 
         ///recuperando de inputo valor escrito na entrada de total de espacos a construir
         int quantidade = InputsMorfo.input_totalCasas;// 0;
@@ -316,19 +320,13 @@ public class ControleAglomeracao : MonoBehaviour
             Debug.Log("tracking CA_ColocarConstrucoes");
         }
 
-        //cenas para animacao ===  string screenshotName = "Screenshot_";// + Time.frameCount; // Nome da captura de tela
-        //cenas para animacao ===  ScreenCapture.CaptureScreenshot(screenshotName + ".png");
-//        salvarImagens = new ScreenshotSaver();
-
+        botoes_Gerente.b_antiTravar.interactable = true;
         ContadorRodadas = 0;
 //        Debug.Log("CA TESTANDO| ANTES contagem Geral_TotalEspacosConstruidos: " + Geral_TotalEspacosConstruidos.Count);
 
         float posInicialX = Terrain.activeTerrain.terrainData.size.x / 2;
         float posInicialZ = Terrain.activeTerrain.terrainData.size.z / 2;
         Vector3 pos_central = new Vector3(posInicialX, 1, posInicialZ);
-
-
-        //        Debug.Log("geral predios a fazer: " + tCasas);
 
         Tipo_Localizacao = "aleatorio";
 //        if (!InputsMorfo.boolModoRandom && !InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "aleatorio"; }
@@ -351,6 +349,7 @@ public class ControleAglomeracao : MonoBehaviour
 
         if (InputsMorfo.boolGravarImagens) 
             salvarImagens.inicializarImagens();
+
 
         while (this.Geral_novosPrediosConstruidos.Count < tCasas)
         {
@@ -377,8 +376,6 @@ public class ControleAglomeracao : MonoBehaviour
             Tpredios.text = Geral_novosPrediosConstruidos.Count.ToString();
             Truas.text = Geral_novosPrediosRuas.Count.ToString();
 
-
-
             if (InputsMorfo.boolGravarImagens)
             {
                 yield return StartCoroutine(salvarImagens.FotoTela("zena completa" + ContadorRodadas));
@@ -391,26 +388,34 @@ public class ControleAglomeracao : MonoBehaviour
                 break;
             }
 
+            if (pararDepoisDaRodada)
+            {
+                pararDepoisDaRodada = false;
+                break;
+            }
         }
-
-        //        string screenshotName = "Screenshot_";// + Time.frameCount; // Nome da captura de tela
-        //ScreenCapture.CaptureScreenshot(screenshotName + ".png");
-        //        salvarImagens = new ScreenshotSaver();
-        //        salvarImagens.FotoTela("zena" + ContadorRodadas);
-        //        yield return StartCoroutine(salvarImagens.FotoTela("zena" + ContadorRodadas));
 
         FindObjectOfType<InputsMorfo>().IM_ConfigurarSliderTempo(ContadorRodadas);
 
         navegacaoTempoHabilitada = true;
-        //        InputsMorfo.config
+
         yield return new WaitForEndOfFrame();
 
-        if (InputsMorfo.boolGravarImagens)
-        {
-//            salvarImagens.ZiparImagens();
-//            salvarImagens.SaveGIF();
+        //        if (InputsMorfo.boolGravarImagens)
+        //        {
+        //            salvarImagens.ZiparImagens();
+        //            salvarImagens.SaveGIF();
+        //        }
 
+        if (InputsMorfo.boolGravarImagens && salvarImagens.TemImagens())
+        {
+            botoes_Gerente.downloadImagens.interactable = true;
         }
+
+        botoes_Gerente.b_apagar.interactable = true;
+        botoes_Gerente.b_antiTravar.interactable = false;
+
+
     }
 
     public SO_EspacoConstruido PegarSO(TipoEspacoConstruido tipo)
@@ -486,13 +491,15 @@ public class ControleAglomeracao : MonoBehaviour
     
     public void CA_PararAoTravar()
     {
-        StopAllCoroutines();
+//        StopAllCoroutines();
+
+        pararDepoisDaRodada = true;
 
         FindObjectOfType<InputsMorfo>().IM_ConfigurarSliderTempo(ContadorRodadas);
         navegacaoTempoHabilitada = true;
 
-        b_gerarAglomeracao.interactable = true;
-        b_atribuirParametros.interactable = true;
+        botoes_Gerente.b_gerarAglomeracao.interactable = true;
+        botoes_Gerente.b_atribuirParametros.interactable = true;
     }
 
     public void CA_BaixarImagens()
@@ -500,12 +507,18 @@ public class ControleAglomeracao : MonoBehaviour
         if (salvarImagens == null)
         {
             Debug.LogWarning("CA_BaixarImagens: salvarImagens nao inicializado.");
+            botoes_Gerente.FimDownload();
             return;
         }
 
 //        salvarImagens.BaixarZipWebGL();
 //        salvarImagens.BaixarGifWebGL();
         salvarImagens.BaixarZipComGifWebGL();
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+    botoes_Gerente.FimDownload();
+#endif
+
     }
 
 }

@@ -257,9 +257,16 @@ mergeInto(LibraryManager.library, {
             return zip.generateAsync({ type: "blob" });
         }).then(function (zipBlob) {
             baixarBlob(zipBlob, zipName);
+                if (typeof SendMessage !== "undefined") {
+        SendMessage("PaineisBotoes", "FimDownload");
+    }
         });
     }).catch(function (erro) {
         console.error("DownloadFramesZipWithGif: erro.", erro);
+            
+        if (typeof SendMessage !== "undefined") {
+            SendMessage("PaineisBotoes", "FimDownload");
+            }
     });
 }
 });
