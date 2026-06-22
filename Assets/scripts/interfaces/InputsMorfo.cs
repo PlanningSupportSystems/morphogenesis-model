@@ -76,7 +76,8 @@ public class InputsMorfo : MonoBehaviour
     [SerializeField] Toggle toggleModoIsoObj;
     [SerializeField] Toggle toggleModoPreservaIso;
     [SerializeField] Toggle toggleModoPreservaProfundidade;
-    [SerializeField] Toggle toggleGravarImagens;
+    [SerializeField] public Toggle toggleGravarImagens;
+    [SerializeField] public Toggle toggleApenasImagemFinal;
 
     public static bool boolRuaMaisUm;
     public static bool boolModoIsovista;
@@ -85,6 +86,7 @@ public class InputsMorfo : MonoBehaviour
     public static bool boolModoPreservaIso;
     public static bool boolModoPreservaProfundidade;
     public static bool boolGravarImagens;
+    public static bool boolApenasImagemFinal;
 
 
     public GameObject paramedidas;
@@ -446,6 +448,7 @@ void IM_SetarValores()
         boolModoPreservaIso = toggleModoPreservaIso.isOn;
         boolModoPreservaProfundidade = toggleModoPreservaProfundidade.isOn;
         boolGravarImagens = toggleGravarImagens.isOn;
+        boolApenasImagemFinal = toggleApenasImagemFinal.isOn;
 
         vTotalCasas.text = itotalCasas.text;
         input_totalCasas = int.Parse(vTotalCasas.text);
@@ -522,13 +525,14 @@ void IM_SetarValores()
 //        if (ciclo == ultimoCicloTempoAplicado)
 //            return;
 
-//        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
-//        if (selectionManager != null && selectionManager.TemSelecao())
-//        {
-//            selectionManager.LimparSelecao();
-//        }
+        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
+        if (selectionManager != null)
+        {
+            selectionManager.LimparSelecao();
+        }
 
 //        ultimoCicloTempoAplicado = ciclo;
+
         gerenteAmbiente.CA_NavegarTempo(ciclo);
     }
 

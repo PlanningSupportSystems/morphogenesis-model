@@ -175,7 +175,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         else
         { Debug.LogWarning("metodo_escolha não atribuído em novoPredio.Start()"); }
 
-        yield return StartCoroutine(GravarImagens(" antes "));
+        yield return StartCoroutine(GravarImagens(ScreenshotSaver.MomentoImagem.lugarEscolhido));
         //        NP_ChecarSeEhRua();
         TipoEspacoConstruido tipoTemp = DecidirEstadoCelula();
         AplicarEstadoCelula(tipoTemp);
@@ -250,12 +250,12 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     void isoplace()
     {
         //        NP_CalcularIsovista();
-
+/*
         foreach (var l in GerenteAmbiente.lugaresAtivos)
         {
             Debug.Log($"{l._nome} media={l.medida_geral_ponderada:R}");
         }
-
+*/
         float toleranciaMediaPonderada = 0.001f;
 
         float ref_medida_geral_ponderada = GerenteAmbiente.lugaresAtivos
@@ -320,17 +320,17 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             l.estadoSelecao = lugar.EstadoCorLugar.Elegivel;
             l.AplicarCorTempo(rodadaVisual);
             //            l.AtualizarCor();
-            Debug.Log($"REG ELEGIVEL rodada {rodadaVisual}: {l._nome}");
+//            Debug.Log($"REG ELEGIVEL rodada {rodadaVisual}: {l._nome}");
 
         }
 
     }
 
-    IEnumerator GravarImagens(string antesdps)
+    IEnumerator GravarImagens(ScreenshotSaver.MomentoImagem momento)
     {
         if (InputsMorfo.boolGravarImagens)
         {
-            yield return StartCoroutine(GerenteAmbiente.salvarImagens.FotoTela("zena" + antesdps + GerenteAmbiente.ContadorRodadas));
+            yield return StartCoroutine(GerenteAmbiente.salvarImagens.FotoTela("zena" + momento.ToString() + GerenteAmbiente.ContadorRodadas, momento));
         }
 
     }
@@ -374,15 +374,16 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         {
             if (_isovista_calculada == false) NP_CalcularIsovista();
             profundidade = (lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1);
-            Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
+//            Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
         }
+/*
         if (_isovista_calculada && InputsMorfo.boolModoPreservaProfundidade || InputsMorfo.boolModoPreservaIso)
         {
             Debug.Log(referencia_normalizacao.Publicar());
             Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
             Debug.Log(lugartemp.iso.medidasNormalizadas.Publicar());
         }
-
+*/
         if (profundidade || rua_por_maior_isovista)
             usoTeste = TipoEspacoConstruido.Rua;
 
@@ -653,7 +654,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         // ===== RESTANTE DA PRIMEIRA VARREDURA =====
         //        referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(GerenteAmbiente.lugaresAtivos, _templayer);
         referencia_normalizacao = Normalizador.BuscarReferenciaNormalizacao(lugaresAtivosComIso, _templayer);
-
+        /*
         foreach (var l in GerenteAmbiente.lugaresAtivos)
         {
             Debug.Log($"ANTES NORMALIZAR rodada {GerenteAmbiente.ContadorRodadas}: {l._nome} ativo={l.gameObject.activeSelf} iso={l.iso != null} media={l.medida_geral_ponderada}");
@@ -663,7 +664,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         {
             Debug.Log($"VAI NORMALIZAR rodada {GerenteAmbiente.ContadorRodadas}: {l._nome} , max: {l.iso.medidasBrutas.distanciaMaxima}");
         }
-
+        */
         // ===== SEGUNDA VARREDURA: NORMALIZAR =====
         Normalizador.NomalizarLista(lugaresAtivosComIso, referencia_normalizacao);
 
@@ -694,7 +695,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         float espacamentoDesejado = tamanhoCelula;// * 0.5f;
         int qtd = Mathf.CeilToInt((2f * Mathf.PI * raioVisao) / espacamentoDesejado);
 
-        debug_novoPredio = true;
+        debug_novoPredio = false;
         if (debug_novoPredio)
         {
             Debug.Log($"NOVOPREDIO: CalcularQtdRaios: raioVisao={raioVisao:F2}, " +

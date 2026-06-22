@@ -47,6 +47,7 @@ public class ControleAglomeracao : MonoBehaviour
     public int contadorlugar;
     public int ContadorRodadas;
     public bool navegacaoTempoHabilitada = false;
+    public string nomeTesteAtual = "";
 
     public string Tipo_Localizacao;
 
@@ -57,7 +58,6 @@ public class ControleAglomeracao : MonoBehaviour
     public Material avulso;
     public Material quarteirao;
     public List<IsovistaP> todasIsovistas;
-    public Terrain _terreno;
 
 
 //    public  GameObject [] TiposEspacoConstruido;
@@ -70,7 +70,8 @@ public class ControleAglomeracao : MonoBehaviour
     public GameObject gerenteImagens;
     //    public ImageToGifConverter criaGif;
 
-    //    public event System.Action<float, string> mudouTerreno;
+    public ajusteCamera ajustecamera;
+    public ajusteTerreno ajusteterreno;
 
     public float terrenoAtual;
 
@@ -280,7 +281,10 @@ public class ControleAglomeracao : MonoBehaviour
         contadorlugar = 0;
         Debug.Log("CA| total lugares: " + lugaresAtivos.Count);
 
-        GameObject.Find("Main Camera").GetComponent<ajusteCamera>().AdjustCameraToFitAllObjects();
+        ajusteterreno.redefinirTerreno(InputsMorfo.input_totalCasas);
+
+//        ajustecamera.AdjustCameraToFitAllObjects();
+//        GameObject.Find("Main Camera").GetComponent<ajusteCamera>().AdjustCameraToFitAllObjects();
 
 
     }
@@ -350,6 +354,7 @@ public class ControleAglomeracao : MonoBehaviour
         if (InputsMorfo.boolGravarImagens) 
             salvarImagens.inicializarImagens();
 
+        
 
         while (this.Geral_novosPrediosConstruidos.Count < tCasas)
         {
@@ -378,11 +383,11 @@ public class ControleAglomeracao : MonoBehaviour
 
             if (InputsMorfo.boolGravarImagens)
             {
-                yield return StartCoroutine(salvarImagens.FotoTela("zena completa" + ContadorRodadas));
+                yield return StartCoroutine(salvarImagens.FotoTela("zena completa" + ContadorRodadas, ScreenshotSaver.MomentoImagem.predioAdicionado));
             }
 
             //TROCAR PARA STOP UNTIL "QUER CONTINUAR"
-            if (ContadorRodadas > 100 * tCasas)
+            if (ContadorRodadas > 10 * tCasas || Geral_novosPrediosRuas.Count - Geral_novosPrediosConstruidos.Count > 100)
             {
                 Debug.Log("ESTOUROU TOTAL de ContadorRodadas");
                 break;
@@ -395,6 +400,22 @@ public class ControleAglomeracao : MonoBehaviour
             }
         }
 
+        Debug.Log("valor do apenas imagem final: " + InputsMorfo.boolApenasImagemFinal);
+        if (InputsMorfo.boolApenasImagemFinal)
+        {
+            string nomeFinal = string.IsNullOrEmpty(nomeTesteAtual)
+                ? "final_" + ContadorRodadas
+                : nomeTesteAtual + "_final_" + ContadorRodadas;
+
+            yield return StartCoroutine(
+                salvarImagens.FotoTela(
+                    nomeFinal,
+                    ScreenshotSaver.MomentoImagem.simulacaoConcluida
+                )
+            );
+        }
+
+
         FindObjectOfType<InputsMorfo>().IM_ConfigurarSliderTempo(ContadorRodadas);
 
         navegacaoTempoHabilitada = true;
@@ -406,6 +427,8 @@ public class ControleAglomeracao : MonoBehaviour
         //            salvarImagens.ZiparImagens();
         //            salvarImagens.SaveGIF();
         //        }
+
+
 
         if (InputsMorfo.boolGravarImagens && salvarImagens.TemImagens())
         {
@@ -520,5 +543,19 @@ public class ControleAglomeracao : MonoBehaviour
 #endif
 
     }
+
+    public IEnumerator CA_RodarTesteConfiguracao(int quantidade, string nomeTeste)
+    {
+        nomeTesteAtual = nomeTeste;
+
+        CA_IniciarControle();
+
+        yield return new WaitForEndOfFrame();
+
+        yield return StartCoroutine(CA_criaLugares(quantidade));
+
+        nomeTesteAtual = "";
+    }
+
 
 }

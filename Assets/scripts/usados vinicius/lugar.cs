@@ -533,7 +533,7 @@ public class lugar : MonoBehaviour, ISelecionavel
         }
 
         AtualizarCor();
-        Debug.Log($"COR TEMPO {ciclo}: {_nome} elegivel={rodadasElegivel.Contains(ciclo)} eleito={rodadasEleito.Contains(ciclo)}");
+//        Debug.Log($"COR TEMPO {ciclo}: {_nome} elegivel={rodadasElegivel.Contains(ciclo)} eleito={rodadasEleito.Contains(ciclo)}");
 
     }
 

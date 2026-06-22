@@ -33,6 +33,7 @@ public class botoes_gerente : MonoBehaviour
         //        sliders.interactable = false ;
 
         Toggle_Isovista();
+        Toggle_Imagem();
     }   
 
     public void Toggle_Isovista()
@@ -45,6 +46,11 @@ public class botoes_gerente : MonoBehaviour
         {
             slider.interactable = t_isovista.isOn;
         }
+    }
+
+    public void Toggle_Imagem()
+    {
+        inputsMorfo.toggleApenasImagemFinal.interactable = inputsMorfo.toggleGravarImagens.isOn;
     }
 
     public void Botao_AtribuirParametros()

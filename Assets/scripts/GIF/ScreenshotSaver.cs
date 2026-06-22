@@ -58,6 +58,14 @@ public class ScreenshotSaver : MonoBehaviour
         path = @"C:\Users\danie\OneDrive\projeto vinicius uff\desenvolvimento\@PSS\morphogenesis model\@imagens geradas\sprint webgl\";
     }
 
+
+    public enum MomentoImagem
+    {
+        lugarEscolhido,
+        predioAdicionado,
+        simulacaoConcluida
+    }
+
     public void Start()
     {
         //menu_foradafoto = GameObject.Find("PainelMorfogenese");
@@ -68,15 +76,25 @@ public class ScreenshotSaver : MonoBehaviour
         StartCoroutine(CaptureScreenshotCoroutine(filename));
     }
 
-    public IEnumerator FotoTela(string filename)
+    private bool DeveSalvarMomento(MomentoImagem momento)
     {
-//        menu_foradafoto = GameObject.Find("Canvas");
-//        //        Debug.Log("fototela screenshot, menu: " + (menu_foradafoto != null));
-//        if (menu_foradafoto != null)
-//        {
-//            menu_foradafoto.SetActive(false);
-//        }
-//        //        Debug.Log("menu ativo: " + menu_foradafoto.activeSelf);
+//        Debug.Log("DeveSalvarMomento: momento=" + momento + ", boolGravarImagens=" + InputsMorfo.boolGravarImagens + ", boolApenasImagemFinal=" + InputsMorfo.boolApenasImagemFinal);
+        if (!InputsMorfo.boolGravarImagens)
+            return false;
+//        Debug.Log("passou do boolGravarImagens");
+        if (InputsMorfo.boolApenasImagemFinal)
+            return momento == MomentoImagem.simulacaoConcluida;
+//        Debug.Log("passou do booApenas Final");
+
+        return true;
+    }
+
+    public IEnumerator FotoTela(string filename, MomentoImagem momento)
+    {
+        if (!DeveSalvarMomento(momento))
+            yield break;
+
+//        Debug.Log("FotoTela: momento=" + momento + ", filename=" + filename);
 
         yield return new WaitForEndOfFrame();
 
@@ -108,7 +126,8 @@ public class ScreenshotSaver : MonoBehaviour
             byte[] pngBytes = screenshot.EncodeToPNG();
 
             Directory.CreateDirectory(path);
-            filename = imageList.Count.ToString("D4") + " " + filename;
+            if (!InputsMorfo.boolApenasImagemFinal)
+                filename = imageList.Count.ToString("D4") + " " + filename;
             string filePath = Path.Combine(path, filename + ".png");
             File.WriteAllBytes(filePath, pngBytes);
 
