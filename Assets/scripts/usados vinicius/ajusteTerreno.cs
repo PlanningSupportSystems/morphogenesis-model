@@ -13,9 +13,10 @@ public class ajusteTerreno : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-//        redefinirTerreno(10f);
+        //        redefinirTerreno(10f);
 
     }
+
 
     // Update is called once per frame
     void Update()
@@ -24,10 +25,11 @@ public class ajusteTerreno : MonoBehaviour
     }
 
 
-    public void redefinirTerreno(float _qtdCasas)
+    public void redefinirTerreno(float _qtdCasas, float distAdjacente)
     {
+
         ///redefinicao do tamanho do terreno para acomodar toda a "cidade"
-        float raio = Mathf.Sqrt(_qtdCasas)* 5 * InputsMorfo.input_distanciaAdjacencia ;
+        float raio = Mathf.Sqrt(_qtdCasas) * 5 * distAdjacente; // InputsMorfo.input_distanciaAdjacencia ;
         terreno.terrainData.size = new Vector3(raio, 0, raio);
         terreno.transform.position = new Vector3(0, 0, 0);
 //        Debug.Log("novo tamanho: " + raio);

@@ -20,8 +20,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
 
     [SerializeField] public string enderecoCelula;
-//    [SerializeField] public Vector2Int endCelula = new Vector2Int(0, 0);
-    public Celula minhaCelula;
+    //    [SerializeField] public Vector2Int endCelula = new Vector2Int(0, 0);
+    [System.NonSerialized] public Celula minhaCelula;
     public OcupacaoCelula usoCelula;
     public TipoEspacoConstruido np_tipo;
 
@@ -179,6 +179,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         //        NP_ChecarSeEhRua();
         TipoEspacoConstruido tipoTemp = DecidirEstadoCelula();
         AplicarEstadoCelula(tipoTemp);
+        if (tipoTemp == TipoEspacoConstruido.Bloqueado)
+            yield break;
 
         //////////USO DAS CELULAS PARA CHECAR VIZINHOS
         //        celulasVonNeumann = new Dictionary<Vector2Int, Celula>();  //foi para inicializar()
@@ -328,7 +330,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     IEnumerator GravarImagens(ScreenshotSaver.MomentoImagem momento)
     {
-        if (InputsMorfo.boolGravarImagens)
+        if (GerenteAmbiente.configuracaoAtual.gravarImagens)
         {
             yield return StartCoroutine(GerenteAmbiente.salvarImagens.FotoTela("zena" + momento.ToString() + GerenteAmbiente.ContadorRodadas, momento));
         }
@@ -361,7 +363,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         //se nao tiver quina, retorna ok para a ocupacao q tinha sido sugerida
 
         bool rua_por_maior_isovista = false;
-        if (InputsMorfo.boolModoPreservaIso)
+        if (GerenteAmbiente.configuracaoAtual.preservaIso)
         {
             if (_isovista_calculada == false) NP_CalcularIsovista();
             rua_por_maior_isovista = (lugartemp.iso.medidasNormalizadas.distanciaMaxima == 1); ///pode ser substituido por uma comparacao medidasnormalizadas.maxdist ==1
@@ -370,14 +372,14 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
 
         bool profundidade = false;
-        if (InputsMorfo.boolModoPreservaProfundidade)
+        if (GerenteAmbiente.configuracaoAtual.preservaProfundidade)
         {
             if (_isovista_calculada == false) NP_CalcularIsovista();
             profundidade = (lugartemp.iso.medidasNormalizadas.ProfundidadeRua == 1);
 //            Debug.Log("profundidade rua: ");// + lugartemp.total_profundidade_Rua + "valor referencia: " + referencia_normalizacao.ProfundidadeRua_Min);
         }
 /*
-        if (_isovista_calculada && InputsMorfo.boolModoPreservaProfundidade || InputsMorfo.boolModoPreservaIso)
+        if (_isovista_calculada && GerenteAmbiente.configuracaoAtual.preservaProfundidade || GerenteAmbiente.configuracaoAtual.preservaIso)
         {
             Debug.Log(referencia_normalizacao.Publicar());
             Debug.Log(lugartemp.iso.medidasBrutas.Publicar());
@@ -572,24 +574,23 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         LayerMask bloqueadores = LayerMask.GetMask("layer_predios");
         LayerMask transparentes = LayerMask.GetMask("layer_lugares", "layer_ruas");
 
-        Vector3 pos_mundo = new Vector3();
-        if (minhaCelula.posicaoMundo == null)
+        Celula celulaBase = minhaCelula != null ? minhaCelula : lugartemp?.minhaCelula;
+        if (celulaBase == null)
         {
-            pos_mundo = lugartemp.minhaCelula.posicaoMundo;
-        }
-        else if (minhaCelula.posicaoMundo != null)
-        {
-            pos_mundo = minhaCelula.posicaoMundo;
+            Debug.LogWarning("NP_CalcularIsovista: sem celulaBase para calcular isovista.");
+            return;
         }
 
-        IsovistaP iso_temp = new IsovistaP(pos_mundo);
-        List<ResultadoRaioVisao> resultados = iso_temp.VarrerCampoVisao(
-            minhaCelula.posicaoMundo,
-            InputsMorfo.input_distanciaCampoVisao,
-            CalcularQtdRaios(),
-            LayerMask.GetMask("layer_predios"),
-            LayerMask.GetMask("layer_lugares", "layer_ruas")
-        );
+        Vector3 pos_mundo = celulaBase.posicaoMundo;
+
+//        IsovistaP iso_temp = new IsovistaP(pos_mundo);
+//        List<ResultadoRaioVisao> resultados = iso_temp.VarrerCampoVisao(
+//            pos_mundo,
+//            GerenteAmbiente.configuracaoAtual.distanciaCampoVisao,// InputsMorfo.input_distanciaCampoVisao,
+//            CalcularQtdRaios(),
+//            LayerMask.GetMask("layer_predios"),
+//            LayerMask.GetMask("layer_lugares", "layer_ruas")
+//        );
 
 //        HashSet<lugar> lugaresVisiveis = new HashSet<lugar>(iso_temp.LerLugaresVisiveis(resultados));
         HashSet<lugar> lugaresVisiveis = new HashSet<lugar>();
@@ -600,7 +601,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
             List<ResultadoRaioVisao> resultados2 = iso_temp2.VarrerCampoVisao(
                 origem,
-                InputsMorfo.input_distanciaCampoVisao,
+                GerenteAmbiente.configuracaoAtual.distanciaCampoVisao,//InputsMorfo.input_distanciaCampoVisao,
                 CalcularQtdRaios(),
                 LayerMask.GetMask("layer_predios"),
                 LayerMask.GetMask("layer_lugares", "layer_ruas")
@@ -676,7 +677,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
     int CalcularQtdRaios()
     {
-        float raioVisao = InputsMorfo.input_distanciaCampoVisao;
+        float raioVisao = GerenteAmbiente.configuracaoAtual.distanciaCampoVisao;//InputsMorfo.input_distanciaCampoVisao;
         Vector3 tamanho_EspacoConstruido_Vector;
 
         Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
@@ -695,7 +696,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         float espacamentoDesejado = tamanhoCelula;// * 0.5f;
         int qtd = Mathf.CeilToInt((2f * Mathf.PI * raioVisao) / espacamentoDesejado);
 
-        debug_novoPredio = false;
+        debug_novoPredio = true;
         if (debug_novoPredio)
         {
             Debug.Log($"NOVOPREDIO: CalcularQtdRaios: raioVisao={raioVisao:F2}, " +
@@ -714,13 +715,20 @@ public class novoPredio : MonoBehaviour, ISelecionavel
     {
         List<Vector3> pontos = new List<Vector3>();
 
+        Celula celulaBase = minhaCelula != null ? minhaCelula : lugartemp?.minhaCelula;
+        if (celulaBase == null)
+        {
+            Debug.LogWarning("PegarPontosVisibilidadeNovoPredio: sem celulaBase.");
+            return pontos;
+        }
+
         Renderer rend = GetComponent<Renderer>();
 
         if (rend != null)
         {
             Bounds b = rend.bounds;
 
-            float y = minhaCelula.posicaoMundo.y;
+            float y = celulaBase.posicaoMundo.y;
 
             pontos.Add(new Vector3(b.min.x, y, b.min.z));
             pontos.Add(new Vector3(b.min.x, y, b.max.z));
@@ -741,7 +749,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
             tamanhoCelula = Mathf.Min(tam.x, tam.z);
         }
 
-        Vector3 c = minhaCelula.posicaoMundo;
+        Vector3 c = celulaBase.posicaoMundo;
         float h = tamanhoCelula * 0.5f;
 
         pontos.Add(c + new Vector3(-h, 0f, -h));
@@ -865,8 +873,9 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         Debug.Log("click campo visao qual a layer: " + _templayer.ToString());
         Debug.Log($"meu tipo: {np_tipo}, trancado: {checagem_vizinhos_trancados}, quina: {checagem_vizinhos_quina}");
 
-        _iso_display = new IsovistaP(np_endereco, 360, InputsMorfo.input_distanciaCampoVisao, _templayer);
-        _iso_display.CampoVisao(360, InputsMorfo.input_distanciaCampoVisao);
+        int totalRaios = CalcularQtdRaios();
+        _iso_display = new IsovistaP(np_endereco, totalRaios, GerenteAmbiente.configuracaoAtual.distanciaCampoVisao /*InputsMorfo.input_distanciaCampoVisao*/, _templayer);
+        _iso_display.CampoVisao(totalRaios, GerenteAmbiente.configuracaoAtual.distanciaCampoVisao);// InputsMorfo.input_distanciaCampoVisao);
         _iso_display.isoMesh(_iso_display.pontosContorno, np_nome + "mesh");
 
     }
@@ -918,6 +927,12 @@ public class novoPredio : MonoBehaviour, ISelecionavel
      Vector2Int[] offset_T,
      System.Action<Celula, Celula, Vector2Int> operacao_T)
     {
+        if (celula_T == null || offset_T == null || operacao_T == null)
+        {
+            Debug.LogWarning("NP_iterarVizinhanca: parametros invalidos.");
+            return;
+        }
+
         //exemplo de iteracao, pode ser adaptado para outros usos
         foreach (var offset_t in offset_T)
         {
@@ -935,13 +950,14 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         ///atualiza lista de celulas vizinhas. se criar = true, cria as q faltam
         if (criarVizinhos && vizinha_T == null)
         {
+            
             Vector2Int enderecoCelular = celulaBase_T.endereco + offset_T;
             Vector3 enderecoReal = celulaBase_T.posicaoMundo +
                 new Vector3
                 (
-                    offset_T.x * InputsMorfo.input_distanciaAdjacencia,
+                    offset_T.x * GerenteAmbiente.configuracaoAtual.distanciaAdjacencia, //  InputsMorfo.input_distanciaAdjacencia,
                     0,
-                    offset_T.y * InputsMorfo.input_distanciaAdjacencia
+                    offset_T.y * GerenteAmbiente.configuracaoAtual.distanciaAdjacencia // InputsMorfo.input_distanciaAdjacencia
                 );
 
             Celula nova = GerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);
@@ -1164,7 +1180,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         checagem_vizinhos_quina = Action_ChecaVizinhoQuina(celula_T); // minhaCelula);//= Legacy_NP_ChecaVizinhoQuina(minhaCelula);
 
         bool rua_por_maior_isovista = false;
-        if (InputsMorfo.boolModoPreservaIso)
+        if (GerenteAmbiente.configuracaoAtual.preservaIso)
         {
             if (_isovista_calculada == false) NP_CalcularIsovista();
             //            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
@@ -1176,7 +1192,7 @@ public class novoPredio : MonoBehaviour, ISelecionavel
         }
 
         bool profundidade = false;
-        if (InputsMorfo.boolModoPreservaProfundidade)
+        if (GerenteAmbiente.configuracaoAtual.preservaProfundidade)
         {
             if (_isovista_calculada == false) NP_CalcularIsovista();
             //            NP_CalcularIsovista(); //criar_T um check de q ja foi calculado pra evitar recalcular
@@ -1276,8 +1292,8 @@ public class novoPredio : MonoBehaviour, ISelecionavel
 
             if (!GerenteAmbiente.livroCelulas.TryGetValue(enderecoCelular, out Celula celula) && criar_T)
             {
-                float x = celula_T.posicaoMundo.x + matrizVizinhanca_T[i].x * InputsMorfo.input_distanciaAdjacencia;
-                float z = celula_T.posicaoMundo.z + matrizVizinhanca_T[i].y * InputsMorfo.input_distanciaAdjacencia;
+                float x = celula_T.posicaoMundo.x + matrizVizinhanca_T[i].x * GerenteAmbiente.configuracaoAtual.distanciaAdjacencia;// InputsMorfo.input_distanciaAdjacencia;
+                float z = celula_T.posicaoMundo.z + matrizVizinhanca_T[i].y * GerenteAmbiente.configuracaoAtual.distanciaAdjacencia; // InputsMorfo.input_distanciaAdjacencia;
                 Vector3 enderecoReal = new Vector3(x, celula_T.posicaoMundo.y, z);// celulasVizinhas[Celula.offsetsVonNeumann[i]] = new Celula(Celula.offsetsVonNeumann[i], enderecoReal);
 
                 celula = GerenteAmbiente.CriarCelula(enderecoCelular, enderecoReal);

@@ -38,8 +38,11 @@ public class ajusteCamera : MonoBehaviour
     private Vector3 pivotWorld;
     private Rect lastVisibleRect;
 
+    private ControleAglomeracao gerenteAmbiente;
+
     void Start()
     {
+        gerenteAmbiente = ControleAglomeracao.Instance;
         ObterJanelaMundo();
 
         // inicializa distância e ângulos a partir da transform atual e do centro do terreno
@@ -323,8 +326,8 @@ public class ajusteCamera : MonoBehaviour
         transform.position = centro + offset;
         transform.LookAt(centro);
         GetComponent<Camera>().orthographic = true;
-        if (InputsMorfo.input_totalCasas == null) { GetComponent<Camera>().orthographicSize = 5; }
-        else { GetComponent<Camera>().orthographicSize = Mathf.Sqrt(InputsMorfo.input_totalCasas) * 3; }
+        if (/*InputsMorfo.input_totalCasas*/ gerenteAmbiente.configuracaoAtual.totalCasas <= 0) { GetComponent<Camera>().orthographicSize = 5; }
+        else { GetComponent<Camera>().orthographicSize = Mathf.Sqrt(/*InputsMorfo.input_totalCasas*/ gerenteAmbiente.configuracaoAtual.totalCasas) * 3; }
 
         // atualizar pivot para o centro do terreno (porque reposicionar centraliza na cena)
         pivotWorld = centro;

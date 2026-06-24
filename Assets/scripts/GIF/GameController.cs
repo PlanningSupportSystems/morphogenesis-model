@@ -4,7 +4,7 @@ public class GameController : MonoBehaviour
 {
     public GameObject _screen;
     private ScreenshotSaver screenshotSaver;
-    bool a = true;
+//    bool a = true;
 
     private void Start()
     {

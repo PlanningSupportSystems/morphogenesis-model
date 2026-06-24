@@ -1,0 +1,186 @@
+﻿T001 | Profundidade e Sem Preservação
+T002 | Profundidade e Preservando Maior Isovista
+T003 | Profundidade e Preservando Profundidade
+T004 | Ruas Vistas e Sem Preservação
+T005 | Ruas Vistas e Preservando Maior Isovista
+T006 | Ruas Vistas e Preservando Profundidade
+T007 | Ruas Vistas, Profundidade e Sem Preservação
+T008 | Ruas Vistas, Profundidade e Preservando Maior Isovista
+T009 | Ruas Vistas, Profundidade e Preservando Profundidade
+T010 | Prédios Vistos e Sem Preservação
+T011 | Prédios Vistos e Preservando Maior Isovista
+T012 | Prédios Vistos e Preservando Profundidade
+T013 | Prédios Vistos, Profundidade e Sem Preservação
+T014 | Prédios Vistos, Profundidade e Preservando Maior Isovista
+T015 | Prédios Vistos, Profundidade e Preservando Profundidade
+T016 | Prédios Vistos, Ruas Vistas e Sem Preservação
+T017 | Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T018 | Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T019 | Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T020 | Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T021 | Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T022 | Objetos Vistos e Sem Preservação
+T023 | Objetos Vistos e Preservando Maior Isovista
+T024 | Objetos Vistos e Preservando Profundidade
+T025 | Objetos Vistos, Profundidade e Sem Preservação
+T026 | Objetos Vistos, Profundidade e Preservando Maior Isovista
+T027 | Objetos Vistos, Profundidade e Preservando Profundidade
+T028 | Objetos Vistos, Ruas Vistas e Sem Preservação
+T029 | Objetos Vistos, Ruas Vistas e Preservando Maior Isovista
+T030 | Objetos Vistos, Ruas Vistas e Preservando Profundidade
+T031 | Objetos Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T032 | Objetos Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T033 | Objetos Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T034 | Objetos Vistos, Prédios Vistos e Sem Preservação
+T035 | Objetos Vistos, Prédios Vistos e Preservando Maior Isovista
+T036 | Objetos Vistos, Prédios Vistos e Preservando Profundidade
+T037 | Objetos Vistos, Prédios Vistos, Profundidade e Sem Preservação
+T038 | Objetos Vistos, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T039 | Objetos Vistos, Prédios Vistos, Profundidade e Preservando Profundidade
+T040 | Objetos Vistos, Prédios Vistos, Ruas Vistas e Sem Preservação
+T041 | Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T042 | Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T043 | Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T044 | Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T045 | Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T046 | Área Vista e Sem Preservação
+T047 | Área Vista e Preservando Maior Isovista
+T048 | Área Vista e Preservando Profundidade
+T049 | Área Vista, Profundidade e Sem Preservação
+T050 | Área Vista, Profundidade e Preservando Maior Isovista
+T051 | Área Vista, Profundidade e Preservando Profundidade
+T052 | Área Vista, Ruas Vistas e Sem Preservação
+T053 | Área Vista, Ruas Vistas e Preservando Maior Isovista
+T054 | Área Vista, Ruas Vistas e Preservando Profundidade
+T055 | Área Vista, Ruas Vistas, Profundidade e Sem Preservação
+T056 | Área Vista, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T057 | Área Vista, Ruas Vistas, Profundidade e Preservando Profundidade
+T058 | Área Vista, Prédios Vistos e Sem Preservação
+T059 | Área Vista, Prédios Vistos e Preservando Maior Isovista
+T060 | Área Vista, Prédios Vistos e Preservando Profundidade
+T061 | Área Vista, Prédios Vistos, Profundidade e Sem Preservação
+T062 | Área Vista, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T063 | Área Vista, Prédios Vistos, Profundidade e Preservando Profundidade
+T064 | Área Vista, Prédios Vistos, Ruas Vistas e Sem Preservação
+T065 | Área Vista, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T066 | Área Vista, Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T067 | Área Vista, Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T068 | Área Vista, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T069 | Área Vista, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T070 | Área Vista, Objetos Vistos e Sem Preservação
+T071 | Área Vista, Objetos Vistos e Preservando Maior Isovista
+T072 | Área Vista, Objetos Vistos e Preservando Profundidade
+T073 | Área Vista, Objetos Vistos, Profundidade e Sem Preservação
+T074 | Área Vista, Objetos Vistos, Profundidade e Preservando Maior Isovista
+T075 | Área Vista, Objetos Vistos, Profundidade e Preservando Profundidade
+T076 | Área Vista, Objetos Vistos, Ruas Vistas e Sem Preservação
+T077 | Área Vista, Objetos Vistos, Ruas Vistas e Preservando Maior Isovista
+T078 | Área Vista, Objetos Vistos, Ruas Vistas e Preservando Profundidade
+T079 | Área Vista, Objetos Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T080 | Área Vista, Objetos Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T081 | Área Vista, Objetos Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T082 | Área Vista, Objetos Vistos, Prédios Vistos e Sem Preservação
+T083 | Área Vista, Objetos Vistos, Prédios Vistos e Preservando Maior Isovista
+T084 | Área Vista, Objetos Vistos, Prédios Vistos e Preservando Profundidade
+T085 | Área Vista, Objetos Vistos, Prédios Vistos, Profundidade e Sem Preservação
+T086 | Área Vista, Objetos Vistos, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T087 | Área Vista, Objetos Vistos, Prédios Vistos, Profundidade e Preservando Profundidade
+T088 | Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas e Sem Preservação
+T089 | Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T090 | Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T091 | Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T092 | Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T093 | Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T094 | Distância Máxima e Sem Preservação
+T095 | Distância Máxima e Preservando Maior Isovista
+T096 | Distância Máxima e Preservando Profundidade
+T097 | Distância Máxima, Profundidade e Sem Preservação
+T098 | Distância Máxima, Profundidade e Preservando Maior Isovista
+T099 | Distância Máxima, Profundidade e Preservando Profundidade
+T100 | Distância Máxima, Ruas Vistas e Sem Preservação
+T101 | Distância Máxima, Ruas Vistas e Preservando Maior Isovista
+T102 | Distância Máxima, Ruas Vistas e Preservando Profundidade
+T103 | Distância Máxima, Ruas Vistas, Profundidade e Sem Preservação
+T104 | Distância Máxima, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T105 | Distância Máxima, Ruas Vistas, Profundidade e Preservando Profundidade
+T106 | Distância Máxima, Prédios Vistos e Sem Preservação
+T107 | Distância Máxima, Prédios Vistos e Preservando Maior Isovista
+T108 | Distância Máxima, Prédios Vistos e Preservando Profundidade
+T109 | Distância Máxima, Prédios Vistos, Profundidade e Sem Preservação
+T110 | Distância Máxima, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T111 | Distância Máxima, Prédios Vistos, Profundidade e Preservando Profundidade
+T112 | Distância Máxima, Prédios Vistos, Ruas Vistas e Sem Preservação
+T113 | Distância Máxima, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T114 | Distância Máxima, Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T115 | Distância Máxima, Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T116 | Distância Máxima, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T117 | Distância Máxima, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T118 | Distância Máxima, Objetos Vistos e Sem Preservação
+T119 | Distância Máxima, Objetos Vistos e Preservando Maior Isovista
+T120 | Distância Máxima, Objetos Vistos e Preservando Profundidade
+T121 | Distância Máxima, Objetos Vistos, Profundidade e Sem Preservação
+T122 | Distância Máxima, Objetos Vistos, Profundidade e Preservando Maior Isovista
+T123 | Distância Máxima, Objetos Vistos, Profundidade e Preservando Profundidade
+T124 | Distância Máxima, Objetos Vistos, Ruas Vistas e Sem Preservação
+T125 | Distância Máxima, Objetos Vistos, Ruas Vistas e Preservando Maior Isovista
+T126 | Distância Máxima, Objetos Vistos, Ruas Vistas e Preservando Profundidade
+T127 | Distância Máxima, Objetos Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T128 | Distância Máxima, Objetos Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T129 | Distância Máxima, Objetos Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T130 | Distância Máxima, Objetos Vistos, Prédios Vistos e Sem Preservação
+T131 | Distância Máxima, Objetos Vistos, Prédios Vistos e Preservando Maior Isovista
+T132 | Distância Máxima, Objetos Vistos, Prédios Vistos e Preservando Profundidade
+T133 | Distância Máxima, Objetos Vistos, Prédios Vistos, Profundidade e Sem Preservação
+T134 | Distância Máxima, Objetos Vistos, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T135 | Distância Máxima, Objetos Vistos, Prédios Vistos, Profundidade e Preservando Profundidade
+T136 | Distância Máxima, Objetos Vistos, Prédios Vistos, Ruas Vistas e Sem Preservação
+T137 | Distância Máxima, Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T138 | Distância Máxima, Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T139 | Distância Máxima, Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T140 | Distância Máxima, Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T141 | Distância Máxima, Objetos Vistos, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T142 | Distância Máxima, Área Vista e Sem Preservação
+T143 | Distância Máxima, Área Vista e Preservando Maior Isovista
+T144 | Distância Máxima, Área Vista e Preservando Profundidade
+T145 | Distância Máxima, Área Vista, Profundidade e Sem Preservação
+T146 | Distância Máxima, Área Vista, Profundidade e Preservando Maior Isovista
+T147 | Distância Máxima, Área Vista, Profundidade e Preservando Profundidade
+T148 | Distância Máxima, Área Vista, Ruas Vistas e Sem Preservação
+T149 | Distância Máxima, Área Vista, Ruas Vistas e Preservando Maior Isovista
+T150 | Distância Máxima, Área Vista, Ruas Vistas e Preservando Profundidade
+T151 | Distância Máxima, Área Vista, Ruas Vistas, Profundidade e Sem Preservação
+T152 | Distância Máxima, Área Vista, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T153 | Distância Máxima, Área Vista, Ruas Vistas, Profundidade e Preservando Profundidade
+T154 | Distância Máxima, Área Vista, Prédios Vistos e Sem Preservação
+T155 | Distância Máxima, Área Vista, Prédios Vistos e Preservando Maior Isovista
+T156 | Distância Máxima, Área Vista, Prédios Vistos e Preservando Profundidade
+T157 | Distância Máxima, Área Vista, Prédios Vistos, Profundidade e Sem Preservação
+T158 | Distância Máxima, Área Vista, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T159 | Distância Máxima, Área Vista, Prédios Vistos, Profundidade e Preservando Profundidade
+T160 | Distância Máxima, Área Vista, Prédios Vistos, Ruas Vistas e Sem Preservação
+T161 | Distância Máxima, Área Vista, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T162 | Distância Máxima, Área Vista, Prédios Vistos, Ruas Vistas e Preservando Profundidade
+T163 | Distância Máxima, Área Vista, Prédios Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T164 | Distância Máxima, Área Vista, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T165 | Distância Máxima, Área Vista, Prédios Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T166 | Distância Máxima, Área Vista, Objetos Vistos e Sem Preservação
+T167 | Distância Máxima, Área Vista, Objetos Vistos e Preservando Maior Isovista
+T168 | Distância Máxima, Área Vista, Objetos Vistos e Preservando Profundidade
+T169 | Distância Máxima, Área Vista, Objetos Vistos, Profundidade e Sem Preservação
+T170 | Distância Máxima, Área Vista, Objetos Vistos, Profundidade e Preservando Maior Isovista
+T171 | Distância Máxima, Área Vista, Objetos Vistos, Profundidade e Preservando Profundidade
+T172 | Distância Máxima, Área Vista, Objetos Vistos, Ruas Vistas e Sem Preservação
+T173 | Distância Máxima, Área Vista, Objetos Vistos, Ruas Vistas e Preservando Maior Isovista
+T174 | Distância Máxima, Área Vista, Objetos Vistos, Ruas Vistas e Preservando Profundidade
+T175 | Distância Máxima, Área Vista, Objetos Vistos, Ruas Vistas, Profundidade e Sem Preservação
+T176 | Distância Máxima, Área Vista, Objetos Vistos, Ruas Vistas, Profundidade e Preservando Maior Isovista
+T177 | Distância Máxima, Área Vista, Objetos Vistos, Ruas Vistas, Profundidade e Preservando Profundidade
+T178 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos e Sem Preservação
+T179 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos e Preservando Maior Isovista
+T180 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos e Preservando Profundidade
+T181 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos, Profundidade e Sem Preservação
+T182 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos, Profundidade e Preservando Maior Isovista
+T183 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos, Profundidade e Preservando Profundidade
+T184 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas e Sem Preservação
+T185 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Maior Isovista
+T186 | Distância Máxima, Área Vista, Objetos Vistos, Prédios Vistos, Ruas Vistas e Preservando Profundidade

@@ -29,13 +29,14 @@ public class ScreenshotSaver : MonoBehaviour
     public int frameRate = 10; // Frames per second for GIF
     private List<Texture2D> capturedFrames;// = new List<Texture2D>();
     public GameObject menu_foradafoto;
+    ControleAglomeracao gerenteAmbiente;
 
 
-//    [DllImport("__Internal")]
-//    private static extern void SaveFile(string filename, byte[] content, int length);
+    //    [DllImport("__Internal")]
+    //    private static extern void SaveFile(string filename, byte[] content, int length);
 
-//    [DllImport("__Internal")]
-//    private static extern void SaveAllFiles(string[] filenames, byte[][] contents, int[] lengths, int count);
+    //    [DllImport("__Internal")]
+    //    private static extern void SaveAllFiles(string[] filenames, byte[][] contents, int[] lengths, int count);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")]
@@ -66,8 +67,10 @@ public class ScreenshotSaver : MonoBehaviour
         simulacaoConcluida
     }
 
+
     public void Start()
     {
+        gerenteAmbiente = ControleAglomeracao.Instance;
         //menu_foradafoto = GameObject.Find("PainelMorfogenese");
         //Debug.Log("start screenshot, menu: " + menu_foradafoto != null);
     }
@@ -78,11 +81,13 @@ public class ScreenshotSaver : MonoBehaviour
 
     private bool DeveSalvarMomento(MomentoImagem momento)
     {
-//        Debug.Log("DeveSalvarMomento: momento=" + momento + ", boolGravarImagens=" + InputsMorfo.boolGravarImagens + ", boolApenasImagemFinal=" + InputsMorfo.boolApenasImagemFinal);
-        if (!InputsMorfo.boolGravarImagens)
+        //        Debug.Log("DeveSalvarMomento: momento=" + momento + ", boolGravarImagens=" + InputsMorfo.boolGravarImagens + ", boolApenasImagemFinal=" + InputsMorfo.boolApenasImagemFinal);
+
+        
+        if (!gerenteAmbiente.configuracaoAtual.gravarImagens)//!InputsMorfo.boolGravarImagens)
             return false;
 //        Debug.Log("passou do boolGravarImagens");
-        if (InputsMorfo.boolApenasImagemFinal)
+        if (gerenteAmbiente.configuracaoAtual.apenasImagemFinal)// InputsMorfo.boolApenasImagemFinal)
             return momento == MomentoImagem.simulacaoConcluida;
 //        Debug.Log("passou do booApenas Final");
 
@@ -126,7 +131,7 @@ public class ScreenshotSaver : MonoBehaviour
             byte[] pngBytes = screenshot.EncodeToPNG();
 
             Directory.CreateDirectory(path);
-            if (!InputsMorfo.boolApenasImagemFinal)
+            if (!gerenteAmbiente.configuracaoAtual.apenasImagemFinal) //  !InputsMorfo.boolApenasImagemFinal)
                 filename = imageList.Count.ToString("D4") + " " + filename;
             string filePath = Path.Combine(path, filename + ".png");
             File.WriteAllBytes(filePath, pngBytes);

@@ -75,6 +75,36 @@ public class ControleAglomeracao : MonoBehaviour
 
     public float terrenoAtual;
 
+    public Configuracoes configuracaoAtual;
+
+    public struct Configuracoes
+    {
+        public int totalCasas;
+        public float totalVizinhos;
+        public float distanciaAdjacencia;
+        public float distanciaRegional;
+        public float distanciaCampoVisao;
+
+        public bool ruaMaisUm;
+        public bool modoRandom;
+        public bool modoIsovista;
+        public bool modoIsoObj;
+        public bool preservaIso;
+        public bool preservaProfundidade;
+
+        public bool gravarImagens;
+        public bool apenasImagemFinal;
+
+        public float pesoDistanciaMaxima;
+        public float pesoDistanciaMinima;
+        public float pesoDistanciaMedia;
+        public float pesoDistanciaTotal;
+        public float pesoTotalObjVisto;
+        public float pesoTotalPredioVisto;
+        public float pesoTotalRuaVisto;
+        public float pesoProfundidadeRua;
+    }
+
     private void Awake()
     {
         // Verifica se já existe uma instância
@@ -121,7 +151,7 @@ public class ControleAglomeracao : MonoBehaviour
 
 //        InputsMorfo.   .IM_AtribuirCasas();
         CA_IniciarControle();
-        DistanciaObjetos = InputsMorfo.input_distanciaAdjacencia;
+        DistanciaObjetos = configuracaoAtual.distanciaAdjacencia; // InputsMorfo.input_distanciaAdjacencia;
 //        GameObject.Find("Main Camera").GetComponent<ajusteCamera>().reposicionar();
 //        GameObject.Find("Main Camera").GetComponent<ajusteCamera>().AdjustCameraToFitAllObjects();
 
@@ -137,12 +167,42 @@ public class ControleAglomeracao : MonoBehaviour
             Debug.Log("tracking CAAtualizaValoresInput");
         }
 
-        DistanciaObjetos = InputsMorfo.input_distanciaAdjacencia;     // int.Parse(TdistObj.text);
-        QtdVizinhanca = (int)InputsMorfo.input_totalVizinhos;//   int.Parse(TresViz.text);
+        DistanciaObjetos = configuracaoAtual.distanciaAdjacencia;// InputsMorfo.input_distanciaAdjacencia;     // int.Parse(TdistObj.text);
+        QtdVizinhanca = (int)configuracaoAtual.totalVizinhos;// InputsMorfo.input_totalVizinhos;//   int.Parse(TresViz.text);
 //        Debug.Log("CONTROLE AGLOMERACAO| total de vizinhos pedidos: " + QtdVizinhanca);
 
     }
 
+    public void CA_AplicarConfiguracao(Configuracoes config)
+    {
+        configuracaoAtual = config;
+//        InputsMorfo.input_totalVizinhos = config.totalVizinhos;
+//        InputsMorfo.input_distanciaAdjacencia = config.distanciaAdjacencia;
+//        InputsMorfo.input_distanciaRegional = config.distanciaRegional;
+//        InputsMorfo.input_distanciaCampoVisao = config.distanciaCampoVisao;
+
+        InputsMorfo.boolRuaMaisUm = config.ruaMaisUm;
+        InputsMorfo.boolModoRandom = config.modoRandom;
+        InputsMorfo.boolModoIsovista = config.modoIsovista;
+        InputsMorfo.boolModoIsoObj = config.modoIsoObj;
+        InputsMorfo.boolModoPreservaIso = config.preservaIso;
+        InputsMorfo.boolModoPreservaProfundidade = config.preservaProfundidade;
+
+        InputsMorfo.boolGravarImagens = config.gravarImagens;
+        InputsMorfo.boolApenasImagemFinal = config.apenasImagemFinal;
+
+//        InputsMorfo.peso_distanciaMaxima = config.pesoDistanciaMaxima;
+//        InputsMorfo.peso_distanciaMinima = config.pesoDistanciaMinima;
+//        InputsMorfo.peso_distanciaMedia = config.pesoDistanciaMedia;
+//        InputsMorfo.peso_distanciaTotal = config.pesoDistanciaTotal;
+//        InputsMorfo.peso_total_obj_visto = config.pesoTotalObjVisto;
+//        InputsMorfo.peso_total_predio_visto = config.pesoTotalPredioVisto;
+//        InputsMorfo.peso_total_rua_visto = config.pesoTotalRuaVisto;
+//        InputsMorfo.peso_total_profundidade_rua = config.pesoProfundidadeRua;
+
+        DistanciaObjetos = config.distanciaAdjacencia;
+        QtdVizinhanca = (int)config.totalVizinhos;
+    }
     public void CA_IniciarControle()
     {
         if (tracking)
@@ -281,7 +341,7 @@ public class ControleAglomeracao : MonoBehaviour
         contadorlugar = 0;
         Debug.Log("CA| total lugares: " + lugaresAtivos.Count);
 
-        ajusteterreno.redefinirTerreno(InputsMorfo.input_totalCasas);
+        ajusteterreno.redefinirTerreno(configuracaoAtual.totalCasas, configuracaoAtual.distanciaAdjacencia);
 
 //        ajustecamera.AdjustCameraToFitAllObjects();
 //        GameObject.Find("Main Camera").GetComponent<ajusteCamera>().AdjustCameraToFitAllObjects();
@@ -303,7 +363,7 @@ public class ControleAglomeracao : MonoBehaviour
         botoes_Gerente.b_atribuirParametros.interactable = false;
 
         ///recuperando de inputo valor escrito na entrada de total de espacos a construir
-        int quantidade = InputsMorfo.input_totalCasas;// 0;
+        int quantidade = configuracaoAtual.totalCasas; //InputsMorfo.input_totalCasas;// 0;
 
         ///redefinicao do tamanho do terreno para acomodar toda a "cidade"////////////////////
 //        this.GetComponent<ajusteTerreno>().redefinirTerreno(quantidade);
@@ -336,7 +396,7 @@ public class ControleAglomeracao : MonoBehaviour
 //        if (!InputsMorfo.boolModoRandom && !InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "aleatorio"; }
 //        if (InputsMorfo.boolModoRandom) { Tipo_Localizacao = "aleatorio"; }
 //        if (InputsMorfo.boolModoRandom && InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "isoplace"; }
-        if (InputsMorfo.boolModoIsovista) { Tipo_Localizacao = "isoplace"; }
+        if (configuracaoAtual.modoIsovista /*InputsMorfo.boolModoIsovista*/) { Tipo_Localizacao = "isoplace"; }
 
         ////////////fazer contorno para casos de os 2 selecionados ou nenhum selecionado
         GameObject go1 = Instantiate(vizinhoPossivel, pos_central, Quaternion.identity);
@@ -351,7 +411,7 @@ public class ControleAglomeracao : MonoBehaviour
         Debug.Log(string.Join(", ", livroCelulas));
         ///////////////////////////////////////////////////////////////////////////////
 
-        if (InputsMorfo.boolGravarImagens) 
+        if (configuracaoAtual.gravarImagens /*InputsMorfo.boolGravarImagens*/) 
             salvarImagens.inicializarImagens();
 
         
@@ -381,7 +441,8 @@ public class ControleAglomeracao : MonoBehaviour
             Tpredios.text = Geral_novosPrediosConstruidos.Count.ToString();
             Truas.text = Geral_novosPrediosRuas.Count.ToString();
 
-            if (InputsMorfo.boolGravarImagens)
+            if (configuracaoAtual.gravarImagens /*InputsMorfo.boolGravarImagens*/)
+//          if (InputsMorfo.boolGravarImagens)
             {
                 yield return StartCoroutine(salvarImagens.FotoTela("zena completa" + ContadorRodadas, ScreenshotSaver.MomentoImagem.predioAdicionado));
             }
@@ -401,7 +462,7 @@ public class ControleAglomeracao : MonoBehaviour
         }
 
         Debug.Log("valor do apenas imagem final: " + InputsMorfo.boolApenasImagemFinal);
-        if (InputsMorfo.boolApenasImagemFinal)
+        if (configuracaoAtual.apenasImagemFinal)// InputsMorfo.boolApenasImagemFinal)
         {
             string nomeFinal = string.IsNullOrEmpty(nomeTesteAtual)
                 ? "final_" + ContadorRodadas
@@ -430,7 +491,8 @@ public class ControleAglomeracao : MonoBehaviour
 
 
 
-        if (InputsMorfo.boolGravarImagens && salvarImagens.TemImagens())
+        if (configuracaoAtual.gravarImagens && salvarImagens.TemImagens())
+//        if (InputsMorfo.boolGravarImagens && salvarImagens.TemImagens())
         {
             botoes_Gerente.downloadImagens.interactable = true;
         }
@@ -544,17 +606,51 @@ public class ControleAglomeracao : MonoBehaviour
 
     }
 
-    public IEnumerator CA_RodarTesteConfiguracao(int quantidade, string nomeTeste)
+    public IEnumerator CA_RodarTesteConfiguracao(Configuracoes config, string nomeTeste)
     {
         nomeTesteAtual = nomeTeste;
 
+        CA_AplicarConfiguracao(config);
         CA_IniciarControle();
 
         yield return new WaitForEndOfFrame();
 
-        yield return StartCoroutine(CA_criaLugares(quantidade));
+        yield return StartCoroutine(CA_criaLugares(config.totalCasas));
 
         nomeTesteAtual = "";
+    }
+
+    public IEnumerator CA_RodarTesteConfiguracao(int quantidade, string nomeTeste)
+    {
+        Configuracoes config = new Configuracoes
+        {
+            totalCasas = quantidade,
+            totalVizinhos = InputsMorfo.input_totalVizinhos,
+            distanciaAdjacencia = InputsMorfo.input_distanciaAdjacencia,
+            distanciaRegional = InputsMorfo.input_distanciaRegional,
+            distanciaCampoVisao = InputsMorfo.input_distanciaCampoVisao,
+
+            ruaMaisUm = InputsMorfo.boolRuaMaisUm,
+            modoRandom = InputsMorfo.boolModoRandom,
+            modoIsovista = InputsMorfo.boolModoIsovista,
+            modoIsoObj = InputsMorfo.boolModoIsoObj,
+            preservaIso = InputsMorfo.boolModoPreservaIso,
+            preservaProfundidade = InputsMorfo.boolModoPreservaProfundidade,
+
+            gravarImagens = InputsMorfo.boolGravarImagens,
+            apenasImagemFinal = InputsMorfo.boolApenasImagemFinal,
+
+            pesoDistanciaMaxima = InputsMorfo.peso_distanciaMaxima,
+            pesoDistanciaMinima = InputsMorfo.peso_distanciaMinima,
+            pesoDistanciaMedia = InputsMorfo.peso_distanciaMedia,
+            pesoDistanciaTotal = InputsMorfo.peso_distanciaTotal,
+            pesoTotalObjVisto = InputsMorfo.peso_total_obj_visto,
+            pesoTotalPredioVisto = InputsMorfo.peso_total_predio_visto,
+            pesoTotalRuaVisto = InputsMorfo.peso_total_rua_visto,
+            pesoProfundidadeRua = InputsMorfo.peso_total_profundidade_rua
+        };
+
+        yield return StartCoroutine(CA_RodarTesteConfiguracao(config, nomeTeste));
     }
 
 

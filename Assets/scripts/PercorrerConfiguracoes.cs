@@ -5,26 +5,19 @@ using UnityEngine;
 public class PercorrerConfiguracoes : MonoBehaviour
 {
     public ControleAglomeracao gerente;
-    public int quantidadeCasas = 10;
+    public int quantidadeCasas = 200;
+    public float totalVizinhos = 4f;
+    public float distanciaAdjacencia = 2f;
+    public float distanciaRegional = 5.5f;
     public bool rodarAoIniciar = false;
 
-    struct ConfigTeste
+    struct TesteSimulacao
     {
         public string nome;
-
-        public bool random;
-        public bool isovista;
-        public bool isoOnlyObj;
-        public bool preservaIso;
-        public bool preservaProfundidade;
-
-        public float distMax;
-        public float area;
-        public float objetos;
-        public float predios;
-        public float ruas;
-        public float profundidade;
+        public ControleAglomeracao.Configuracoes config;
     }
+
+    delegate void ConfigurarPeso(ref ControleAglomeracao.Configuracoes config);
 
     void Start()
     {
@@ -42,19 +35,26 @@ public class PercorrerConfiguracoes : MonoBehaviour
 
     IEnumerator RodarTestes()
     {
-        List<ConfigTeste> testes = CriarTestes();
+        if (gerente == null)
+            gerente = ControleAglomeracao.Instance;
+
+        if (gerente == null)
+        {
+            Debug.LogError("PercorrerConfiguracoes: gerente nao encontrado.");
+            yield break;
+        }
+
+        List<TesteSimulacao> testes = CriarTestes();
         string sessao = System.DateTime.Now.ToString("yyyy MM dd_HH mm ss");
         float inicioTotal = Time.realtimeSinceStartup;
 
-        foreach (ConfigTeste teste in testes)
+        foreach (TesteSimulacao teste in testes)
         {
             float inicioTeste = Time.realtimeSinceStartup;
-            AplicarConfiguracao(teste);
-
             string nomeTesteComHora = teste.nome + "_" + sessao;
 
             yield return StartCoroutine(
-                gerente.CA_RodarTesteConfiguracao(quantidadeCasas, nomeTesteComHora)
+                gerente.CA_RodarTesteConfiguracao(teste.config, nomeTesteComHora)
             );
 
             float duracaoTeste = Time.realtimeSinceStartup - inicioTeste;
@@ -81,71 +81,106 @@ public class PercorrerConfiguracoes : MonoBehaviour
         );
     }
 
-    List<ConfigTeste> CriarTestes()
+    List<TesteSimulacao> CriarTestes()
     {
-        List<ConfigTeste> testes = new List<ConfigTeste>();
+        List<TesteSimulacao> testes = new List<TesteSimulacao>();
 
         int indiceTeste = 1;
 
-        testes.Add(new ConfigTeste
+        AdicionarTesteIso(testes, ref indiceTeste, "dmax-obj-pred-rua-prof_pres10", (ref ControleAglomeracao.Configuracoes config) =>
         {
-            nome = NomeTeste(indiceTeste++, "random_all"),
-            random = true,
-            isovista = false,
-            isoOnlyObj = false,
-            preservaIso = false,
-            preservaProfundidade = false
+            AplicarPesos(ref config, 1f, 0f, 1f, 1f, 1f, 1f);
+            config.preservaIso = true;
+            config.preservaProfundidade = false;
         });
 
-        testes.Add(new ConfigTeste
+        AdicionarTesteIso(testes, ref indiceTeste, "dmax-rua-prof_pres00", (ref ControleAglomeracao.Configuracoes config) =>
         {
-            nome = NomeTeste(indiceTeste++, "random_obj"),
-            random = true,
-            isovista = false,
-            isoOnlyObj = true,
-            preservaIso = false,
-            preservaProfundidade = false
+            AplicarPesos(ref config, 1f, 0f, 0f, 0f, 1f, 1f);
+            config.preservaIso = false;
+            config.preservaProfundidade = false;
         });
 
-        for (int mascara = 1; mascara < 63; mascara++)
+        AdicionarTesteIso(testes, ref indiceTeste, "obj-pred_pres01", (ref ControleAglomeracao.Configuracoes config) =>
         {
-            if (mascara == 63)
-                continue;
-
-            bool distMax = (mascara & 1) != 0;
-            bool area = (mascara & 2) != 0;
-            bool objetos = (mascara & 4) != 0;
-            bool predios = (mascara & 8) != 0;
-            bool ruas = (mascara & 16) != 0;
-            bool profundidade = (mascara & 32) != 0;
-
-            string nomePesos = NomePesos(distMax, area, objetos, predios, ruas, profundidade);
-
-            for (int preservacao = 0; preservacao < 4; preservacao++)
-            {
-                bool preservaIso = (preservacao & 1) != 0;
-                bool preservaProfundidade = (preservacao & 2) != 0;
-                string nomePreservacao = NomePreservacao(preservaIso, preservaProfundidade);
-
-                testes.Add(new ConfigTeste
-                {
-                    nome = NomeTeste(indiceTeste++, "iso_" + nomePesos + nomePreservacao),
-                    random = false,
-                    isovista = true,
-                    isoOnlyObj = true,
-                    preservaIso = preservaIso,
-                    preservaProfundidade = preservaProfundidade,
-                    distMax = distMax ? 1f : 0f,
-                    area = area ? 1f : 0f,
-                    objetos = objetos ? 1f : 0f,
-                    predios = predios ? 1f : 0f,
-                    ruas = ruas ? 1f : 0f,
-                    profundidade = profundidade ? 1f : 0f
-                });
-            }
-        }
+            AplicarPesos(ref config, 0f, 0f, 1f, 1f, 0f, 0f);
+            config.preservaIso = false;
+            config.preservaProfundidade = true;
+        });
 
         return testes;
+    }
+
+    void AplicarPesos(
+        ref ControleAglomeracao.Configuracoes config,
+        float distMax,
+        float area,
+        float objetos,
+        float predios,
+        float ruas,
+        float profundidade
+    )
+    {
+        config.pesoDistanciaMaxima = distMax;
+        config.pesoDistanciaTotal = area;
+        config.pesoTotalObjVisto = objetos;
+        config.pesoTotalPredioVisto = predios;
+        config.pesoTotalRuaVisto = ruas;
+        config.pesoProfundidadeRua = profundidade;
+    }
+
+    void AdicionarTesteIso(
+        List<TesteSimulacao> testes,
+        ref int indiceTeste,
+        string nomePeso,
+        ConfigurarPeso configurarPeso
+    )
+    {
+        ControleAglomeracao.Configuracoes config = CriarConfiguracaoBase();
+        configurarPeso(ref config);
+
+        testes.Add(new TesteSimulacao
+        {
+            nome = NomeTeste(indiceTeste++, "iso_" + nomePeso),
+            config = config
+        });
+    }
+
+    ControleAglomeracao.Configuracoes CriarConfiguracaoBase()
+    {
+        return new ControleAglomeracao.Configuracoes
+        {
+            totalCasas = quantidadeCasas,
+            totalVizinhos = totalVizinhos,
+            distanciaAdjacencia = distanciaAdjacencia,
+            distanciaRegional = distanciaRegional,
+            distanciaCampoVisao = CalcularDiametroCampoVisao(quantidadeCasas, distanciaAdjacencia),
+
+            ruaMaisUm = true,
+            modoRandom = false,
+            modoIsovista = true,
+            modoIsoObj = true,
+            preservaIso = false,
+            preservaProfundidade = false,
+
+            gravarImagens = true,
+            apenasImagemFinal = true,
+
+            pesoDistanciaMaxima = 0f,
+            pesoDistanciaMinima = 0f,
+            pesoDistanciaMedia = 0f,
+            pesoDistanciaTotal = 0f,
+            pesoTotalObjVisto = 0f,
+            pesoTotalPredioVisto = 0f,
+            pesoTotalRuaVisto = 0f,
+            pesoProfundidadeRua = 0f
+        };
+    }
+
+    float CalcularDiametroCampoVisao(int totalCasas, float distanciaEntreCasas)
+    {
+        float areaAproximada = totalCasas * distanciaEntreCasas * distanciaEntreCasas;
+        return 2f * Mathf.Sqrt(areaAproximada / Mathf.PI);
     }
 
     string NomeTeste(int indice, string descricao)
@@ -153,58 +188,28 @@ public class PercorrerConfiguracoes : MonoBehaviour
         return "T" + indice.ToString("D3") + "_" + descricao;
     }
 
-    string NomePesos(bool distMax, bool area, bool objetos, bool predios, bool ruas, bool profundidade)
+    string NomePesos(float distMax, float area, float objetos, float predios, float ruas, float profundidade)
     {
         List<string> partes = new List<string>();
 
-        if (distMax) partes.Add("dmax");
-        if (area) partes.Add("area");
-        if (objetos) partes.Add("obj");
-        if (predios) partes.Add("pred");
-        if (ruas) partes.Add("rua");
-        if (profundidade) partes.Add("prof");
+        AdicionarPeso(partes, "dmax", distMax);
+        AdicionarPeso(partes, "area", area);
+        AdicionarPeso(partes, "obj", objetos);
+        AdicionarPeso(partes, "pred", predios);
+        AdicionarPeso(partes, "rua", ruas);
+        AdicionarPeso(partes, "prof", profundidade);
 
         return string.Join("-", partes);
     }
 
-    string NomePreservacao(bool preservaIso, bool preservaProfundidade)
+    void AdicionarPeso(List<string> partes, string nome, float valor)
     {
-        if (!preservaIso && !preservaProfundidade)
-            return "";
+        if (valor == 0f)
+            return;
 
-        string nome = "_pres";
-
-        if (preservaIso)
-            nome += "-iso";
-
-        if (preservaProfundidade)
-            nome += "-prof";
-
-        return nome;
-    }
-
-    void AplicarConfiguracao(ConfigTeste c)
-    {
-        InputsMorfo.input_totalCasas = quantidadeCasas;
-
-        InputsMorfo.boolRuaMaisUm = true;
-
-        InputsMorfo.boolModoRandom = c.random;
-        InputsMorfo.boolModoIsovista = c.isovista;
-        InputsMorfo.boolModoIsoObj = c.isoOnlyObj;
-        InputsMorfo.boolModoPreservaIso = c.preservaIso;
-        InputsMorfo.boolModoPreservaProfundidade = c.preservaProfundidade;
-
-        InputsMorfo.boolGravarImagens = true;
-        InputsMorfo.boolApenasImagemFinal = true;
-
-        InputsMorfo.peso_distanciaMaxima = c.distMax;
-        InputsMorfo.peso_distanciaMinima = 0f;
-        InputsMorfo.peso_distanciaMedia = 0f;
-        InputsMorfo.peso_distanciaTotal = c.area;
-        InputsMorfo.peso_total_obj_visto = c.objetos;
-        InputsMorfo.peso_total_predio_visto = c.predios;
-        InputsMorfo.peso_total_rua_visto = c.ruas;
-        InputsMorfo.peso_total_profundidade_rua = c.profundidade;
+        if (valor == 0.5f)
+            partes.Add(nome + "05");
+        else if (valor == 1f)
+            partes.Add(nome);
     }
 }

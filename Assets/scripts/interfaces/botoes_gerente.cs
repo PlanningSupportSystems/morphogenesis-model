@@ -58,7 +58,7 @@ public class botoes_gerente : MonoBehaviour
         b_atribuirParametros.interactable = true;
         b_gerarAglomeracao.interactable = true;
         b_apagar.interactable = false;
-        inputsMorfo.IM_AtribuirCasas();
+//        inputsMorfo.IM_AtribuirCasas();
         inputsMorfo.IM_BotaoConfigurar();
 
     }
@@ -68,8 +68,10 @@ public class botoes_gerente : MonoBehaviour
         b_atribuirParametros.interactable = false;
         b_gerarAglomeracao.interactable = false;
         //        b_apagar.interactable = true;
-        gerenteAmbiente.CriarAglomeracao();
 
+        inputsMorfo.IM_CarregarConfig();
+
+        gerenteAmbiente.CriarAglomeracao();
     }
 
     public void Botao_Apagar()
@@ -80,6 +82,7 @@ public class botoes_gerente : MonoBehaviour
         downloadImagens.interactable = false;
 
         gerenteAmbiente.CA_IniciarControle();
+        inputsMorfo.iDistanciaCampoVisao.GetComponent<Slider>().interactable = false;
     }
 
     public void DownloadImagens()

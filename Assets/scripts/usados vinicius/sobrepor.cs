@@ -5,6 +5,7 @@ using UnityEngine;
 public static class sobrepor
 {
     // Método para verificar colisão com prefabs existentes
+    
 
     public static bool SP_SeEhPosicaoVazia(Vector3 endereco_teste, Vector3 half_extents)
     {
@@ -37,16 +38,19 @@ public static class sobrepor
             Debug.Log("tracking SP_Vizinhanca");
         }
         
+        ControleAglomeracao.Configuracoes config = ControleAglomeracao.Instance.configuracaoAtual;
         //        vizinhosParaChecar.Clear();
         List<Vector3> vizinhanca = new List<Vector3>();
         //        Debug.Log("PREDIOS| local totalVizinhosPossiveis: " + totalVizinhosPossiveis);
-        float _passo_angulo = (360 / (int)InputsMorfo.input_totalVizinhos) * Mathf.Deg2Rad;
+//        float _passo_angulo = (360 / (int)InputsMorfo.input_totalVizinhos) * Mathf.Deg2Rad;
+        float _passo_angulo = (360 / (int)config.totalVizinhos) * Mathf.Deg2Rad;
 
-        for (int i = 0; i < InputsMorfo.input_totalVizinhos; i++)
+//        for (int i = 0; i < InputsMorfo.input_totalVizinhos; i++)
+        for (int i = 0; i < config.totalVizinhos; i++)
         {
             float angulo = _passo_angulo * i;
-            float _x = Mathf.Cos(angulo) * InputsMorfo.input_distanciaAdjacencia;
-            float _z = Mathf.Sin(angulo) * InputsMorfo.input_distanciaAdjacencia;
+            float _x = Mathf.Cos(angulo) * config.distanciaAdjacencia; // InputsMorfo.input_distanciaAdjacencia;
+            float _z = Mathf.Sin(angulo) * config.distanciaAdjacencia; // InputsMorfo.input_distanciaAdjacencia;
             //            _endereco_ref += new Vector3(_x, 0, _z);
 
             vizinhanca.Add(_endereco_ref + new Vector3(_x, 0, _z));

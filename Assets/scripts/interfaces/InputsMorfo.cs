@@ -9,7 +9,7 @@ using System;
 public class InputsMorfo : MonoBehaviour
 {
     ControleAglomeracao gerenteAmbiente;
-    private int ultimoCicloTempoAplicado = -1;
+//    private int ultimoCicloTempoAplicado = -1;
 
 
     public static bool tracking = false;
@@ -138,7 +138,6 @@ public class InputsMorfo : MonoBehaviour
 
     [SerializeField] private Text isoDistPonderada;
     public static Text IM_lugares_texto_Iso_Distancia_Ponderada; //Text IM_lugares_texto_Iso_Distancia_Ponderada = GameObject.Find("Valor_Media_Ponderada").GetComponent<Text>();
-
 
     private void tamanhoprefab()
     {
@@ -430,38 +429,6 @@ void IM_SetarValores()
     /// <summary>
     /// carrega o valor total de casas e atualiza o tamanho do mapa para acomodar
     /// </summary>
-    public void IM_AtribuirCasas()
-    {
-        if (tracking)
-        {
-            Debug.Log("tracking IM_AtribuirCasas");
-        }
-
-        boolRuaMaisUm = toggleRuaMaisUm.isOn;
-
-//        Debug.Log(boolVizinhanca);
-
-        boolModoIsovista = toggleModoIsovista.isOn;
-        boolModoRandom = toggleModoRandom.isOn;
-        //        Debug.Log("modo rua +1: " + boolRuaMaisUm + ", modo isovista: " + boolModoIsovista + ", modo random: " + boolModoRandom);
-        boolModoIsoObj = toggleModoIsoObj.isOn;
-        boolModoPreservaIso = toggleModoPreservaIso.isOn;
-        boolModoPreservaProfundidade = toggleModoPreservaProfundidade.isOn;
-        boolGravarImagens = toggleGravarImagens.isOn;
-        boolApenasImagemFinal = toggleApenasImagemFinal.isOn;
-
-        vTotalCasas.text = itotalCasas.text;
-        input_totalCasas = int.Parse(vTotalCasas.text);
-
-        //dimensiona mapa (totalCasas);
-        terreno.GetComponent<ajusteTerreno>().redefinirTerreno(input_totalCasas);
-        //        terreno.GetComponent<levelgenerator>().iniciaMapa();
-
-        //        terreno.GetComponent<ControleAglomeracao>().CA_IniciarControle();
-        gerenteAmbiente.CA_IniciarControle();//  .GetComponent<ControleAglomeracao>().CA_IniciarControle();
-        gerarAglomeracao.interactable = true;
-    }
-
     public void IM_BotaoConfigurar()
     {
         //        Debug.Log("botao configurar, total de vizinhos:" + input_totalVizinhos);
@@ -475,7 +442,19 @@ void IM_SetarValores()
         vDistanciaAdjacencia.text = input_distanciaAdjacencia.ToString();
         vDistanciaRegional.text = input_distanciaRegional.ToString();
         vDistanciaCampoVisao.text = input_distanciaCampoVisao.ToString();
-//        terreno.GetComponent<ControleAglomeracao>().CAAtualizaValoresInput();
+
+        //        terreno.GetComponent<ControleAglomeracao>().CAAtualizaValoresInput();
+
+        gerenteAmbiente.CA_AplicarConfiguracao(IM_ConsolidarConfig());
+        gerenteAmbiente.CA_IniciarControle();//  .GetComponent<ControleAglomeracao>().CA_IniciarControle();
+//        gerarAglomeracao.interactable = true;
+            
+        iDistanciaCampoVisao.GetComponentInChildren<Slider>().interactable = true;
+    }
+
+    public void IM_CarregarConfig()
+    {
+        gerenteAmbiente.CA_AplicarConfiguracao(IM_ConsolidarConfig());
     }
 
     public void IM_ConfigurarSliderTempo(int rodadaMaxima)
@@ -512,7 +491,7 @@ void IM_SetarValores()
         }
 
         input_tempo = 0;
-        ultimoCicloTempoAplicado = 0;
+//        ultimoCicloTempoAplicado = 0;
     }
 
     void IM_AplicarTempo(float novaVar, string varAtualizado)
@@ -536,4 +515,44 @@ void IM_SetarValores()
         gerenteAmbiente.CA_NavegarTempo(ciclo);
     }
 
+    public ControleAglomeracao.Configuracoes IM_ConsolidarConfig()
+    {
+        ControleAglomeracao.Configuracoes config = new ControleAglomeracao.Configuracoes
+        {
+
+            totalCasas = int.Parse(itotalCasas.text),
+            totalVizinhos = input_totalVizinhos,
+            distanciaAdjacencia = input_distanciaAdjacencia,
+            distanciaRegional = input_distanciaRegional,
+            distanciaCampoVisao = input_distanciaCampoVisao,
+
+            ruaMaisUm = toggleRuaMaisUm.isOn,
+            modoRandom = toggleModoRandom.isOn,
+            modoIsovista = toggleModoIsovista.isOn,
+            modoIsoObj = toggleModoIsoObj.isOn,
+            preservaIso = toggleModoPreservaIso.isOn,
+            preservaProfundidade = toggleModoPreservaProfundidade.isOn,
+            gravarImagens = toggleGravarImagens.isOn,
+            apenasImagemFinal = toggleApenasImagemFinal.isOn,
+
+            pesoDistanciaMaxima = peso_distanciaMaxima,
+            pesoDistanciaMinima = peso_distanciaMinima,
+            pesoDistanciaMedia = peso_distanciaMedia,
+            pesoDistanciaTotal = peso_distanciaTotal,
+            pesoTotalObjVisto = peso_total_obj_visto,
+            pesoTotalPredioVisto = peso_total_predio_visto,
+            pesoTotalRuaVisto = peso_total_rua_visto,
+            pesoProfundidadeRua = peso_total_profundidade_rua
+        };
+
+        Debug.Log(
+    $"IM_ConsolidarConfig | " +
+    $"totalCasas={config.totalCasas}, " +
+    $"totalVizinhos={config.totalVizinhos}, " +
+    $"distanciaAdjacencia={config.distanciaAdjacencia}, " +
+    $"distanciaRegional={config.distanciaRegional}, " +
+    $"distanciaCampoVisao={config.distanciaCampoVisao}"
+);
+        return config;
+    }
 }

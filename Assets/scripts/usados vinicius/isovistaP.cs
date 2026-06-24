@@ -226,7 +226,7 @@ public class IsovistaP
 
     public int I_CalcularQtdRaios(Renderer objReferencia_T)
     {
-        float raioVisao = InputsMorfo.input_distanciaCampoVisao;
+        float raioVisao = ControleAglomeracao.Instance.configuracaoAtual.distanciaCampoVisao; // InputsMorfo.input_distanciaCampoVisao;
         Vector3 tamanho_EspacoConstruido_Vector;
 
         Renderer rend = objReferencia_T;// GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
@@ -618,7 +618,7 @@ public class IsovistaP
         {
             case FinalRaioIsovista.Vazio:
                 angulosLivres.Add(_raio_graus);//    angulosUsados.Add(_raio_graus);
-                if (!InputsMorfo.boolModoIsoObj)
+                if (!ControleAglomeracao.Instance.configuracaoAtual.modoIsoObj)//  InputsMorfo.boolModoIsoObj)
                 {
                     _verticesIsovista.Add(pontoNaCircunferencia); //_verticesIsovista.Add(hitInfo.point);
                 }

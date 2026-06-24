@@ -18,7 +18,7 @@ public class lugar : MonoBehaviour, ISelecionavel
     public int? indiceBloqueio = null;
     public int contagem = 0;
 
-    public Celula minhaCelula;
+    [System.NonSerialized] public Celula minhaCelula;
     [SerializeField] public string enderecoCelula;
     //propriedades relativas interface ISelecionavel
     public bool EstaSelecionado { get; set; }
@@ -26,7 +26,7 @@ public class lugar : MonoBehaviour, ISelecionavel
     GameObject _propriedades_L;// = GameObject.Find("propriedades_lugar_alocado");
 
 
-    private float meio_EspacoConstruido = default;
+//    private float meio_EspacoConstruido = default;
     private Vector3 meio_EspacoConstruido_Vector = default;
     public Vector3 _endereco = default;
     public string _nome;
@@ -148,7 +148,7 @@ public class lugar : MonoBehaviour, ISelecionavel
 
     int CalcularQtdRaios()
     {
-        float raioVisao = InputsMorfo.input_distanciaCampoVisao;
+        float raioVisao = GerenteAmbiente.configuracaoAtual.distanciaCampoVisao;// InputsMorfo.input_distanciaCampoVisao;
         Vector3 tamanho_EspacoConstruido_Vector;
 
         Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
@@ -174,20 +174,20 @@ public class lugar : MonoBehaviour, ISelecionavel
                       $"tamanhoVec={tamanho_EspacoConstruido_Vector}, " +
                       $"tamanhoCelula={tamanhoCelula:F2}, " +
                       $"espacamentoDesejado={espacamentoDesejado:F2}, " +
-                      $"qtdCalculada={qtd}, qtdClampada={Mathf.Clamp(qtd, 36, 360)}");
+                      $"qtdCalculada={qtd}, qtdClampada={Mathf.Clamp(qtd, 36, 720)}");
         }
         debug_lugar = false;
 
-        return Mathf.Clamp(qtd, 36, 360);
+        return Mathf.Clamp(qtd, 36, 720);
     }
     public IsovistaP L_CalculeIsovistas(LayerMask _templayer)
     {
 
         Renderer rend = GerenteAmbiente.espacoConstruido.GetComponent<Renderer>();
 
-        int totalRaios = 360;// CalcularQtdRaios();
+        int totalRaios = CalcularQtdRaios();
         ///substituir valores para raio_de_visao
-        iso = new IsovistaP(_endereco, totalRaios, InputsMorfo.input_distanciaCampoVisao, _templayer);
+        iso = new IsovistaP(_endereco, totalRaios, GerenteAmbiente.configuracaoAtual.distanciaCampoVisao/*InputsMorfo.input_distanciaCampoVisao*/, _templayer);
         iso.CampoVisao();
 
         if (debug_lugar)
@@ -210,15 +210,31 @@ public class lugar : MonoBehaviour, ISelecionavel
     {
         float soma = 0f;
         float somaPesos = 0f;
+        
 
-        AcumularPonderacao("distMax", iso.medidasNormalizadas.distanciaMaxima, InputsMorfo.peso_distanciaMaxima, ref soma, ref somaPesos);
-        AcumularPonderacao("distMin", iso.medidasNormalizadas.distanciaMinima, InputsMorfo.peso_distanciaMinima, ref soma, ref somaPesos);
-        AcumularPonderacao("distMedia", iso.medidasNormalizadas.distanciaMedia, InputsMorfo.peso_distanciaMedia, ref soma, ref somaPesos);
-        AcumularPonderacao("objVisto", iso.medidasNormalizadas.totalObjVisto, InputsMorfo.peso_total_obj_visto, ref soma, ref somaPesos);
-        AcumularPonderacao("predio", iso.medidasNormalizadas.totalPrediosVistos, InputsMorfo.peso_total_predio_visto, ref soma, ref somaPesos);
-        AcumularPonderacao("rua", iso.medidasNormalizadas.totalRuasVistas, InputsMorfo.peso_total_rua_visto, ref soma, ref somaPesos);
-        AcumularPonderacao("profundidade rua", iso.medidasNormalizadas.ProfundidadeRua, InputsMorfo.peso_total_profundidade_rua, ref soma, ref somaPesos);
-        AcumularPonderacao("area vista", iso.medidasNormalizadas.areaIsovista, InputsMorfo.peso_distanciaTotal, ref soma, ref somaPesos);
+//        AcumularPonderacao("distMax", iso.medidasNormalizadas.distanciaMaxima, InputsMorfo.peso_distanciaMaxima, ref soma, ref somaPesos);
+        AcumularPonderacao("distMax", iso.medidasNormalizadas.distanciaMaxima, GerenteAmbiente.configuracaoAtual.pesoDistanciaMaxima, ref soma, ref somaPesos);
+
+//        AcumularPonderacao("distMin", iso.medidasNormalizadas.distanciaMinima, InputsMorfo.peso_distanciaMinima, ref soma, ref somaPesos);
+        AcumularPonderacao("distMin", iso.medidasNormalizadas.distanciaMinima, GerenteAmbiente.configuracaoAtual.pesoDistanciaMinima, ref soma, ref somaPesos);
+
+//        AcumularPonderacao("distMedia", iso.medidasNormalizadas.distanciaMedia, InputsMorfo.peso_distanciaMedia, ref soma, ref somaPesos);
+        AcumularPonderacao("distMedia", iso.medidasNormalizadas.distanciaMedia, GerenteAmbiente.configuracaoAtual.pesoDistanciaMedia , ref soma, ref somaPesos);
+
+//        AcumularPonderacao("objVisto", iso.medidasNormalizadas.totalObjVisto, InputsMorfo.peso_total_obj_visto, ref soma, ref somaPesos);
+        AcumularPonderacao("objVisto", iso.medidasNormalizadas.totalObjVisto, GerenteAmbiente.configuracaoAtual.pesoTotalObjVisto, ref soma, ref somaPesos);
+
+//        AcumularPonderacao("predio", iso.medidasNormalizadas.totalPrediosVistos, InputsMorfo.peso_total_predio_visto, ref soma, ref somaPesos);
+        AcumularPonderacao("predio", iso.medidasNormalizadas.totalPrediosVistos, GerenteAmbiente.configuracaoAtual.pesoTotalPredioVisto, ref soma, ref somaPesos);
+
+//        AcumularPonderacao("rua", iso.medidasNormalizadas.totalRuasVistas, InputsMorfo.peso_total_rua_visto, ref soma, ref somaPesos);
+        AcumularPonderacao("rua", iso.medidasNormalizadas.totalRuasVistas, GerenteAmbiente.configuracaoAtual.pesoTotalRuaVisto, ref soma, ref somaPesos);
+
+//        AcumularPonderacao("profundidade rua", iso.medidasNormalizadas.ProfundidadeRua, InputsMorfo.peso_total_profundidade_rua, ref soma, ref somaPesos);
+        AcumularPonderacao("profundidade rua", iso.medidasNormalizadas.ProfundidadeRua, GerenteAmbiente.configuracaoAtual.pesoProfundidadeRua, ref soma, ref somaPesos);
+
+//        AcumularPonderacao("area vista", iso.medidasNormalizadas.areaIsovista, InputsMorfo.peso_distanciaTotal, ref soma, ref somaPesos);
+        AcumularPonderacao("area vista", iso.medidasNormalizadas.areaIsovista, GerenteAmbiente.configuracaoAtual.pesoDistanciaTotal, ref soma, ref somaPesos);
 
         medida_geral_ponderada = (somaPesos > 0f) ? soma / somaPesos : 0f;
 

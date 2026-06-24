@@ -14,7 +14,7 @@ public class Celula
 
     public lugar lugar;
     public novoPredio novoPredio;
-    public List<Celula> vizinhosVN = new List<Celula>();
+    [System.NonSerialized] public List<Celula> vizinhosVN = new List<Celula>();
     public HashSet<Celula> vizinhosMoore = new HashSet<Celula>();
     public Dictionary<Vector2Int, Celula> vizinhosPorOffset = new Dictionary<Vector2Int, Celula>();
 

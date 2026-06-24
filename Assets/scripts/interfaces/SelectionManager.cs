@@ -6,7 +6,7 @@ public class SelectionManager : MonoBehaviour
     private Camera mainCamera;
     private JanelaMundoRender janelaMundo;
     private ClickSelect currentSelection;
-    private ClickSelect selectedGameObject;
+//    private ClickSelect selectedGameObject;
     private ISelecionavel selecaoAtual;
     private ISelecionavel clicado;
     //    private ISelecionavel selecionado;
@@ -15,7 +15,7 @@ public class SelectionManager : MonoBehaviour
     {
         mainCamera = Camera.main;
         ObterJanelaMundo();
-        selectedGameObject = null;
+//        selectedGameObject = null;
         selecaoAtual = null;
     }
 
@@ -48,46 +48,10 @@ public class SelectionManager : MonoBehaviour
 //                Debug.Log("clicado: " + clicado);
 
                 ProcessarClick();
-
-                /*
-                ClickSelect selectable = hit.collider.GetComponent<ClickSelect>();
-                if (selectable != null)
-                {
-                    // se clicar no mesmo ja selecionado -> desseleciona
-                    if (currentSelection == selectable)
-                    {
-                        currentSelection.Deselect();
-                        currentSelection = null;
-                        selectedGameObject = null;
-                    }
-                    else
-                    {
-                        // se houver um selecionado diferente, desseleciona o anterior
-                        if (currentSelection != null)
-                        {
-                            currentSelection.Deselect();
-                        }
-
-                        // seleciona o novo
-                        currentSelection = selectable;
-                        selectedGameObject = selectable;
-                        currentSelection.Select();
-                    }
-                }
-                */
             }
             else
             {
                 LimparSelecao();
-                /*
-                // clique em vazio: desseleciona atual se houver
-                if (currentSelection != null)
-                {
-                    currentSelection.Deselect();
-                    currentSelection = null;
-                    selectedGameObject = null;
-                }
-                */
             }
         }
     }
@@ -125,10 +89,6 @@ public class SelectionManager : MonoBehaviour
             selecaoAtual.Select();
         }
     }
-//    public bool TemSelecao()
-//    {
-//        return selecaoAtual != null;
-//    }
 
     public void LimparSelecao()
     {
